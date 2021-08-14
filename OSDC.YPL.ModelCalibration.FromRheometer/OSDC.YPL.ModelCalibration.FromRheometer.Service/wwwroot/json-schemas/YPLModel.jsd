@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "YPLModel",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "Tau0": {
+      "type": "number",
+      "format": "double"
+    },
+    "K": {
+      "type": "number",
+      "format": "double"
+    },
+    "n": {
+      "type": "number",
+      "format": "double"
+    },
+    "Chi2": {
+      "type": "number",
+      "format": "double"
+    },
+    "Rheogram": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/definitions/Rheogram"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Rheogram": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ShearStressStandardDeviation": {
+          "type": "number",
+          "format": "double"
+        },
+        "Measurements": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/RheometerMeasurement"
+          }
+        }
+      }
+    },
+    "RheometerMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ShearRate": {
+          "type": "number",
+          "format": "double"
+        },
+        "ShearStress": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    }
+  }
+}

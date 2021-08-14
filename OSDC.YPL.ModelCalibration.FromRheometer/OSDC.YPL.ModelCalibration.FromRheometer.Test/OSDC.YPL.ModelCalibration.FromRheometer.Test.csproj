@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OSDC.YPL.ModelCalibration.FromRheometer.JsonSD\OSDC.YPL.ModelCalibration.FromRheometer.JsonSD.csproj" />
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="dotnet run --project $(SolutionDir)\OSDC.YPL.ModelCalibration.FromRheometer.JsonSD\OSDC.YPL.ModelCalibration.FromRheometer.JsonSD.csproj&#xD;&#xA;dotnet run --project $(SolutionDir)\OSDC.YPL.ModelCalibration.FromRheometer.JsonCL\OSDC.YPL.ModelCalibration.FromRheometer.JsonCL.csproj&#xD;&#xA;" />
+  </Target>
+
+</Project>
