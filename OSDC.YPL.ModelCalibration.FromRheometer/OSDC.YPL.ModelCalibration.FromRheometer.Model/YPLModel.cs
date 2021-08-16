@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
 {
     /// <summary>
-    /// Description of a Yield Power Law rheological behavior (or Herschell-Bulkley)
+    /// Description of a Yield Power Law rheological behavior (or Herschel-Bulkley)
     /// tau = Tau0 + K*gamma_dot^n
     /// </summary>
     public class YPLModel : IValuable
@@ -63,7 +63,8 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
             return Tau0 + K * System.Math.Pow(shearRate, n);
         }
         /// <summary>
-        /// Fit the YPL rheological behavior to the rheogram data using the method from Zamora 
+        /// Fit the YPL rheological behavior to the rheogram data using the method from Zamora/Kelissidis
+        /// (see https://doi.org/10.1016/j.petrol.2006.06.004)
         /// </summary>
         /// <param name="rheogram"></param>
         /// <returns>the chi-square after fitting</returns>
@@ -155,6 +156,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
         }
         /// <summary>
         /// Fit the YPL rheological behavior to the rheogram using the method from Mullineux
+        /// (see https://doi.org/10.1016/j.apm.2007.09.010)
         /// </summary>
         /// <param name="rheogram"></param>
         /// <returns>The chi-square after fitting</returns>
