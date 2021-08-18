@@ -23,7 +23,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.JsonCL
                 }
             } while (!finished);
         }
-        
+
         static async void Generate(string[] args)
         {
             string solutionRootDir = ".\\";
@@ -47,7 +47,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.JsonCL
                 sourceCodeDir = args[0];
             }
             string codeNamespace = "OSDC.YPL.ModelCalibration.FromRheometer.Test";
-    if (args != null && args.Length >= 2 && !string.IsNullOrEmpty(args[1]))
+            if (args != null && args.Length >= 2 && !string.IsNullOrEmpty(args[1]))
             {
                 codeNamespace = args[1];
             }

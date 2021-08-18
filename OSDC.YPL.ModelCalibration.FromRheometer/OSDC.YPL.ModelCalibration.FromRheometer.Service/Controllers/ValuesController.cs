@@ -8,7 +8,7 @@ using OSDC.YPL.ModelCalibration.FromRheometer.Model;
 namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Controllers
 {
     [Produces("application/json")]
-    [Route("api/[controller]")]
+    [Route("YPLCalibrationFromRheometer/api/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase
     {

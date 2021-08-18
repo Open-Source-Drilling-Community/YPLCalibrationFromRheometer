@@ -11,13 +11,18 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
     {
         static void Main(string[] args)
         {
-            Test();
+            Test(args);
         }
 
-        static async void Test()
+        static async void Test(string[] args)
         {
+            string host = "http://localhost/";
+            if (args != null && args.Length >= 1)
+            {
+                host = args[0];
+            }
             HttpClient client = new HttpClient();
-            client.BaseAddress = new Uri("https://localhost:44369/api/");
+            client.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             // test #1: read the IDs

@@ -22,9 +22,9 @@ Software solution layout
 The software solutions contain:
 * A model where the actual calibration is made.
 * Unit tests to control that the implemented method works and that any later modifications do not break backward compatibility.
-* A wrapper microservice implemented as a web api server and containerized with docker. The web API can be found in api/values.
+* A wrapper microservice implemented as a web api server and containerized with docker. The web API can be found in [service]api/values.
 * An example test program to check that the container works properly.
-* The web service also provides online documentation. The online documentation can be found in api/doc.
+* The web service also provides online documentation. The online documentation can be found in [service].
 * The web service default page provide a simple web interface to access the functionalities of the web api.
 
 The development is made in C#. The projects utilize .Net Standard and therefore are compatible with both Windows, Linux and MacOS operating systems. 
@@ -43,7 +43,7 @@ The microservices are uploaded and running on a server hosted at NORCE. The serv
 Current status
 ===
 At the moment, the following calibration solutions are available:
-* Calibration of YPL steady state from Couette rheometer measurements with the methods from Zamora/Kelissidis and Mullineux: OSDC.YPL.ModelCalibration.FromRheometer.
+* Calibration of YPL steady state from Couette rheometer measurements with the methods from Zamora/Kelessidis and Mullineux: OSDC.YPL.ModelCalibration.FromRheometer.
 
 License
 ===

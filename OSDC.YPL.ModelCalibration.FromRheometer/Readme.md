@@ -23,33 +23,33 @@ command application that generate the C# classes from a Json description file. T
 Microservice Architecture
 ====
 The project **OSDC.YPL.ModelCalibration.FromRheometer.Service** is defined as a web API application. It implements the CRUD (Create, Read, Updated, Delete) API. 
-The URL of the controller is  `https://localhost:44369/api/values`.
+The URL of the controller is  `http://localhost/YPLCalibrationFromRheometer/api/values`.
 
 Get
 ---
 By sending a http get command to `https://localhost:44369/api/values`, we retrieve a Json array of the current IDs uploaded on the microservice.
 
-To retrieve the details and the calibration of the yield power law model on the associated rheogram, we send a http get command to `https://localhost:44369/api/values/5`. 
+To retrieve the details and the calibration of the yield power law model on the associated rheogram, we send a http get command to `http://localhost/api/values/5`. 
 With no additional option, the calibration is made with the Mullineux's method.
 
-However, it is also possible to pass an option. If the option is `Zamora`, the method from Zamora/Kelissidis is used. For any other option, it the method from 
-Mullineux that is used. Here is an example `https://localhost:44369/api/values/5/Zamora`.
+However, it is also possible to pass an option. If the option is `Zamora`, the method from Zamora/Kelessidis is used. For any other option, it the method from 
+Mullineux that is used. Here is an example `http://localhost/YPLCalibrationFromRheometer/api/values/5/Zamora`.
 
 With or without options, the result is a Json object that contains the parameters of the calibrated yield power law model and the associated rheogram.
 
 Post
 ---
-By sending a http post command to `https://localhost:44369/api/values`, it is possible to add a new rheogram. The rheogram data are described in a Json string.
+By sending a http post command to `http://localhost/YPLCalibrationFromRheometer/api/values`, it is possible to add a new rheogram. The rheogram data are described in a Json string.
 
 Put
 ---
-A http put command to a url containing the ID of a rheogram, e.g., `https://localhost:44369/api/values/5`, results in either updating the rheogram if it existing 
+A http put command to a url containing the ID of a rheogram, e.g., `http://localhost/YPLCalibrationFromRheometer/api/values/5`, results in either updating the rheogram if it existing 
 from before or to add it if it did not existed. The rheogram data are described in a Json string.
 
 Delete
 ---
 It is possible to delete a rheogram if you know its ID. For example to delete the rheogram having the ID 5, one send a http delete command to the following URL:  
-`https://localhost:44369/api/values/5`
+`http://localhost/YPLCalibrationFromRheometer/api/values/5`
 
 Jscon data Schemas
 ----
