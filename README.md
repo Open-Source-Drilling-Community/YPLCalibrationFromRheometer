@@ -38,7 +38,7 @@ The documentation is generated using DocFX.
 
 Microservice Availability
 ===
-The microservices are uploaded and running on a server hosted at NORCE. The server name and IP address are: ???? / ???? (the server is up and running but not yet accessible from outside NORCE).
+The microservices are uploaded and running on a server hosted at NORCE. The server name is: app.digiwells.no (the server is up and running but not yet accessible from outside NORCE).
 
 Current status
 ===
