@@ -54,8 +54,8 @@ It is possible to delete a rheogram if you know its ID. For example to delete th
 Jscon data Schemas
 ----
 The reference Json data schemas can be found in **OSDC.YPL.ModelCalibration.FromRheometer.Service\wwwroot\json-schemas**. One of the schema corresponds to 
-the rheogram and is called **Rheogram.jsd** and the schema for the yield power law model is contained in **YPLModel.jsd**. Note that the Json schema of 
-**YPLModel.jsd** contains the description of **Rheogram.jsd**.
+the rheogram and is called **Rheogram.txt** and the schema for the yield power law model is contained in **YPLModel.txt**. Note that the Json schema of 
+**YPLModel.txt** contains the description of **Rheogram.txt**.
 
 Containerization
 ---
