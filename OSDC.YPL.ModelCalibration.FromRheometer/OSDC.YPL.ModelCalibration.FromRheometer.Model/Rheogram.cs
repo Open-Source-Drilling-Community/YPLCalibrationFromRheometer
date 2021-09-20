@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
 {
@@ -13,19 +15,32 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
         /// <summary>
         /// A name for this rheogram
         /// </summary>
+        [DataType(DataType.Text)]
+        [StringLength(128,MinimumLength =3)]
         public string Name { get; set; }
         /// <summary>
         /// A description of this rheogram
         /// </summary>
+        [DataType(DataType.Text)]
         public string Description { get; set; }
         /// <summary>
         /// The standard deviation of the shear stress measurement
         /// Typically 0.25Pa for a Fann35 rheometer, 0.02Pa for an Anton Paar rheometer
         /// </summary>
-        public double ShearStressStandardDeviation { get; set; } = 0.01;
+        [Display(Name = "Shear stress measurement error (Pa)")]
+        [DisplayFormat(
+               ApplyFormatInEditMode = true,
+               DataFormatString = "{0:0.00}",
+               NullDisplayText = "")]
+        [Range(0,100)]
+        public double ShearStressStandardDeviation { 
+            get; 
+            set; 
+        } = 0.01;
         /// <summary>
         ///  The list of measurements
         /// </summary>
+        [NotMapped]
         public List<RheometerMeasurement> Measurements { get; set; } = new List<RheometerMeasurement>();
 
         /// <summary>
@@ -61,14 +76,16 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
                 }
                 else
                 {
+                    target.Name = Name;
+                    target.Description = Description;
+                    target.ShearStressStandardDeviation = ShearStressStandardDeviation;
                     if (target.Measurements == null)
                     {
                         target.Measurements = new List<RheometerMeasurement>();
                     }
-                    target.Measurements.Clear();
-                    foreach (RheometerMeasurement measurement in Measurements)
+                    for (int i = 0; i < Measurements.Count; i++)
                     {
-                        target.Measurements.Add(measurement);
+                        target.Measurements.Add(Measurements[i]);
                     }
                 }
                 return true;

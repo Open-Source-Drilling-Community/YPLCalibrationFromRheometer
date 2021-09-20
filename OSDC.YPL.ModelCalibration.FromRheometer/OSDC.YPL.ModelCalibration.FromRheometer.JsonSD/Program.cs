@@ -28,16 +28,16 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.JsonSD
                     rootDir += "..\\";
                 }
             } while (!found);
-            rootDir += "OSDC.YPL.ModelCalibration.FromRheometer.Service\\wwwroot\\json-schemas\\";
+            rootDir += "OSDC.YPL.ModelCalibration.FromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
             var rheogramSchema = JsonSchema.FromType<Rheogram>();
             var rheogramSchemaJson = rheogramSchema.ToJson();
-            using (StreamWriter writer = new StreamWriter(rootDir + "Rheogram.jsd"))
+            using (StreamWriter writer = new StreamWriter(rootDir + "Rheogram.txt"))
             {
                 writer.WriteLine(rheogramSchemaJson);
             }
             var YPLModelSchema = JsonSchema.FromType<YPLModel>();
             var YPLModelSchemaJson = YPLModelSchema.ToJson();
-            using (StreamWriter writer = new StreamWriter(rootDir + "YPLModel.jsd"))
+            using (StreamWriter writer = new StreamWriter(rootDir + "YPLModel.txt"))
             {
                 writer.WriteLine(YPLModelSchemaJson);
             }

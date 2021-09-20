@@ -16,7 +16,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
 
         static async void Test(string[] args)
         {
-            string host = "http://localhost/";
+            string host = "https://app.DigiWells.no/";
             if (args != null && args.Length >= 1)
             {
                 host = args[0];

@@ -40,7 +40,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.JsonCL
                     solutionRootDir += "..\\";
                 }
             } while (!found);
-            string jsonSchemaRootDir = solutionRootDir + "OSDC.YPL.ModelCalibration.FromRheometer.Service\\wwwroot\\json-schemas\\";
+            string jsonSchemaRootDir = solutionRootDir + "OSDC.YPL.ModelCalibration.FromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
             string sourceCodeDir = solutionRootDir + "OSDC.YPL.ModelCalibration.FromRheometer.Test\\";
             if (args != null && args.Length >= 1 && Directory.Exists(args[0]))
             {
@@ -51,7 +51,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.JsonCL
             {
                 codeNamespace = args[1];
             }
-            JsonSchema YPLModelSchema = await JsonSchema.FromFileAsync(jsonSchemaRootDir + "YPLModel.jsd");
+            JsonSchema YPLModelSchema = await JsonSchema.FromFileAsync(jsonSchemaRootDir + "YPLModel.txt");
             CSharpGeneratorSettings settings = new CSharpGeneratorSettings();
             settings.Namespace = codeNamespace;
             var YPLModelGenerator = new CSharpGenerator(YPLModelSchema, settings);

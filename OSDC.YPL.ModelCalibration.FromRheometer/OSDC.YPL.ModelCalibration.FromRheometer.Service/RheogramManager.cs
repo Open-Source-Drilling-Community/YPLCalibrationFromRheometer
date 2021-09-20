@@ -39,6 +39,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
 
             }
         }
+
         public int Count
         {
             get
@@ -61,6 +62,15 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             return true;
         }
 
+        public bool Contains(int id)
+        {
+            bool contains = false;
+            lock (lock_)
+            {
+                contains = data_.ContainsKey(id);
+            }
+            return contains;
+        }
         public List<int> GetIDs()
         {
             List<int> ids = new List<int>();
@@ -161,9 +171,17 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             double newtonianViscosity = 0.75; // Pa.s
             rheogram1.Description = "Newtonian viscosity " + newtonianViscosity.ToString("F3") + "Pa.s";
             rheogram1.ShearStressStandardDeviation = 0.01;
+            int size = 0;
+            for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
+            {
+                size++;
+            }
+            rheogram1.Measurements = new List<RheometerMeasurement>();
+            int idx = 0;
             for (double shearRate = 1.0; shearRate <= 1000.0; shearRate *= 2.0)
             {
                 rheogram1.Measurements.Add(new RheometerMeasurement(shearRate, newtonianViscosity * shearRate));
+                idx++;
             }
             Add(rheogram1);
             // a power law rheological behavior
@@ -172,11 +190,14 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             rheogram2.Name = "Power law fluid";
             double consistencyIndex = 0.75;
             double flowBehaviorIndex = 0.5;
-            rheogram2.Description = "Consistency index "+ consistencyIndex.ToString("F3") + "Pa.s^n and flow behavior index " + flowBehaviorIndex.ToString("F3");
+            rheogram2.Description = "Consistency index " + consistencyIndex.ToString("F3") + "Pa.s^n and flow behavior index " + flowBehaviorIndex.ToString("F3");
             rheogram2.ShearStressStandardDeviation = 0.01;
+            rheogram2.Measurements = new List<RheometerMeasurement>();
+            idx = 0;
             for (double shearRate = 1.0; shearRate <= 1000.0; shearRate *= 2.0)
             {
                 rheogram2.Measurements.Add(new RheometerMeasurement(shearRate, consistencyIndex * System.Math.Pow(shearRate, flowBehaviorIndex)));
+                idx++;
             }
             Add(rheogram2);
             // a Bingham plastic rheological behavior
@@ -187,9 +208,12 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             double plasticViscosity = 0.75;
             rheogram3.Description = "Yield stress " + yieldStress.ToString("F3") + "Pa and plastic viscosity " + plasticViscosity.ToString("F3") + "Pa.s";
             rheogram3.ShearStressStandardDeviation = 0.01;
+            rheogram3.Measurements = new List<RheometerMeasurement>();
+            idx = 0;
             for (double shearRate = 1.0; shearRate <= 1000.0; shearRate *= 2.0)
             {
-                rheogram3.Measurements.Add(new RheometerMeasurement(shearRate, yieldStress + plasticViscosity *shearRate));
+                rheogram3.Measurements.Add(new RheometerMeasurement(shearRate, yieldStress + plasticViscosity * shearRate));
+                idx++;
             }
             Add(rheogram3);
             // a perfect Herschel-Bulkley rheological behavior
@@ -198,9 +222,12 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             rheogram4.Name = "Herschel-bulkley fluid";
             rheogram4.Description = "Yield stress " + yieldStress.ToString("F3") + "Pa, consistency index " + consistencyIndex.ToString("F3") + "Pa.s^n and flow behavior index " + flowBehaviorIndex.ToString("F3");
             rheogram4.ShearStressStandardDeviation = 0.01;
+            rheogram4.Measurements = new List<RheometerMeasurement>();
+            idx = 0;
             for (double shearRate = 1.0; shearRate <= 1000.0; shearRate *= 2.0)
             {
                 rheogram4.Measurements.Add(new RheometerMeasurement(shearRate, yieldStress + consistencyIndex * System.Math.Pow(shearRate, flowBehaviorIndex)));
+                idx++;
             }
             Add(rheogram4);
             // a perfect Quemada rheological behavior
@@ -212,9 +239,12 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             double p = 0.4; // dimensionless
             rheogram5.Description = "Zero visosity ∞, infinite viscosity " + infiniteViscosity.ToString("F3") + "Pa.s, reference shear rate " + gammaDotC.ToString("F3") + " 1/s and flow behavior index " + p.ToString("F3");
             rheogram5.ShearStressStandardDeviation = 0.01;
+            rheogram5.Measurements = new List<RheometerMeasurement>();
+            idx = 0;
             for (double shearRate = 1.0; shearRate <= 1000.0; shearRate *= 2.0)
             {
-                rheogram5.Measurements.Add(new RheometerMeasurement(shearRate, infiniteViscosity*shearRate*System.Math.Pow((System.Math.Pow(gammaDotC, p)+System.Math.Pow(shearRate,p))/System.Math.Pow(shearRate, p),2.0)));
+                rheogram5.Measurements.Add(new RheometerMeasurement(shearRate, infiniteViscosity * shearRate * System.Math.Pow((System.Math.Pow(gammaDotC, p) + System.Math.Pow(shearRate, p)) / System.Math.Pow(shearRate, p), 2.0)));
+                idx++;
             }
             Add(rheogram5);
             // a real rheogram
@@ -223,27 +253,29 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             rheogram6.Name = "Unweighted KCl/polymer fluid at 20°C";
             rheogram6.Description = "Measured with an Anton Paar rheometer Physica MCR301. 300s shearing at 100 1/s, 30s per measurements, from high to low shear rates.";
             rheogram6.ShearStressStandardDeviation = 0.01;
-            rheogram6.Measurements.Add(new RheometerMeasurement(1, 3.2));
-            rheogram6.Measurements.Add(new RheometerMeasurement(1.26, 3.32));
-            rheogram6.Measurements.Add(new RheometerMeasurement(1.58, 3.44));
-            rheogram6.Measurements.Add(new RheometerMeasurement(2, 3.57));
-            rheogram6.Measurements.Add(new RheometerMeasurement(2.51, 3.7));
-            rheogram6.Measurements.Add(new RheometerMeasurement(3.16, 3.84));
-            rheogram6.Measurements.Add(new RheometerMeasurement(3.98, 3.99));
-            rheogram6.Measurements.Add(new RheometerMeasurement(5.01, 4.14));
-            rheogram6.Measurements.Add(new RheometerMeasurement(6.31, 4.31));
-            rheogram6.Measurements.Add(new RheometerMeasurement(7.94, 4.49));
-            rheogram6.Measurements.Add(new RheometerMeasurement(10, 4.69));
-            rheogram6.Measurements.Add(new RheometerMeasurement(12.6, 4.9));
-            rheogram6.Measurements.Add(new RheometerMeasurement(15.8, 5.13));
-            rheogram6.Measurements.Add(new RheometerMeasurement(20, 5.38));
-            rheogram6.Measurements.Add(new RheometerMeasurement(25.1, 5.66));
-            rheogram6.Measurements.Add(new RheometerMeasurement(31.6, 5.96));
-            rheogram6.Measurements.Add(new RheometerMeasurement(39.8, 6.3));
-            rheogram6.Measurements.Add(new RheometerMeasurement(50.1, 6.67));
-            rheogram6.Measurements.Add(new RheometerMeasurement(63.1, 7.09));
-            rheogram6.Measurements.Add(new RheometerMeasurement(79.4, 7.57));
-            rheogram6.Measurements.Add(new RheometerMeasurement(100, 8.1));
+            rheogram6.Measurements = new List<RheometerMeasurement>() {
+            new RheometerMeasurement(1, 3.2),
+            new RheometerMeasurement(1.26, 3.32),
+            new RheometerMeasurement(1.58, 3.44),
+            new RheometerMeasurement(2, 3.57),
+            new RheometerMeasurement(2.51, 3.7),
+            new RheometerMeasurement(3.16, 3.84),
+            new RheometerMeasurement(3.98, 3.99),
+            new RheometerMeasurement(5.01, 4.14),
+            new RheometerMeasurement(6.31, 4.31),
+            new RheometerMeasurement(7.94, 4.49),
+            new RheometerMeasurement(10, 4.69),
+            new RheometerMeasurement(12.6, 4.9),
+            new RheometerMeasurement(15.8, 5.13),
+            new RheometerMeasurement(20, 5.38),
+            new RheometerMeasurement(25.1, 5.66),
+            new RheometerMeasurement(31.6, 5.96),
+            new RheometerMeasurement(39.8, 6.3),
+            new RheometerMeasurement(50.1, 6.67),
+            new RheometerMeasurement(63.1, 7.09),
+            new RheometerMeasurement(79.4, 7.57),
+            new RheometerMeasurement(100, 8.1)
+            };
             Add(rheogram6);
         }
     }

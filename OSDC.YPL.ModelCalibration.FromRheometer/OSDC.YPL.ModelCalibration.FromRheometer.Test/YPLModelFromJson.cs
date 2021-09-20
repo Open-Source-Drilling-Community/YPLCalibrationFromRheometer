@@ -15,12 +15,14 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
         public int ID { get; set; }
     
         [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.StringLength(128, MinimumLength = 3)]
         public string Name { get; set; }
     
         [Newtonsoft.Json.JsonProperty("Description", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Description { get; set; }
     
         [Newtonsoft.Json.JsonProperty("ShearStressStandardDeviation", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 100.0D)]
         public double ShearStressStandardDeviation { get; set; }
     
         [Newtonsoft.Json.JsonProperty("Measurements", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -32,6 +34,9 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
     public partial class RheometerMeasurement 
     {
+        [Newtonsoft.Json.JsonProperty("ID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int ID { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("ShearRate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double ShearRate { get; set; }
     

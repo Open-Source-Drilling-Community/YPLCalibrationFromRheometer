@@ -9,7 +9,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
     /// an interface for things that can be copied into another object of the same class.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    interface ICopyable<T>
+    public interface ICopyable<T>
     {
         /// <summary>
         /// copy from this to target

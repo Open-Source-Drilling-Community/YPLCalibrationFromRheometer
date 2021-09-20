@@ -57,8 +57,8 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Controllers
                 model.Rheogram = rheogram;
                 switch (method)
                 {
-                    case "Zamora":
-                        model.FitToZamora(rheogram);
+                    case "Kelessidis":
+                        model.FitToKelessidis(rheogram);
                         break;
                     default:
                         model.FitToMullineux(rheogram);

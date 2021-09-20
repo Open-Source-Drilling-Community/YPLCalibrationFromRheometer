@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
 {
@@ -14,19 +15,39 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
         /// <summary>
         /// Yield stress expected in SI unit, i.e., [ML^-1T^-2](Pa)
         /// </summary>
+        [Display(Name = "Yield stress (Pa)")]
+        [DisplayFormat(
+               ApplyFormatInEditMode = false,
+               DataFormatString = "{0:0.000}",
+               NullDisplayText = "")]
         public double Tau0 { get; set; } = 0;
         /// <summary>
         /// Consistency index in SI unit, i.e., ML^-1T^(n-2)](Pa.s^n)
         /// </summary>
+        [Display(Name = "Consistency index (Pa.s^n)")]
+        [DisplayFormat(
+               ApplyFormatInEditMode = false,
+               DataFormatString = "{0:0.000}",
+               NullDisplayText = "")]
         public double K { get; set; } = 1;
         /// <summary>
         /// flow behavior index (dimensionless)
         /// </summary>
+        [Display(Name = "Flow behavior index")]
+        [DisplayFormat(
+               ApplyFormatInEditMode = false,
+               DataFormatString = "{0:0.000}",
+               NullDisplayText = "")]
         public double n { get; set; } = 1;
         /// <summary>
         /// chi-square value corresponding to fitting of the model
         /// A negative chi-square means that the value is undefined.
         /// </summary>
+        [Display(Name = "Chi-square")]
+        [DisplayFormat(
+               ApplyFormatInEditMode = false,
+               DataFormatString = "{0:0.000}",
+               NullDisplayText = "")]
         public double Chi2 { get; set; } = -1;
         /// <summary>
         /// the reference rheogram used to calibrate the rheological behavior
@@ -63,12 +84,12 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
             return Tau0 + K * System.Math.Pow(shearRate, n);
         }
         /// <summary>
-        /// Fit the YPL rheological behavior to the rheogram data using the method from Zamora/Kelissidis
+        /// Fit the YPL rheological behavior to the rheogram data using the method from Zamora/Kelessidis
         /// (see https://doi.org/10.1016/j.petrol.2006.06.004)
         /// </summary>
         /// <param name="rheogram"></param>
         /// <returns>the chi-square after fitting</returns>
-        public void FitToZamora(Rheogram rheogram)
+        public void FitToKelessidis(Rheogram rheogram)
         {
             Tau0 = 0;
             K = 1;

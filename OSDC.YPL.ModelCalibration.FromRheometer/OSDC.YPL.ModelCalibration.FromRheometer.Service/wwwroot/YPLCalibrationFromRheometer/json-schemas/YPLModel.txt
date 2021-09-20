@@ -5,18 +5,22 @@
   "additionalProperties": false,
   "properties": {
     "Tau0": {
+      "title": "Yield stress (Pa)",
       "type": "number",
       "format": "double"
     },
     "K": {
+      "title": "Consistency index (Pa.s^n)",
       "type": "number",
       "format": "double"
     },
     "n": {
+      "title": "Flow behavior index",
       "type": "number",
       "format": "double"
     },
     "Chi2": {
+      "title": "Chi-square",
       "type": "number",
       "format": "double"
     },
@@ -44,7 +48,9 @@
           "type": [
             "null",
             "string"
-          ]
+          ],
+          "maxLength": 128,
+          "minLength": 3
         },
         "Description": {
           "type": [
@@ -53,8 +59,11 @@
           ]
         },
         "ShearStressStandardDeviation": {
+          "title": "Shear stress measurement error (Pa)",
           "type": "number",
-          "format": "double"
+          "format": "double",
+          "maximum": 100.0,
+          "minimum": 0.0
         },
         "Measurements": {
           "type": [
@@ -71,11 +80,17 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "ID": {
+          "type": "integer",
+          "format": "int32"
+        },
         "ShearRate": {
+          "title": "Shear rate (1/s)",
           "type": "number",
           "format": "double"
         },
         "ShearStress": {
+          "title": "Shear stress (Pa)",
           "type": "number",
           "format": "double"
         }
