@@ -27,7 +27,7 @@ The URL of the controller is  `http://localhost/YPLCalibrationFromRheometer/api/
 
 Get
 ---
-By sending a http get command to `https://localhost:44369/api/values`, we retrieve a Json array of the current IDs uploaded on the microservice.
+By sending a http get command to `https://localhost/api/values`, we retrieve a Json array of the current IDs uploaded on the microservice.
 
 To retrieve the details and the calibration of the yield power law model on the associated rheogram, we send a http get command to `http://localhost/api/values/5`. 
 With no additional option, the calibration is made with the Mullineux's method.
