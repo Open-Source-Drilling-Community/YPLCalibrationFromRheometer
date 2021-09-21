@@ -1,7 +1,5 @@
----
-title: "Yield Power Law Model Calibration Methods"
-output: html_document
----
+Yield Power Law Model Calibration Methods
+===
 
 Objective
 ===
@@ -9,7 +7,7 @@ This repository contains micro-services to calibrate Yield Power Law rheological
 
 Scope
 ===
-The calibration methods will cover:
+The calibration methods cover:
 * calibration in steady state conditions
 * calibration in transient conditions
 
@@ -38,12 +36,17 @@ The documentation is generated using DocFX.
 
 Microservice Availability
 ===
-The microservices are uploaded and running on a server hosted at NORCE. The server name is: app.digiwells.no (the server is up and running but not yet accessible from outside NORCE).
+The microservices are uploaded and running on a server hosted at NORCE. The server name is: https://app.DigiWells.no 
+
+Containers
+===
+Container images are regularly uploaded on Docker. The utilized organization name is digiwells. 
 
 Current status
 ===
 At the moment, the following calibration solutions are available:
-* Calibration of YPL steady state from Couette rheometer measurements with the methods from Zamora/Kelessidis and Mullineux: OSDC.YPL.ModelCalibration.FromRheometer.
+* Calibration of YPL steady state from Couette rheometer measurements with the methods from Zamora/Kelessidis and Mullineux: OSDC.YPL.ModelCalibration.FromRheometer. 
+Its docker image has the following tag: digiwells/osdcyplmodelcalibrationfromrheometerservice
 
 License
 ===
