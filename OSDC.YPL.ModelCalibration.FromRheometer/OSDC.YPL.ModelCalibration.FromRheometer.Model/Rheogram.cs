@@ -11,7 +11,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
         /// <summary>
         /// An identifier to further reference the rheometer measurements set
         /// </summary>
-        public int ID { get; set; }
+        public int ID { get; set; } = -1;
         /// <summary>
         /// A name for this rheogram
         /// </summary>

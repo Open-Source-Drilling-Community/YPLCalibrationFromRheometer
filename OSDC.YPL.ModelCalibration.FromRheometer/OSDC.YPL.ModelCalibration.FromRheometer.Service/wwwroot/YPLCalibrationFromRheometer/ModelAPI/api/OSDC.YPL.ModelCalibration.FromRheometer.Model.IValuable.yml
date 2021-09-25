@@ -1,0 +1,94 @@
+### YamlMime:ManagedReference
+items:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  id: IValuable
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  children:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  langs:
+  - csharp
+  - vb
+  name: IValuable
+  nameWithType: IValuable
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  type: Interface
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/IValuable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: IValuable
+    path: IValuable.cs
+    startLine: 6
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  syntax:
+    content: public interface IValuable
+    content.vb: Public Interface IValuable
+  modifiers.csharp:
+  - public
+  - interface
+  modifiers.vb:
+  - Public
+  - Interface
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  id: Eval(System.Double)
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  langs:
+  - csharp
+  - vb
+  name: Eval(Double)
+  nameWithType: IValuable.Eval(Double)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  type: Method
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/IValuable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Eval
+    path: IValuable.cs
+    startLine: 13
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nInterface for objects which can behave like a function f: R --> R\n"
+  example: []
+  syntax:
+    content: double Eval(double x)
+    parameters:
+    - id: x
+      type: System.Double
+      description: ''
+    return:
+      type: System.Double
+      description: ''
+    content.vb: Function Eval(x As Double) As Double
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval*
+references:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  commentId: N:OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  nameWithType: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval
+  name: Eval
+  nameWithType: IValuable.Eval
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval
+- uid: System.Double
+  commentId: T:System.Double
+  parent: System
+  isExternal: true
+  name: Double
+  nameWithType: Double
+  fullName: System.Double
+- uid: System
+  commentId: N:System
+  isExternal: true
+  name: System
+  nameWithType: System
+  fullName: System

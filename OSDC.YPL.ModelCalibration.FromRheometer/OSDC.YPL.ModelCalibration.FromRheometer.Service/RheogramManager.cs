@@ -17,6 +17,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
 
         private Dictionary<int, Rheogram> data_ = new Dictionary<int, Rheogram>();
         private object lock_ = new object();
+        private Random random_ = new Random();
 
         /// <summary>
         /// default constructor is private when implementing a singleton pattern
@@ -159,6 +160,20 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             }
             return result;
         }
+
+        public int GetNextID()
+        {
+            int id = -1;
+            bool exists = false;
+            do
+            {
+                id = random_.Next();
+                exists = data_.ContainsKey(id);
+            }
+            while (exists);
+            return id;
+        }
+
         /// <summary>
         /// populate with a few default rheograms
         /// </summary>

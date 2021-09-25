@@ -16,7 +16,6 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
     {
         private readonly OSDC.YPL.ModelCalibration.FromRheometer.Data.RheometerContext _context;
 
-        private static int lastID_ = -1;
         /// <summary>
         /// an example rheometer measurement used to pick up the names of the RheometerMeasurement properties
         /// </summary>
@@ -41,10 +40,8 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
         {
             if (id == null)
             {
-                lastID_ = -1;
                 return NotFound();
             }
-            lastID_ = (int)id;
             Rheogram = RheogramManager.Instance.Get((int)id);
             if (Rheogram == null)
             {
@@ -56,6 +53,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
                 {
                     if (measurement.ID < 0)
                     {
+                        measurement.ParentID = Rheogram.ID;
                         IdentifiedObjectManager<RheometerMeasurement>.Instance.Add(measurement);
                     }
                     else
@@ -79,6 +77,15 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
             if (WorkingRheogram != null && WorkingRheogram.ID >= 0)
             {
                 RheogramManager.Instance.Update(WorkingRheogram.ID, WorkingRheogram);
+                List<int> measurementIDs = IdentifiedObjectManager<RheometerMeasurement>.Instance.GetIDs(WorkingRheogram.ID);
+                if (measurementIDs != null)
+                {
+                    // remove the measurments from the RheometerMeasurementManager as they were posted there only while editing the rheogram
+                    foreach (int id in measurementIDs)
+                    {
+                        IdentifiedObjectManager<RheometerMeasurement>.Instance.Remove(id);
+                    }
+                }
             }
 
             return RedirectToPage("./Index");

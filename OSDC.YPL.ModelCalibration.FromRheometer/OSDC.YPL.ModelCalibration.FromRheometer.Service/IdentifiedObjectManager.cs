@@ -12,7 +12,7 @@ using OSDC.YPL.ModelCalibration.FromRheometer.Model;
 namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
 {
 
-    public class IdentifiedObjectManager<T> where T : IIdentifiable, ICopyable<T>, IUndefinable, new()
+    public class IdentifiedObjectManager<T> where T : IIdentifiable, IParentIdentified, ICopyable<T>, IUndefinable, new()
     {
         private static IdentifiedObjectManager<T> instance_ = null;
 
@@ -80,6 +80,25 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
                 foreach (int key in data_.Keys)
                 {
                     ids.Add(key);
+                }
+            }
+            return ids;
+        }
+
+        public List<int> GetIDs(int parentID)
+        {
+            List<int> ids = new List<int>();
+            if (parentID >= 0)
+            {
+                lock (lock_)
+                {
+                    foreach (T dat in data_.Values)
+                    {
+                        if (dat != null && dat.ID >= 0 && dat.ParentID == parentID)
+                        {
+                            ids.Add(dat.ID);
+                        }
+                    }
                 }
             }
             return ids;
@@ -171,7 +190,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             return result;
         }
 
-        private int GetNextID()
+        public int GetNextID()
         {
             int id = -1;
             bool exists = false;

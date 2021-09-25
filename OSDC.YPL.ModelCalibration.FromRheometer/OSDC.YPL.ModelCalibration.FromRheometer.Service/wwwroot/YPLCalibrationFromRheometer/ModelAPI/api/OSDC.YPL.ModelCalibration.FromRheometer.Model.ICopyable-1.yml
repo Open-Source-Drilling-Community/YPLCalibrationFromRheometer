@@ -1,0 +1,115 @@
+### YamlMime:ManagedReference
+items:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1
+  id: ICopyable`1
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  children:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1.Copy(`0)
+  langs:
+  - csharp
+  - vb
+  name: ICopyable<T>
+  nameWithType: ICopyable<T>
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable<T>
+  type: Interface
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/ICopyable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: ICopyable
+    path: ICopyable.cs
+    startLine: 11
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nan interface for things that can be copied into another object of the same class.\n"
+  example: []
+  syntax:
+    content: public interface ICopyable<T>
+    typeParameters:
+    - id: T
+      description: ''
+    content.vb: Public Interface ICopyable(Of T)
+  nameWithType.vb: ICopyable(Of T)
+  modifiers.csharp:
+  - public
+  - interface
+  modifiers.vb:
+  - Public
+  - Interface
+  fullName.vb: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable(Of T)
+  name.vb: ICopyable(Of T)
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1.Copy(`0)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1.Copy(`0)
+  id: Copy(`0)
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1
+  langs:
+  - csharp
+  - vb
+  name: Copy(T)
+  nameWithType: ICopyable<T>.Copy(T)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable<T>.Copy(T)
+  type: Method
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/ICopyable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Copy
+    path: ICopyable.cs
+    startLine: 17
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\ncopy from this to target\n"
+  example: []
+  syntax:
+    content: bool Copy(T target)
+    parameters:
+    - id: target
+      type: '{T}'
+      description: ''
+    return:
+      type: System.Boolean
+    content.vb: Function Copy(target As T) As Boolean
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1.Copy*
+  nameWithType.vb: ICopyable(Of T).Copy(T)
+  fullName.vb: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable(Of T).Copy(T)
+references:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  commentId: N:OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  nameWithType: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1.Copy*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable`1.Copy
+  name: Copy
+  nameWithType: ICopyable<T>.Copy
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable<T>.Copy
+  nameWithType.vb: ICopyable(Of T).Copy
+  fullName.vb: OSDC.YPL.ModelCalibration.FromRheometer.Model.ICopyable(Of T).Copy
+- uid: '{T}'
+  commentId: '!:T'
+  definition: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: System.Boolean
+  commentId: T:System.Boolean
+  parent: System
+  isExternal: true
+  name: Boolean
+  nameWithType: Boolean
+  fullName: System.Boolean
+- uid: T
+  name: T
+  nameWithType: T
+  fullName: T
+- uid: System
+  commentId: N:System
+  isExternal: true
+  name: System
+  nameWithType: System
+  fullName: System

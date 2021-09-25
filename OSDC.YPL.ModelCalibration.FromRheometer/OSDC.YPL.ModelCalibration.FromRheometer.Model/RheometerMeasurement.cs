@@ -6,13 +6,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
 {
-    public class RheometerMeasurement : IIdentifiable, ICopyable<RheometerMeasurement>, IUndefinable
+    public class RheometerMeasurement : IIdentifiable, IParentIdentified, ICopyable<RheometerMeasurement>, IUndefinable, IComparer<RheometerMeasurement>
     {
-        public int ID
-        {
-            get;
-            set;
-        }
+        public int ID { get; set; } = -1;
+
+        public int ParentID { get; set; } = -1;
+
         /// <summary>
         /// The shear rate is expected in SI unit, i.e. dimension [T^-1](1/s)
         /// </summary>
@@ -81,6 +80,29 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
             ID = 0;
             ShearRate = 0;
             ShearStress = 0;
+        }
+
+        public int Compare(RheometerMeasurement x, RheometerMeasurement y)
+        {
+            if (x == null || y == null)
+            {
+                return 0;
+            }
+            else
+            {
+                if (Numeric.EQ(x.ShearRate, y.ShearRate, 1e-6))
+                {
+                    return 0;
+                }
+                else if (Numeric.GT(x.ShearRate, y.ShearRate, 1e-6))
+                {
+                    return 1;
+                }
+                else
+                {
+                    return -1;
+                }
+            }
         }
     }
 }

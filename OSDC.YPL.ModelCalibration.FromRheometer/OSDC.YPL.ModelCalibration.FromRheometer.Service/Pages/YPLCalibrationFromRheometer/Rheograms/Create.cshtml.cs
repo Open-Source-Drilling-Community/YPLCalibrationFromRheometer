@@ -13,6 +13,12 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
     public class CreateModel : PageModel
     {
         private readonly OSDC.YPL.ModelCalibration.FromRheometer.Data.RheometerContext _context;
+        /// <summary>
+        /// an example rheometer measurement used to pick up the names of the RheometerMeasurement properties
+        /// </summary>
+        public RheometerMeasurement ExampleRheometerMeasurement { get; } = new RheometerMeasurement();
+        [BindProperty]
+        public Rheogram WorkingRheogram { get; set; }
 
         public CreateModel(OSDC.YPL.ModelCalibration.FromRheometer.Data.RheometerContext context)
         {
@@ -21,11 +27,11 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
 
         public IActionResult OnGet()
         {
+            WorkingRheogram = new Rheogram();
+            WorkingRheogram.ID = RheogramManager.Instance.GetNextID();
             return Page();
         }
 
-        [BindProperty]
-        public Rheogram Rheogram { get; set; }
 
         // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
         public async Task<IActionResult> OnPostAsync()
@@ -34,11 +40,32 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
             {
                 return Page();
             }
-
-            _context.Rheogram.Add(Rheogram);
-            await _context.SaveChangesAsync();
-            RheogramManager.Instance.Add(Rheogram);
-
+            if (WorkingRheogram != null && WorkingRheogram.ID >= 0)
+            {
+                // retrieve the measurements that have been posted on the RheometerMeasurementManager
+                if (WorkingRheogram.Measurements == null)
+                {
+                    WorkingRheogram.Measurements = new List<RheometerMeasurement>();
+                }
+                WorkingRheogram.Measurements.Clear();
+                List<int> measurementIDs = IdentifiedObjectManager<RheometerMeasurement>.Instance.GetIDs(WorkingRheogram.ID);
+                if (measurementIDs != null)
+                {
+                    foreach (int id in measurementIDs)
+                    {
+                        RheometerMeasurement measurement = IdentifiedObjectManager<RheometerMeasurement>.Instance.Get(id);
+                        WorkingRheogram.Measurements.Add(measurement);
+                    }
+                    // sort
+                    WorkingRheogram.Measurements.Sort(ExampleRheometerMeasurement);
+                    // remove the measurments from the RheometerMeasurementManager as they were posted there only while editing the rheogram
+                    foreach (int id in measurementIDs)
+                    {
+                        IdentifiedObjectManager<RheometerMeasurement>.Instance.Remove(id);
+                    }
+                }
+                RheogramManager.Instance.Add(WorkingRheogram);
+            }
             return RedirectToPage("./Index");
         }
     }

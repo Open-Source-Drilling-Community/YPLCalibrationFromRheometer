@@ -1,0 +1,93 @@
+### YamlMime:ManagedReference
+items:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable
+  id: IIdentifiable
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  children:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID
+  langs:
+  - csharp
+  - vb
+  name: IIdentifiable
+  nameWithType: IIdentifiable
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable
+  type: Interface
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/IIdentifiable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: IIdentifiable
+    path: IIdentifiable.cs
+    startLine: 10
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nan interface for things that can be identified\n"
+  example: []
+  syntax:
+    content: public interface IIdentifiable
+    content.vb: Public Interface IIdentifiable
+  modifiers.csharp:
+  - public
+  - interface
+  modifiers.vb:
+  - Public
+  - Interface
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID
+  id: ID
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable
+  langs:
+  - csharp
+  - vb
+  name: ID
+  nameWithType: IIdentifiable.ID
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/IIdentifiable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: ID
+    path: IIdentifiable.cs
+    startLine: 12
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  syntax:
+    content: int ID { get; set; }
+    parameters: []
+    return:
+      type: System.Int32
+    content.vb: Property ID As Integer
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID*
+  modifiers.csharp:
+  - get
+  - set
+references:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  commentId: N:OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  nameWithType: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID
+  name: ID
+  nameWithType: IIdentifiable.ID
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IIdentifiable.ID
+- uid: System.Int32
+  commentId: T:System.Int32
+  parent: System
+  isExternal: true
+  name: Int32
+  nameWithType: Int32
+  fullName: System.Int32
+- uid: System
+  commentId: N:System
+  isExternal: true
+  name: System
+  nameWithType: System
+  fullName: System
