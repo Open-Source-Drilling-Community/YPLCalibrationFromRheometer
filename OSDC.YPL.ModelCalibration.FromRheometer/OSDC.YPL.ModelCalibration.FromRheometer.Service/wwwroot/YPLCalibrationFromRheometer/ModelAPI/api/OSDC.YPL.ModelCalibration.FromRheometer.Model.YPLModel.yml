@@ -1,0 +1,958 @@
+### YamlMime:ManagedReference
+items:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  id: YPLModel
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  children:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor(OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel)
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval(System.Double)
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0
+  langs:
+  - csharp
+  - vb
+  name: YPLModel
+  nameWithType: YPLModel
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  type: Class
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: YPLModel
+    path: YPLModel.cs
+    startLine: 12
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nDescription of a Yield Power Law rheological behavior (or Herschel-Bulkley)\ntau = Tau0 + K*gamma_dot^n\n"
+  example: []
+  syntax:
+    content: 'public class YPLModel : IValuable'
+    content.vb: >-
+      Public Class YPLModel
+
+          Implements IValuable
+  inheritance:
+  - System.Object
+  implements:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  modifiers.csharp:
+  - public
+  - class
+  modifiers.vb:
+  - Public
+  - Class
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0
+  id: Tau0
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: Tau0
+  nameWithType: YPLModel.Tau0
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Tau0
+    path: YPLModel.cs
+    startLine: 17
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nYield stress expected in SI unit, i.e., [ML^-1T^-2](Pa)\n"
+  example: []
+  syntax:
+    content: >-
+      [Display(Name = "Yield stress (Pa)")]
+
+      [DisplayFormat(ApplyFormatInEditMode = false, DataFormatString = "{0:0.000}", NullDisplayText = "")]
+
+      public double Tau0 { get; set; }
+    parameters: []
+    return:
+      type: System.Double
+    content.vb: >-
+      <Display(Name:="Yield stress (Pa)")>
+
+      <DisplayFormat(ApplyFormatInEditMode:=False, DataFormatString:="{0:0.000}", NullDisplayText:="")>
+
+      Public Property Tau0 As Double
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0*
+  attributes:
+  - type: System.ComponentModel.DataAnnotations.DisplayAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Yield stress (Pa)
+  - type: System.ComponentModel.DataAnnotations.DisplayFormatAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayFormatAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: ApplyFormatInEditMode
+      type: System.Boolean
+      value: false
+    - name: DataFormatString
+      type: System.String
+      value: '{0:0.000}'
+    - name: NullDisplayText
+      type: System.String
+      value: ''
+  modifiers.csharp:
+  - public
+  - get
+  - set
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K
+  id: K
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: K
+  nameWithType: YPLModel.K
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: K
+    path: YPLModel.cs
+    startLine: 26
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nConsistency index in SI unit, i.e., ML^-1T^(n-2)](Pa.s^n)\n"
+  example: []
+  syntax:
+    content: >-
+      [Display(Name = "Consistency index (Pa.s^n)")]
+
+      [DisplayFormat(ApplyFormatInEditMode = false, DataFormatString = "{0:0.000}", NullDisplayText = "")]
+
+      public double K { get; set; }
+    parameters: []
+    return:
+      type: System.Double
+    content.vb: >-
+      <Display(Name:="Consistency index (Pa.s^n)")>
+
+      <DisplayFormat(ApplyFormatInEditMode:=False, DataFormatString:="{0:0.000}", NullDisplayText:="")>
+
+      Public Property K As Double
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K*
+  attributes:
+  - type: System.ComponentModel.DataAnnotations.DisplayAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Consistency index (Pa.s^n)
+  - type: System.ComponentModel.DataAnnotations.DisplayFormatAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayFormatAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: ApplyFormatInEditMode
+      type: System.Boolean
+      value: false
+    - name: DataFormatString
+      type: System.String
+      value: '{0:0.000}'
+    - name: NullDisplayText
+      type: System.String
+      value: ''
+  modifiers.csharp:
+  - public
+  - get
+  - set
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n
+  id: n
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: n
+  nameWithType: YPLModel.n
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: n
+    path: YPLModel.cs
+    startLine: 35
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nflow behavior index (dimensionless)\n"
+  example: []
+  syntax:
+    content: >-
+      [Display(Name = "Flow behavior index")]
+
+      [DisplayFormat(ApplyFormatInEditMode = false, DataFormatString = "{0:0.000}", NullDisplayText = "")]
+
+      public double n { get; set; }
+    parameters: []
+    return:
+      type: System.Double
+    content.vb: >-
+      <Display(Name:="Flow behavior index")>
+
+      <DisplayFormat(ApplyFormatInEditMode:=False, DataFormatString:="{0:0.000}", NullDisplayText:="")>
+
+      Public Property n As Double
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n*
+  attributes:
+  - type: System.ComponentModel.DataAnnotations.DisplayAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Flow behavior index
+  - type: System.ComponentModel.DataAnnotations.DisplayFormatAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayFormatAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: ApplyFormatInEditMode
+      type: System.Boolean
+      value: false
+    - name: DataFormatString
+      type: System.String
+      value: '{0:0.000}'
+    - name: NullDisplayText
+      type: System.String
+      value: ''
+  modifiers.csharp:
+  - public
+  - get
+  - set
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2
+  id: Chi2
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: Chi2
+  nameWithType: YPLModel.Chi2
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Chi2
+    path: YPLModel.cs
+    startLine: 45
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nchi-square value corresponding to fitting of the model\nA negative chi-square means that the value is undefined.\n"
+  example: []
+  syntax:
+    content: >-
+      [Display(Name = "Chi-square")]
+
+      [DisplayFormat(ApplyFormatInEditMode = false, DataFormatString = "{0:0.000}", NullDisplayText = "")]
+
+      public double Chi2 { get; set; }
+    parameters: []
+    return:
+      type: System.Double
+    content.vb: >-
+      <Display(Name:="Chi-square")>
+
+      <DisplayFormat(ApplyFormatInEditMode:=False, DataFormatString:="{0:0.000}", NullDisplayText:="")>
+
+      Public Property Chi2 As Double
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2*
+  attributes:
+  - type: System.ComponentModel.DataAnnotations.DisplayAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: Name
+      type: System.String
+      value: Chi-square
+  - type: System.ComponentModel.DataAnnotations.DisplayFormatAttribute
+    ctor: System.ComponentModel.DataAnnotations.DisplayFormatAttribute.#ctor
+    arguments: []
+    namedArguments:
+    - name: ApplyFormatInEditMode
+      type: System.Boolean
+      value: false
+    - name: DataFormatString
+      type: System.String
+      value: '{0:0.000}'
+    - name: NullDisplayText
+      type: System.String
+      value: ''
+  modifiers.csharp:
+  - public
+  - get
+  - set
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram
+  id: Rheogram
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: Rheogram
+  nameWithType: YPLModel.Rheogram
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Rheogram
+    path: YPLModel.cs
+    startLine: 54
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nthe reference rheogram used to calibrate the rheological behavior\n"
+  example: []
+  syntax:
+    content: public Rheogram Rheogram { get; set; }
+    parameters: []
+    return:
+      type: OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram
+    content.vb: Public Property Rheogram As Rheogram
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram*
+  modifiers.csharp:
+  - public
+  - get
+  - set
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor
+  id: '#ctor'
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: YPLModel()
+  nameWithType: YPLModel.YPLModel()
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.YPLModel()
+  type: Constructor
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: .ctor
+    path: YPLModel.cs
+    startLine: 58
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nDefault constructor\n"
+  example: []
+  syntax:
+    content: public YPLModel()
+    content.vb: Public Sub New
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor*
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor(OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor(OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel)
+  id: '#ctor(OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel)'
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: YPLModel(YPLModel)
+  nameWithType: YPLModel.YPLModel(YPLModel)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.YPLModel(OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel)
+  type: Constructor
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: .ctor
+    path: YPLModel.cs
+    startLine: 66
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\ncopy constructor\n"
+  example: []
+  syntax:
+    content: public YPLModel(YPLModel source)
+    parameters:
+    - id: source
+      type: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+      description: ''
+    content.vb: Public Sub New(source As YPLModel)
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor*
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval(System.Double)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval(System.Double)
+  id: Eval(System.Double)
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: Eval(Double)
+  nameWithType: YPLModel.Eval(Double)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval(System.Double)
+  type: Method
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Eval
+    path: YPLModel.cs
+    startLine: 81
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nevaluation of the shear stress as a function of the shear rate\n"
+  example: []
+  syntax:
+    content: public double Eval(double shearRate)
+    parameters:
+    - id: shearRate
+      type: System.Double
+      description: ''
+    return:
+      type: System.Double
+      description: ''
+    content.vb: Public Function Eval(shearRate As Double) As Double
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval*
+  implements:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  id: FitToKelessidis(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: FitToKelessidis(Rheogram)
+  nameWithType: YPLModel.FitToKelessidis(Rheogram)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  type: Method
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: FitToKelessidis
+    path: YPLModel.cs
+    startLine: 91
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nFit the YPL rheological behavior to the rheogram data using the method from Zamora/Kelessidis\n(see https://doi.org/10.1016/j.petrol.2006.06.004)\n"
+  example: []
+  syntax:
+    content: public void FitToKelessidis(Rheogram rheogram)
+    parameters:
+    - id: rheogram
+      type: OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram
+      description: ''
+    content.vb: Public Sub FitToKelessidis(rheogram As Rheogram)
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis*
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  id: FitToMullineux(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  langs:
+  - csharp
+  - vb
+  name: FitToMullineux(Rheogram)
+  nameWithType: YPLModel.FitToMullineux(Rheogram)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux(OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram)
+  type: Method
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/YPLModel.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: FitToMullineux
+    path: YPLModel.cs
+    startLine: 183
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nFit the YPL rheological behavior to the rheogram using the method from Mullineux\n(see https://doi.org/10.1016/j.apm.2007.09.010)\n"
+  example: []
+  syntax:
+    content: public void FitToMullineux(Rheogram rheogram)
+    parameters:
+    - id: rheogram
+      type: OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram
+      description: ''
+    content.vb: Public Sub FitToMullineux(rheogram As Rheogram)
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux*
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+references:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  commentId: N:OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  nameWithType: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: Object
+  nameWithType: Object
+  fullName: System.Object
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: IValuable
+  nameWithType: IValuable
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  name: Equals(Object)
+  nameWithType: Object.Equals(Object)
+  fullName: System.Object.Equals(System.Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  name: Equals(Object, Object)
+  nameWithType: Object.Equals(Object, Object)
+  fullName: System.Object.Equals(System.Object, System.Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  name: GetHashCode()
+  nameWithType: Object.GetHashCode()
+  fullName: System.Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    nameWithType: Object.GetHashCode
+    fullName: System.Object.GetHashCode
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    nameWithType: Object.GetHashCode
+    fullName: System.Object.GetHashCode
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  name: GetType()
+  nameWithType: Object.GetType()
+  fullName: System.Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    nameWithType: Object.GetType
+    fullName: System.Object.GetType
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    nameWithType: Object.GetType
+    fullName: System.Object.GetType
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  name: MemberwiseClone()
+  nameWithType: Object.MemberwiseClone()
+  fullName: System.Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    nameWithType: Object.MemberwiseClone
+    fullName: System.Object.MemberwiseClone
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    nameWithType: Object.MemberwiseClone
+    fullName: System.Object.MemberwiseClone
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  name: ReferenceEquals(Object, Object)
+  nameWithType: Object.ReferenceEquals(Object, Object)
+  fullName: System.Object.ReferenceEquals(System.Object, System.Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    nameWithType: Object.ReferenceEquals
+    fullName: System.Object.ReferenceEquals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    nameWithType: Object.ReferenceEquals
+    fullName: System.Object.ReferenceEquals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  name: ToString()
+  nameWithType: Object.ToString()
+  fullName: System.Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    nameWithType: Object.ToString
+    fullName: System.Object.ToString
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    nameWithType: Object.ToString
+    fullName: System.Object.ToString
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0
+  name: Tau0
+  nameWithType: YPLModel.Tau0
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Tau0
+- uid: System.Double
+  commentId: T:System.Double
+  parent: System
+  isExternal: true
+  name: Double
+  nameWithType: Double
+  fullName: System.Double
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K
+  name: K
+  nameWithType: YPLModel.K
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.K
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n
+  name: n
+  nameWithType: YPLModel.n
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.n
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2
+  name: Chi2
+  nameWithType: YPLModel.Chi2
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Chi2
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram
+  name: Rheogram
+  nameWithType: YPLModel.Rheogram
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Rheogram
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: Rheogram
+  nameWithType: Rheogram
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.Rheogram
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.#ctor
+  name: YPLModel
+  nameWithType: YPLModel.YPLModel
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.YPLModel
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: YPLModel
+  nameWithType: YPLModel
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval
+  name: Eval
+  nameWithType: YPLModel.Eval
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.Eval
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  commentId: M:OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable
+  isExternal: true
+  name: Eval(Double)
+  nameWithType: IValuable.Eval(Double)
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+  spec.csharp:
+  - uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+    name: Eval
+    nameWithType: IValuable.Eval
+    fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Double
+    name: Double
+    nameWithType: Double
+    fullName: System.Double
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval(System.Double)
+    name: Eval
+    nameWithType: IValuable.Eval
+    fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.IValuable.Eval
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Double
+    name: Double
+    nameWithType: Double
+    fullName: System.Double
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis
+  name: FitToKelessidis
+  nameWithType: YPLModel.FitToKelessidis
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToKelessidis
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux
+  name: FitToMullineux
+  nameWithType: YPLModel.FitToMullineux
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.YPLModel.FitToMullineux

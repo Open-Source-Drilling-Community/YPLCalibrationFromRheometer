@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+WORKDIR /src
+COPY ["OSDC.YPL.ModelCalibration.FromRheometer.Service/OSDC.YPL.ModelCalibration.FromRheometer.Service.csproj", "OSDC.YPL.ModelCalibration.FromRheometer.Service/"]
+RUN dotnet restore "OSDC.YPL.ModelCalibration.FromRheometer.Service/OSDC.YPL.ModelCalibration.FromRheometer.Service.csproj"
+COPY . .
+WORKDIR "/src/OSDC.YPL.ModelCalibration.FromRheometer.Service"
+RUN dotnet build "OSDC.YPL.ModelCalibration.FromRheometer.Service.csproj" -c Release -o /app
+
+FROM build AS publish
+RUN dotnet publish "OSDC.YPL.ModelCalibration.FromRheometer.Service.csproj" -c Release -o /app
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app .
+ENTRYPOINT ["dotnet", "OSDC.YPL.ModelCalibration.FromRheometer.Service.dll"]

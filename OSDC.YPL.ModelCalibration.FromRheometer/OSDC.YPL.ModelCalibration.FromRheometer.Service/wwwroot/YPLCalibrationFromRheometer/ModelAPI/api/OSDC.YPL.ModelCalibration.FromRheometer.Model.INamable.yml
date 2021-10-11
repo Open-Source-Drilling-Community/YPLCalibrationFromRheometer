@@ -1,0 +1,93 @@
+### YamlMime:ManagedReference
+items:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable
+  commentId: T:OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable
+  id: INamable
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  children:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name
+  langs:
+  - csharp
+  - vb
+  name: INamable
+  nameWithType: INamable
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable
+  type: Interface
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/INamable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: INamable
+    path: INamable.cs
+    startLine: 9
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  summary: "\nan interface for things that can be named\n"
+  example: []
+  syntax:
+    content: public interface INamable
+    content.vb: Public Interface INamable
+  modifiers.csharp:
+  - public
+  - interface
+  modifiers.vb:
+  - Public
+  - Interface
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name
+  commentId: P:OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name
+  id: Name
+  parent: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable
+  langs:
+  - csharp
+  - vb
+  name: Name
+  nameWithType: INamable.Name
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name
+  type: Property
+  source:
+    remote:
+      path: OSDC.YPL.ModelCalibration.FromRheometer/OSDC.YPL.ModelCalibration.FromRheometer.Model/INamable.cs
+      branch: main
+      repo: https://github.com/Open-Source-Drilling-Community/Yield-Power-Law-rheology-calibration.git
+    id: Name
+    path: INamable.cs
+    startLine: 11
+  assemblies:
+  - OSDC.YPL.ModelCalibration.FromRheometer.Model
+  namespace: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  syntax:
+    content: string Name { get; set; }
+    parameters: []
+    return:
+      type: System.String
+    content.vb: Property Name As String
+  overload: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name*
+  modifiers.csharp:
+  - get
+  - set
+references:
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  commentId: N:OSDC.YPL.ModelCalibration.FromRheometer.Model
+  name: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  nameWithType: OSDC.YPL.ModelCalibration.FromRheometer.Model
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model
+- uid: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name*
+  commentId: Overload:OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name
+  name: Name
+  nameWithType: INamable.Name
+  fullName: OSDC.YPL.ModelCalibration.FromRheometer.Model.INamable.Name
+- uid: System.String
+  commentId: T:System.String
+  parent: System
+  isExternal: true
+  name: String
+  nameWithType: String
+  fullName: System.String
+- uid: System
+  commentId: N:System
+  isExternal: true
+  name: System
+  nameWithType: System
+  fullName: System
