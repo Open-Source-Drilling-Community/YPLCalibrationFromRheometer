@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using OxyPlot;
+using OxyPlot.Series;
 
 namespace OSDC.YPL.RheometerCorrectionApp
 {
@@ -16,34 +18,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
         {
             InitializeComponent();
 
-            var myModel = new OxyPlot.PlotModel() { Title = "Integration curves" };
-
-
-            var s1 = new OxyPlot.Series.LineSeries();
-            
-
-            //myModel.Series.Add()
-
-
-            GenerateIntegralCurve(.5, out double[] res, out double[] x);
-            for (int i = 0; i < res.Length; i++)
-            {
-                Console.WriteLine(res[i]);
-            }
-
-            Console.WriteLine();
-
-            GenerateIntegralCurve(.75,  out res, out x);
-            for (int i = 0; i < res.Length; i++)
-            {
-                Console.WriteLine(res[i]);
-            }
-
-            GenerateIntegralCurve(1.0, out res, out x);
-            for (int i = 0; i < res.Length; i++)
-            {
-                Console.WriteLine(res[i]);
-            }
+            PlotFigure2();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -51,6 +26,69 @@ namespace OSDC.YPL.RheometerCorrectionApp
 
         }
 
+
+        private void PlotFigure2()
+        {
+            var myModel = new PlotModel() { Title = "Integration curves" };
+
+
+            var s1 = new LineSeries() { Title = "n = 0.5" };
+
+            GenerateIntegralCurve(.5, out double[] res, out double[] x);
+            for (int i = 0; i < res.Length; i++)
+            {
+                s1.Points.Add(new OxyPlot.DataPoint(x[i], res[i]));
+                Console.WriteLine(res[i]);
+            }
+
+            myModel.Series.Add(s1);
+            s1 = new LineSeries() { Title = "n = 0.75" };
+            Console.WriteLine();
+
+            GenerateIntegralCurve(.75, out res, out x);
+            for (int i = 0; i < res.Length; i++)
+            {
+                s1.Points.Add(new OxyPlot.DataPoint(x[i], res[i]));
+                Console.WriteLine(res[i]);
+            }
+            myModel.Series.Add(s1);
+            s1 = new LineSeries() { Title = "n = 1.0" };
+
+            GenerateIntegralCurve(1.0, out res, out x);
+            for (int i = 0; i < res.Length; i++)
+            {
+                s1.Points.Add(new OxyPlot.DataPoint(x[i], res[i]));
+                Console.WriteLine(res[i]);
+            }
+            myModel.Series.Add(s1);
+
+            myModel.Axes.Add(new OxyPlot.Axes.LogarithmicAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Title = "f(kappa, n)" });
+            myModel.Axes.Add(new OxyPlot.Axes.LogarithmicAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Title = "Kappa" });
+
+            myModel.Legends.Add(new OxyPlot.Legends.Legend());
+
+            figure2PlotView.Model = myModel;
+        }
+
+
+        private void PlotFigure3()
+        {
+            double[] velocities = { 3.0, 6.0, 30, 60, 100, 200, 300 };
+            velocities = velocities.Select(d => d / 60.0).ToArray();
+
+
+            var myModel = new PlotModel() { Title = "Integration curves" };
+
+
+            var s1 = new LineSeries() { Title = "n = 0.5" };
+
+            GenerateIntegralCurve(.5, out double[] res, out double[] x);
+            for (int i = 0; i < res.Length; i++)
+            {
+                s1.Points.Add(new OxyPlot.DataPoint(x[i], res[i]));
+                Console.WriteLine(res[i]);
+            }
+        }
 
         private void GenerateIntegralCurve(double n, out double[] result,out double[] xs,  double kappaStart = .2,double kappaStop = 1.0,  int nbOfPoints = 100)
         {
@@ -63,6 +101,25 @@ namespace OSDC.YPL.RheometerCorrectionApp
                 xs[i] = kappa;
                 result[i] = OSDC.YPL.RheometerCorrection.ShearRateCorrection.IntegrationFKappaN(kappa, n);
             }
+        }
+
+        private void GenerateAngularVelocityCurve(double rpm,out double[] xs, out double[] normalizedVelocities, double r1 = .017245,  double r2 = 0.018415, double tau_y = 5.0, double k = .1, double n = .5, int nbOfPoints = 100)
+        {
+            normalizedVelocities = new double[nbOfPoints];
+            xs = new double[nbOfPoints];
+            double step = 1.0 / (nbOfPoints - 1);
+            for (int i = 0; i < nbOfPoints; i++)
+            {
+                double kappa =( r1 + i* (r2 - r1) / 99) / r2;
+                xs[i] = step;
+                normalizedVelocities[i] = RheometerCorrection.ShearRateCorrection.FindMinimumRotationalVelocity(tau_y, k, kappa, n);
+            }
+        }
+
+
+        private void quitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }
