@@ -23,6 +23,20 @@ namespace OSDC.YPL.RheometerCorrection
             return true;
         }
 
+
+        public static double GetShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
+        {
+            double minV = FindMinimumRotationalVelocity(tau_y, k, r1 / r2, n);
+            if (omega > minV)
+            {
+                return GetFullyShearedShearRate(r1, r2, k, n, tau_y, omega);
+            }
+            else
+            {
+                return GetNonFullyShearedShearRate(r1, r2, k, n, tau_y, omega);
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -63,6 +77,11 @@ namespace OSDC.YPL.RheometerCorrection
             double tau_r = tau_y * rPlug * rPlug / (r1 * r1);
 
             return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);
+        }
+
+        public static double GetNewtonianShearRate(double omega, double kappa)
+        {
+            return 2 * omega / (1 - kappa * kappa);
         }
 
         private static double CalculateRPlug(double k, double omega, double tau_y, double n, double r1, double r2)

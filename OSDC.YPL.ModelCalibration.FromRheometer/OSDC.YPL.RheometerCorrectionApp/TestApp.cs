@@ -19,6 +19,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
             InitializeComponent();
 
             PlotFigure2();
+            PlotFigure4();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -74,7 +75,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
         private void PlotFigure3()
         {
             double[] velocities = { 3.0, 6.0, 30, 60, 100, 200, 300 };
-            velocities = velocities.Select(d => d / 60.0).ToArray();
+            velocities = velocities.Select(d => d  / 60.0).ToArray();
 
 
             var myModel = new PlotModel() { Title = "Integration curves" };
@@ -103,6 +104,44 @@ namespace OSDC.YPL.RheometerCorrectionApp
             }
         }
 
+
+        private void PlotFigure4()
+        {
+            double[] velocities = { 3.0, 6.0, 30, 60, 100, 200, 300 };
+            velocities = velocities.Select(d => d / 60.0).ToArray();
+
+
+            var myModel = new PlotModel() { Title = "Integration curves" };
+
+
+            var s1 = new LineSeries() { Title = "n = 0.5" };
+
+            GenerateFigure4(10, out double[] xs, out double[] ratios);
+         
+            for (int i = 0; i < ratios.Length; i++)
+            {
+                s1.Points.Add(new OxyPlot.DataPoint(xs[i], ratios[i]));
+            }
+
+            myModel.Series.Add(s1);
+            myModel.Axes.Add(new OxyPlot.Axes.LogarithmicAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom });
+            plotView1.Model = myModel;
+        }
+
+        private void GenerateFigure4(double maxrpm, out double[] xs, out double[] ratios, double r1 = .017245, double r2 = 0.018415, double tau_y = 5.0, double k = .1, double n = .5, int nbOfPoints = 100)
+        {
+            xs = new double[nbOfPoints];
+            ratios = new double[nbOfPoints];
+            for (int i = 0; i < 100; i++)
+            {
+                double omega = 1.0 + i * maxrpm / 99;
+
+                double sr = OSDC.YPL.RheometerCorrection.ShearRateCorrection.GetShearRate(r1, r2, k, n, tau_y, omega);
+                double nsr = OSDC.YPL.RheometerCorrection.ShearRateCorrection.GetNewtonianShearRate(omega, r1 / r2);
+                xs[i] = 60* omega;
+                ratios[i] = sr / nsr;
+            }
+        }
         private void GenerateAngularVelocityCurve(double rpm,out double[] xs, out double[] normalizedVelocities, double r1 = .017245,  double r2 = 0.018415, double tau_y = 5.0, double k = .1, double n = .5, int nbOfPoints = 100)
         {
             normalizedVelocities = new double[nbOfPoints];
