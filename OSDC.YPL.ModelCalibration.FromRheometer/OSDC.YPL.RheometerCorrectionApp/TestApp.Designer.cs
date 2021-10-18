@@ -34,10 +34,12 @@ namespace OSDC.YPL.RheometerCorrectionApp
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.figure2PlotView = new OxyPlot.WindowsForms.PlotView();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.plotView1 = new OxyPlot.WindowsForms.PlotView();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.plotView1 = new OxyPlot.WindowsForms.PlotView();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.integral8PlotView = new OxyPlot.WindowsForms.PlotView();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
             this.toolStripContainer1.TopToolStripPanel.SuspendLayout();
             this.toolStripContainer1.SuspendLayout();
@@ -45,6 +47,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.menuStrip1.SuspendLayout();
+            this.tabPage3.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStripContainer1
@@ -69,6 +72,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
             // 
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
@@ -108,8 +112,21 @@ namespace OSDC.YPL.RheometerCorrectionApp
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(792, 398);
             this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Figure 3";
+            this.tabPage2.Text = "Figure 4";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // plotView1
+            // 
+            this.plotView1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.plotView1.Location = new System.Drawing.Point(3, 3);
+            this.plotView1.Name = "plotView1";
+            this.plotView1.PanCursor = System.Windows.Forms.Cursors.Hand;
+            this.plotView1.Size = new System.Drawing.Size(786, 392);
+            this.plotView1.TabIndex = 1;
+            this.plotView1.Text = "figure3PlotView";
+            this.plotView1.ZoomHorizontalCursor = System.Windows.Forms.Cursors.SizeWE;
+            this.plotView1.ZoomRectangleCursor = System.Windows.Forms.Cursors.SizeNWSE;
+            this.plotView1.ZoomVerticalCursor = System.Windows.Forms.Cursors.SizeNS;
             // 
             // menuStrip1
             // 
@@ -137,18 +154,29 @@ namespace OSDC.YPL.RheometerCorrectionApp
             this.quitToolStripMenuItem.Text = "Quit";
             this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
             // 
-            // plotView1
+            // tabPage3
             // 
-            this.plotView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.plotView1.Location = new System.Drawing.Point(3, 3);
-            this.plotView1.Name = "plotView1";
-            this.plotView1.PanCursor = System.Windows.Forms.Cursors.Hand;
-            this.plotView1.Size = new System.Drawing.Size(786, 392);
-            this.plotView1.TabIndex = 1;
-            this.plotView1.Text = "figure3PlotView";
-            this.plotView1.ZoomHorizontalCursor = System.Windows.Forms.Cursors.SizeWE;
-            this.plotView1.ZoomRectangleCursor = System.Windows.Forms.Cursors.SizeNWSE;
-            this.plotView1.ZoomVerticalCursor = System.Windows.Forms.Cursors.SizeNS;
+            this.tabPage3.Controls.Add(this.integral8PlotView);
+            this.tabPage3.Location = new System.Drawing.Point(4, 24);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(792, 398);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Integral 8";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // integral8PlotView
+            // 
+            this.integral8PlotView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.integral8PlotView.Location = new System.Drawing.Point(3, 3);
+            this.integral8PlotView.Name = "integral8PlotView";
+            this.integral8PlotView.PanCursor = System.Windows.Forms.Cursors.Hand;
+            this.integral8PlotView.Size = new System.Drawing.Size(786, 392);
+            this.integral8PlotView.TabIndex = 0;
+            this.integral8PlotView.Text = "plotView2";
+            this.integral8PlotView.ZoomHorizontalCursor = System.Windows.Forms.Cursors.SizeWE;
+            this.integral8PlotView.ZoomRectangleCursor = System.Windows.Forms.Cursors.SizeNWSE;
+            this.integral8PlotView.ZoomVerticalCursor = System.Windows.Forms.Cursors.SizeNS;
             // 
             // TestApp
             // 
@@ -170,6 +198,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
             this.tabPage2.ResumeLayout(false);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.tabPage3.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -185,6 +214,8 @@ namespace OSDC.YPL.RheometerCorrectionApp
         private OxyPlot.WindowsForms.PlotView figure2PlotView;
         private System.Windows.Forms.TabPage tabPage2;
         private OxyPlot.WindowsForms.PlotView plotView1;
+        private System.Windows.Forms.TabPage tabPage3;
+        private OxyPlot.WindowsForms.PlotView integral8PlotView;
     }
 }
 

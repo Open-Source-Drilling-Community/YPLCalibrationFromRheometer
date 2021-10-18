@@ -58,6 +58,9 @@ namespace OSDC.YPL.RheometerCorrection
         public static double GetFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
         {
             double c = CalculateC(k, omega, tau_y, n, r1, r2);
+            
+            System.Diagnostics.Debug.WriteLine($"Integration constant c for omega = {omega * 60} is {c}");
+
 
 
             //tex: $\tau(r) = c / r^2$
@@ -157,6 +160,10 @@ namespace OSDC.YPL.RheometerCorrection
                 diffPrime = leftHandSide - IntegrationEquation8(cPrime, kappa, n, tau_y, r2);
                 derivative = (diffPrime - diff) / (cPrime - c);
             }
+            if (count > 40)
+            {
+                System.Console.WriteLine("Numerical error");
+            }
             return c;
         }
 
@@ -170,12 +177,12 @@ namespace OSDC.YPL.RheometerCorrection
         /// <param name="r2"></param>
         /// <param name="nbOfIntervals"></param>
         /// <returns></returns>
-        private static double IntegrationEquation8(double c, double kappa, double n,double tau_y, double r2,  int nbOfIntervals = 100)
+        public static double IntegrationEquation8(double c, double kappa, double n,double tau_y, double r2,  int nbOfIntervals = 100)
         {
             //tex: Performs the integration from equation (8):
-            //$$\int_\kappa^1 \frac{1}{\tilde r} \left(\frac{c}{\tilde{r}^2 R_2 \tau_y}   -1   \right)^{\frac 1n}d\tilde r  $$
+            //$$\int_\kappa^1 \frac{1}{\tilde r} \left(\frac{c}{\tilde{r}^2 R_2^2 \tau_y}   -1   \right)^{\frac 1n}d\tilde r  $$
 
-            double step = (1.0 - kappa) / nbOfIntervals;
+            double step = (1.0 - kappa) / (nbOfIntervals);
             double oneOverN = 1.0 / n;
 
             double integral = 0;
@@ -184,8 +191,8 @@ namespace OSDC.YPL.RheometerCorrection
             {
                 double x_l = kappa + i * step;
                 double x_r = kappa + (i + 1) * step;
-                double y_l = (1.0 / x_l) * System.Math.Pow(c / (r2 * x_l * x_l) - 1, oneOverN);
-                double y_r = (1.0 / x_r) * System.Math.Pow(c / (r2 * x_r * x_r) - 1, oneOverN);
+                double y_l = (1.0 / x_l) * System.Math.Pow(c / (tau_y * r2* r2 * x_l * x_l) - 1, oneOverN);
+                double y_r = (1.0 / x_r) * System.Math.Pow(c / (tau_y * r2 * r2 * x_r * x_r) - 1, oneOverN);
 
                 integral += (y_l + y_r) * .5 * step;
             }
