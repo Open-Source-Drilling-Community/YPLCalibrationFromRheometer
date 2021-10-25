@@ -37,6 +37,9 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
         [Newtonsoft.Json.JsonProperty("ID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int ID { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("ParentID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int ParentID { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("ShearRate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double ShearRate { get; set; }
     

@@ -48,6 +48,10 @@
           "type": "integer",
           "format": "int32"
         },
+        "ParentID": {
+          "type": "integer",
+          "format": "int32"
+        },
         "ShearRate": {
           "title": "Shear rate (1/s)",
           "type": "number",

@@ -66,7 +66,7 @@ namespace OSDC.YPL.RheometerCorrection
             double[] a = initialGuess.ToArray();
             double chiSquare = 0;
 
-            mrqCof(function, x, y, sigmas, a, alpha, beta, ref chiSquare, ndat, ma, mfit, epsilons, selectParameters);
+            MrqCof(function, x, y, sigmas, a, alpha, beta, ref chiSquare, ndat, ma, mfit, epsilons, selectParameters);
             for (j = 0; j < ma; j++)
             {
                 atry[j] = a[j];
@@ -95,7 +95,7 @@ namespace OSDC.YPL.RheometerCorrection
                     oneda[j, 0] = beta[j];
                 }
 
-                gaussJ(temp, oneda);
+                GaussJ(temp, oneda);
 
                 for (j = 0; j < mfit; j++)
                 {
@@ -107,8 +107,8 @@ namespace OSDC.YPL.RheometerCorrection
                 }
                 if (done == MAX_DONE)
                 {
-                    covsrt(covar, mfit, ma, selectParameters);
-                    covsrt(alpha, mfit, ma, selectParameters);
+                    Covsrt(covar, mfit, ma, selectParameters);
+                    Covsrt(alpha, mfit, ma, selectParameters);
                     return a;
                 }
                 for (j = 0, l = 0; l < ma; l++)
@@ -119,7 +119,7 @@ namespace OSDC.YPL.RheometerCorrection
                     }
                 }
 
-                mrqCof(function, x, y, sigmas, atry, covar, da, ref chiSquare, ndat, ma, mfit, epsilons, selectParameters);
+                MrqCof(function, x, y, sigmas, atry, covar, da, ref chiSquare, ndat, ma, mfit, epsilons, selectParameters);
                 if (System.Math.Abs(chiSquare - oldChisq) < tol || (useDoubleMeaningForTolerance && System.Math.Abs(chiSquare - oldChisq) < tol * chiSquare))
                 {
                     done++;
@@ -190,7 +190,7 @@ namespace OSDC.YPL.RheometerCorrection
         //}
 
 
-        private static void gaussJ(double[,] m, double[,] a)
+        private static void GaussJ(double[,] m, double[,] a)
         {
             var matrix =  MathNet.Numerics.LinearAlgebra.Matrix<double>.Build.DenseOfArray(m);
             matrix.Inverse();
@@ -247,7 +247,7 @@ namespace OSDC.YPL.RheometerCorrection
         }
 
 
-        private static void covsrt(double[,] covar, int mfit, int ma, bool[] selectParameters)
+        private static void Covsrt(double[,] covar, int mfit, int ma, bool[] selectParameters)
         {
             int i, j, k;
             for (i = mfit; i < ma; i++)
@@ -278,7 +278,7 @@ namespace OSDC.YPL.RheometerCorrection
                 }
             }
         }
-        private static void mrqCof(ILevenbergMarquardInput function, IList<double> x, IList<double> y, IList<double> sigmas, IList<double> a, double[,] alpha, double[] beta, ref double chiSquare, int ndat, int ma, int mfit, double[] epsilons, bool[] selectParameters)
+        private static void MrqCof(ILevenbergMarquardInput function, IList<double> x, IList<double> y, IList<double> sigmas, IList<double> a, double[,] alpha, double[] beta, ref double chiSquare, int ndat, int ma, int mfit, double[] epsilons, bool[] selectParameters)
         {
             int i, j, k, l, m;
             double ymod, wt, sig2i, dy;
