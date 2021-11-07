@@ -88,7 +88,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
         }
         public ActionResult OnGetChartData()
         {
-            Chart chart = null;
+            Chart chart;
             if (Measurements == null || Measurements.Count == 0)
             {
                 TransferData();
@@ -129,7 +129,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
                 Measurements.Clear();
                 foreach (var measurement in Rheogram.Measurements)
                 {
-                    DetailsTableModel values = new DetailsTableModel();
+                    DetailsTableModel values = new();
                     values.ShearRate = measurement.ShearRate;
                     values.MeasuredShearStress = measurement.ShearStress;
                     values.EstimatedShearStressZamora = YPLModelCalibratedWithZamora.Eval(measurement.ShearRate);

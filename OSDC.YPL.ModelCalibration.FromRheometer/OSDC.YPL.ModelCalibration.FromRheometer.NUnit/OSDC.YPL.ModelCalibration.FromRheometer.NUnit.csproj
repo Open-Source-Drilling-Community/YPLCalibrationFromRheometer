@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OSDC.YPL.ModelCalibration.FromRheometer.Model\OSDC.YPL.ModelCalibration.FromRheometer.Model.csproj" />
+    <ProjectReference Include="..\OSDC.YPL.RheometerCorrection\OSDC.YPL.RheometerCorrection.csproj" />
   </ItemGroup>
 
 </Project>

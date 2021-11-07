@@ -27,7 +27,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
 
         public IActionResult OnGet()
         {
-            WorkingRheogram = new Rheogram();
+            WorkingRheogram = new();
             WorkingRheogram.ID = RheogramManager.Instance.GetNextID();
             return Page();
         }

@@ -6,7 +6,7 @@ using OSDC.YPL.ModelCalibration.FromRheometer.Model;
 
 namespace Tests
 {
-    public class Tests
+    public class YPLCalibrationTests
     {
         [SetUp]
         public void Setup()
@@ -19,7 +19,7 @@ namespace Tests
             double tau0 = 0;
             double K = 0.75;
             double n = 1.0;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -30,7 +30,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToKelessidis(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -42,7 +42,7 @@ namespace Tests
             double tau0 = 0;
             double K = 0.75;
             double n = 1.0;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -53,7 +53,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToMullineux(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -65,7 +65,7 @@ namespace Tests
             double tau0 = 0;
             double K = 0.75;
             double n = 0.5;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -76,7 +76,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToKelessidis(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -88,7 +88,7 @@ namespace Tests
             double tau0 = 0;
             double K = 0.75;
             double n = 0.5;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -99,7 +99,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToMullineux(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -111,7 +111,7 @@ namespace Tests
             double tau0 = 0;
             double K = 0.75;
             double n = 1.5;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -122,7 +122,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToKelessidis(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -160,7 +160,7 @@ namespace Tests
             double tau0 = 2.0;
             double K = 0.75;
             double n = 1.0;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -171,7 +171,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToKelessidis(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 5e-3);
             Assert.AreEqual(K, model.K, 5e-3);
@@ -183,7 +183,7 @@ namespace Tests
             double tau0 = 2.0;
             double K = 0.75;
             double n = 1.0;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -194,7 +194,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToMullineux(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -206,19 +206,18 @@ namespace Tests
             double tau0 = 2.0;
             double K = 0.75;
             double n = 0.5;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
                 size++;
             }
             rheogram.Measurements = new List<RheometerMeasurement>();
-            int idx = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToKelessidis(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 5e-3);
             Assert.AreEqual(K, model.K, 5e-3);
@@ -230,19 +229,18 @@ namespace Tests
             double tau0 = 2.0;
             double K = 0.75;
             double n = 0.5;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
                 size++;
             }
             rheogram.Measurements = new List<RheometerMeasurement>();
-            int idx = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToMullineux(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
@@ -255,7 +253,7 @@ namespace Tests
             double tau0 = 2.0;
             double K = 0.75;
             double n = 1.5;
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             int size = 0;
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
@@ -266,7 +264,7 @@ namespace Tests
             {
                 rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
             }
-            YPLModel model = new YPLModel();
+            YPLModel model = new();
             model.FitToKelessidis(rheogram);
             Assert.AreEqual(tau0, model.Tau0, 5e-3);
             Assert.AreEqual(K, model.K, 5e-3);

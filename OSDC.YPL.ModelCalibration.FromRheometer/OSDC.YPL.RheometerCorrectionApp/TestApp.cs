@@ -15,7 +15,9 @@ namespace OSDC.YPL.RheometerCorrectionApp
     public partial class TestApp : Form
     {
         public const double RPM_TO_RADIAN_PER_SEC = Math.PI / 30.0;
+        public const double FANN35_R1B1_STRESS_FACTOR = 0.5107;
         public enum Parameter { n, tau_y, k };
+        public enum Fluid { WBM, Spacer, Slurry };
 
         public TestApp()
         {
@@ -26,6 +28,9 @@ namespace OSDC.YPL.RheometerCorrectionApp
             PlotFigure4();
             PlotFigure5();
             PlotFigure6();
+            PlotFigure7();
+            PlotFigure8();
+            PlotFigure9();
             PlotIntegral8();
             PlotIntegral9();
         }
@@ -47,7 +52,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
                 for (int i = 0; i < nbOfIntervals; i++)
                 {
                     double c = .0005 + (double)i * 0.002 / (nbOfIntervals - 1);
-                    double integral = OSDC.YPL.RheometerCorrection.ShearRateCorrection.IntegrationEquation8(c, r1 / r2, flowIndex[j], tau_y, r2);
+                    double integral = RheometerCorrection.ShearRateCorrection.IntegrationEquation8(c, r1 / r2, flowIndex[j], tau_y, r2);
                     s1.Points.Add(new DataPoint(c, integral));
                 }
                 myModel.Series.Add(s1);
@@ -68,7 +73,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
                 double kappa = r1 / r2;
                 double yn = 2 * k * velocities[i] * kappa * kappa * r2 * r2 / (1 - kappa * kappa);
 
-                OxyPlot.Series.ScatterSeries ss = new ();
+                OxyPlot.Series.ScatterSeries ss = new();
                 ss.Points.Add(new ScatterPoint(yn, velocities[i] * System.Math.Pow(k / tau_y, 1.0 / n)));
 
                 myModel.Series.Add(s);
@@ -93,7 +98,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
             for (int i = 0; i < nbOfIntervals; i++)
             {
                 double rp = r1 + (double)i / (nbOfIntervals - 1) * (r2 - r1);
-                double integral = OSDC.YPL.RheometerCorrection.ShearRateCorrection.IntegrationEquation9(rp, r1 / r2, n, r2);
+                double integral = RheometerCorrection.ShearRateCorrection.IntegrationEquation9(rp, r1 / r2, n, r2);
                 s1.Points.Add(new DataPoint(rp, integral));
             }
             myModel.Series.Add(s1);
@@ -193,16 +198,16 @@ namespace OSDC.YPL.RheometerCorrectionApp
             result = new double[nbOfPoints];
             xs = new double[nbOfPoints];
 
-            double minV = OSDC.YPL.RheometerCorrection.ShearRateCorrection.FindMinimumRotationalVelocity(tau_y, k, r1 / r2, n);
+            double minV = RheometerCorrection.ShearRateCorrection.FindMinimumRotationalVelocity(tau_y, k, r1 / r2, n);
             double rPlug = -999.25;
             double c = -999.25;
             fullyShearedIdx = 0;
 
             if (omega > minV)
-                c = OSDC.YPL.RheometerCorrection.ShearRateCorrection.CalculateC(k, omega, tau_y, n, r1, r2);
+                c = RheometerCorrection.ShearRateCorrection.CalculateC(k, omega, tau_y, n, r1, r2);
             if (omega <= minV)
             {
-                rPlug = OSDC.YPL.RheometerCorrection.ShearRateCorrection.CalculateRPlug(k, omega, tau_y, n, r1, r2);
+                rPlug = RheometerCorrection.ShearRateCorrection.CalculateRPlug(k, omega, tau_y, n, r1, r2);
                 c = tau_y * rPlug * rPlug;
             }
 
@@ -214,7 +219,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
 
                 if ((omega <= minV & r < rPlug) | omega > minV)
                 {
-                    result[i] = OSDC.YPL.RheometerCorrection.ShearRateCorrection.IntegrationEquation6(c, k, tau_y, n, r1, r);
+                    result[i] = RheometerCorrection.ShearRateCorrection.IntegrationEquation6(c, k, tau_y, n, r1, r);
                     fullyShearedIdx = i;
                 }
                 else
@@ -233,7 +238,7 @@ namespace OSDC.YPL.RheometerCorrectionApp
             {
                 double kappa = kappaStart + i * step;
                 xs[i] = kappa;
-                result[i] = OSDC.YPL.RheometerCorrection.ShearRateCorrection.IntegrationFKappaN(kappa, n);
+                result[i] = RheometerCorrection.ShearRateCorrection.IntegrationFKappaN(kappa, n);
             }
         }
 
@@ -334,12 +339,160 @@ namespace OSDC.YPL.RheometerCorrectionApp
             for (int i = 0; i < nbOfPoints; i++)
             {
                 double omega = minOmega + i * (maxOmega - minOmega) / (nbOfPoints - 1);
-                double sr = OSDC.YPL.RheometerCorrection.ShearRateCorrection.GetShearRate(r1, r2, k, n, tau_y, omega, out bool isFullySheared);
+                double sr = RheometerCorrection.ShearRateCorrection.GetShearRate(r1, r2, k, n, tau_y, omega, out bool isFullySheared);
                 if (isFullySheared & fullyShearedIdx == nbOfPoints - 1)
                     fullyShearedIdx = i;
-                double nsr = OSDC.YPL.RheometerCorrection.ShearRateCorrection.GetNewtonianShearRate(omega, r1 / r2);
+                double nsr = RheometerCorrection.ShearRateCorrection.GetNewtonianShearRate(omega, r1 / r2);
                 xs[i] = omega / RPM_TO_RADIAN_PER_SEC;
                 ratios[i] = sr / nsr;
+            }
+        }
+
+        private void PlotFigure7()
+        {
+            double[] velocities = { 3, 6, 100, 200, 300, 600 };
+            double[] shearStresses = { 12, 14, 29, 37.5, 45.5, 60 };
+            System.Diagnostics.Debug.WriteLine("\nFigure 7: WBM");
+            PlotFigure789(Fluid.WBM, velocities, shearStresses);
+        }
+
+        private void PlotFigure8()
+        {
+            double[] velocities = { 3, 6, 30, 60, 100, 200, 300, 600 };
+            double[] shearStresses = { 16, 18, 24.5, 31, 37, 49, 58.5, 78 };
+            System.Diagnostics.Debug.WriteLine("\nFigure 8: Spacer");
+            PlotFigure789(Fluid.Spacer, velocities, shearStresses);
+        }
+
+        private void PlotFigure9()
+        {
+            double[] velocities = { 3, 6, 30, 60, 100, 200, 300 };
+            double[] shearStresses = { 9, 12, 36, 54, 75, 123, 160 };
+            System.Diagnostics.Debug.WriteLine("\nFigure 9: Slurry");
+            PlotFigure789(Fluid.Slurry, velocities, shearStresses);
+        }
+
+        private void PlotFigure789(Fluid fluid, double[] velocities, double[] shearStresses)
+        {
+            velocities = velocities.Select(d => d * RPM_TO_RADIAN_PER_SEC).ToArray();
+            shearStresses = shearStresses.Select(d => d * FANN35_R1B1_STRESS_FACTOR).ToArray();
+
+            var myModel = new PlotModel() { Title = $"Herschel-Bulkley model fitting of the WBM measurements listed in Table 1" };
+
+            double[] shearRates = null;
+            double[] sr = null;
+            double[] ss = null;
+
+            // Iterate over the 3 types of rheological models (Newtonian, Power-Law, Yield-Power-Law = Herschel-Bulkley)
+            int ic = 0;
+            OxyColor[] colors = { OxyColors.DarkBlue, OxyColors.Green, OxyColors.Maroon };
+            foreach (ModelCalibration.FromRheometer.Model.YPLModel.ModelType type in Enum.GetValues(typeof(ModelCalibration.FromRheometer.Model.YPLModel.ModelType)))
+            {
+                ModelCalibration.FromRheometer.Model.YPLModel model = new();
+                GenerateFigure789(model, type, velocities, shearStresses, out shearRates, out sr, out ss);
+                var sm = new ScatterSeries()
+                {
+                    MarkerSize = 3,
+                    MarkerType = MarkerType.Diamond,
+                    MarkerFill = colors[ic]
+                };
+                for (int i = 0; i < velocities.Length; ++i)
+                {
+                    sm.Points.Add(new ScatterPoint(shearRates[i], shearStresses[i]));
+                }
+                myModel.Series.Add(sm);
+
+                // Calibrated model
+                var sc = new LineSeries()
+                {
+                    Title = $"tau_{type}",
+                    Color = colors[ic]
+                };
+                for (int i = 0; i < sr.Length; i++)
+                {
+                    sc.Points.Add(new DataPoint(sr[i], ss[i]));
+                }
+                myModel.Series.Add(sc);
+                ic++;
+            }
+
+            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Left, Title = "Shear stress (Pa)" });
+            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis() { Position = OxyPlot.Axes.AxisPosition.Bottom, Title = "Shear rate (1/s)" });
+
+            myModel.Legends.Add(new OxyPlot.Legends.Legend());
+
+            switch (fluid)
+            {
+                case Fluid.WBM:
+                    plotView5.Model = myModel;
+                    break;
+                case Fluid.Spacer:
+                    plotView6.Model = myModel;
+                    break;
+                case Fluid.Slurry:
+                    plotView7.Model = myModel;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private static void GenerateFigure789(ModelCalibration.FromRheometer.Model.YPLModel model, ModelCalibration.FromRheometer.Model.YPLModel.ModelType modelType, double[] velocities, double[] shearStresses,
+            out double[] shearRates, out double[] sr, out double[] ss, double minShearRate = .0, double maxShearRate = 1100.0, int nbOfPoints = 500, double r1 = .017245, double r2 = 0.018415)
+        {
+            int nMeas = velocities.Length;
+            shearRates = new double[nMeas];
+            sr = new double[nbOfPoints];
+            ss = new double[nbOfPoints];
+            ModelCalibration.FromRheometer.Model.Rheogram rheogram = new();
+            double eps = 1e-5;
+
+            // Generating measurements data points
+            int count = 0;
+            double dChi2;
+            do
+            {
+                for (int i = 0; i < nMeas; ++i)
+                {
+                    switch (modelType)
+                    {
+                        case ModelCalibration.FromRheometer.Model.YPLModel.ModelType.N:
+                            // Calibrating a YPL model on a rheogram with Newtonian shear rates assumed
+                            shearRates[i] = RheometerCorrection.ShearRateCorrection.GetNewtonianShearRate(velocities[i], r1 / r2);
+                            break;
+                        case ModelCalibration.FromRheometer.Model.YPLModel.ModelType.PL:
+                            // Calibrating a YPL model on a rheogram with Power-Law shear rates assumed
+                            shearRates[i] = RheometerCorrection.ShearRateCorrection.GetPowerLawShearRate(velocities[i], r1 / r2, model.n);
+                            break;
+                        case ModelCalibration.FromRheometer.Model.YPLModel.ModelType.YPL:
+                            // Calibrating a YPL model on a rheogram with YPL shear rates assumed
+                            shearRates[i] = RheometerCorrection.ShearRateCorrection.GetShearRate(r1, r2, model.K, model.n, model.Tau0, velocities[i], out bool _);
+                            break;
+                        default:
+                            break;
+                    }
+                    rheogram.Measurements.Add(new ModelCalibration.FromRheometer.Model.RheometerMeasurement(shearRates[i], shearStresses[i]));
+                }
+                dChi2 = model.Chi2;
+                //model.FitToKelessidis(rheogram, ModelCalibration.FromRheometer.Model.YPLModel.ModelType.YPL);
+                model.FitToMullineux(rheogram, ModelCalibration.FromRheometer.Model.YPLModel.ModelType.YPL);
+                rheogram.Measurements.Clear();
+                dChi2 -= model.Chi2;
+            } while (modelType != ModelCalibration.FromRheometer.Model.YPLModel.ModelType.N && System.Math.Abs(dChi2) > eps && count++ < 40);
+
+            System.Diagnostics.Debug.WriteLine($"RheoModel = {modelType}:");
+            for (int i = 0; i < nMeas; ++i)
+            {
+                System.Diagnostics.Debug.WriteLine("{0, -10}{1, -10}",
+                    velocities[nMeas - 1 - i] / RPM_TO_RADIAN_PER_SEC,
+                    shearRates[nMeas - 1 - i]);
+            }
+
+            // Generating calibrated model data points
+            for (int i = 0; i < nbOfPoints; i++)
+            {
+                sr[i] = minShearRate + i * (maxShearRate - minShearRate) / (nbOfPoints - 1);
+                ss[i] = model.Eval(sr[i]);
             }
         }
 

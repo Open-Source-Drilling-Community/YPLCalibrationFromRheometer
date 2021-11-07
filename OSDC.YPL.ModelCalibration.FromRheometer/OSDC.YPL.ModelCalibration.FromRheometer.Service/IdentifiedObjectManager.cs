@@ -16,9 +16,9 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
     {
         private static IdentifiedObjectManager<T> instance_ = null;
 
-        private Dictionary<int, T> data_ = new Dictionary<int, T>();
-        private object lock_ = new object();
-        private Random random_ = new Random();
+        private Dictionary<int, T> data_ = new();
+        private object lock_ = new();
+        private Random random_ = new();
 
         /// <summary>
         /// default constructor is private when implementing a singleton pattern
@@ -74,7 +74,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
         }
         public List<int> GetIDs()
         {
-            List<int> ids = new List<int>();
+            List<int> ids = new();
             lock (lock_)
             {
                 foreach (int key in data_.Keys)
@@ -87,7 +87,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
 
         public List<int> GetIDs(int parentID)
         {
-            List<int> ids = new List<int>();
+            List<int> ids = new();
             if (parentID >= 0)
             {
                 lock (lock_)
@@ -117,7 +117,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             }
             else
             {
-                T undefined = new T();
+                T undefined = new();
                 undefined.SetUndefined();
                 return undefined;
             }
@@ -192,8 +192,8 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
 
         public int GetNextID()
         {
-            int id = -1;
-            bool exists = false;
+            int id;
+            bool exists;
             do
             {
                 id = random_.Next();

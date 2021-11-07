@@ -12,6 +12,8 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
     /// </summary>
     public class YPLModel : IValuable
     {
+        public enum ModelType{ YPL, PL , N};
+
         /// <summary>
         /// Yield stress expected in SI unit, i.e., [ML^-1T^-2](Pa)
         /// </summary>
@@ -89,7 +91,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
         /// </summary>
         /// <param name="rheogram"></param>
         /// <returns>the chi-square after fitting</returns>
-        public void FitToKelessidis(Rheogram rheogram)
+        public void FitToKelessidis(Rheogram rheogram, ModelType model = ModelType.YPL)
         {
             Tau0 = 0;
             K = 1;
@@ -167,9 +169,9 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
                     } while (System.Math.Abs(derivateChi2a) > eps && count++ < 50);
                     if (!Numeric.IsUndefined(tau0) && !Numeric.IsUndefined(K_) && !Numeric.IsUndefined(n_) && !Numeric.IsUndefined(chi2_))
                     {
-                        Tau0 = tau0;
+                        Tau0 = (model == ModelType.N || model == ModelType.PL) ? 0 : tau0;
                         K = K_;
-                        n = n_;
+                        n = model == ModelType.N ? 1 : n_;
                         Chi2 = chi2_;
                     }
                 }
@@ -181,7 +183,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
         /// </summary>
         /// <param name="rheogram"></param>
         /// <returns>The chi-square after fitting</returns>
-        public void FitToMullineux(Rheogram rheogram)
+        public void FitToMullineux(Rheogram rheogram, ModelType model = ModelType.YPL)
         {
             Tau0 = 0;
             K = 1;
@@ -255,9 +257,9 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Model
                         sigs[i] = sig;
                     }
                     DataModelling.LinearRegression(xs, taus, out tau0, out k);
-                    Tau0 = tau0;
+                    Tau0 = (model == ModelType.N || model == ModelType.PL) ? 0 : tau0;
                     K = k;
-                    n = n0;
+                    n = (model == ModelType.N) ? 1 : n0;
                     Chi2 = DataModelling.ChiSquare(gammas, taus, sigs, this);
                 }
             }

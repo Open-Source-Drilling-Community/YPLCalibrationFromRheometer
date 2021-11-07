@@ -30,37 +30,37 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("en-US")
         /// </summary>
-        public static CultureInfo US_CULTURE = new CultureInfo("en-US");
+        public static CultureInfo US_CULTURE = new("en-US");
 
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("nb-NO")
         /// </summary>
-        public static CultureInfo NO_CULTURE = new CultureInfo("nb-NO");
+        public static CultureInfo NO_CULTURE = new("nb-NO");
 
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("fr-FR")
         /// </summary>
-        public static CultureInfo FR_CULTURE = new CultureInfo("fr-FR");
+        public static CultureInfo FR_CULTURE = new("fr-FR");
 
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("it-IT")
         /// </summary>
-        public static CultureInfo IT_CULTURE = new CultureInfo("it-IT");
+        public static CultureInfo IT_CULTURE = new("it-IT");
 
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("es-ES")
         /// </summary>
-        public static CultureInfo SP_CULTURE = new CultureInfo("es-ES");
+        public static CultureInfo SP_CULTURE = new("es-ES");
 
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("en-GB")
         /// </summary>
-        public static CultureInfo UK_CULTURE = new CultureInfo("en-GB");
+        public static CultureInfo UK_CULTURE = new("en-GB");
 
         /// <summary>
         /// Shorthand for System.Globalization.CultureInfo("pt-PT")
         /// </summary>
-        public static CultureInfo PT_CULTURE = new CultureInfo("pt-PT");
+        public static CultureInfo PT_CULTURE = new("pt-PT");
 
         /// <summary>
         /// Shorthand for US_CULTURE.NumberFormat
@@ -121,8 +121,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
                 if (svalue != null) {
                     //This is needed to convert in the right manner decimal values coming from UI, as seems they always represent the decimal separator as a period("."). 
                     //Maybe depends from browsers interpretation of decimal values posted-back to the server when they receive response without any http content-language specific indication.
-                    double dval;
-                    if (TryParse((string)svalue, out dval)) {
+                    if (TryParse((string)svalue, out double dval)) {
                         object model = dval.ToString();
                         bindingContext.Result = ModelBindingResult.Success(model);
                     }
@@ -149,7 +148,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service
             return Task.CompletedTask;
         }
 
-        private bool TryParse(string value, out double result)
+        private static bool TryParse(string value, out double result)
         {
             return double.TryParse(value, out result) ||
                    double.TryParse(value, NumberStyles.Float, US_NUMBER_FORMAT, out result) ||

@@ -1,4 +1,5 @@
-﻿using OSDC.YPL.ModelCalibration.FromRheometer.Model;
+﻿using System;
+using OSDC.YPL.ModelCalibration.FromRheometer.Model;
 
 namespace OSDC.YPL.RheometerCorrection
 {
@@ -6,7 +7,7 @@ namespace OSDC.YPL.RheometerCorrection
     {
         /// <summary>
         ///	Skadsem and Saasen(2019) :
-        ///	Concentric cylinder viscometer flows ofHerschel-Bulkley fluids
+        ///	Concentric cylinder viscometer flows of Herschel-Bulkley fluids
         ///	
         /// Solving the Couette inverse problem
         ///using a wavelet-vaguelette decomposition
@@ -15,27 +16,86 @@ namespace OSDC.YPL.RheometerCorrection
         /// <param name="uncorrectedRheogram"></param>
         /// <param name="correctedRheogram"></param>
         /// <returns></returns>
-        public static bool CorrectShearRate(Rheogram uncorrectedRheogram, out Rheogram correctedRheogram)
+        public static bool NewtonianToYieldPowerLawShearRates(Rheogram uncorrectedRheogram, out Rheogram correctedRheogram, double r1, double r2)
         {
             correctedRheogram = new Rheogram();
+            try
+            {
+                int nMeas = uncorrectedRheogram.Measurements.Count;
+                double[] velocities = new double[nMeas];
+                double[] shearRates = new double[nMeas];
+                double[] shearStresses = new double[nMeas];
+                ModelCalibration.FromRheometer.Model.YPLModel model = new();
 
+                // Converting back assumed Newtonian shear rates to rheometer-dependent rotational velocities
+                for (int i = 0; i < nMeas; ++i)
+                {
+                    velocities[i] = GetNewtonianRotationalVelocity(uncorrectedRheogram.Measurements[i].ShearRate, r1 / r2);
+                    shearStresses[i] = uncorrectedRheogram.Measurements[i].ShearStress;
+                }
 
-            return true;
+                ModelCalibration.FromRheometer.Model.Rheogram rheogram = new();
+                bool isFullySheared = false;
+                double eps = 1e-5;
+                int count = 0;
+                
+
+                double dChi2 = -999.25;
+                do
+                {
+                    for (int i = 0; i < velocities.Length; ++i)
+                    {
+                        // Converting rotational velocities to YPL shear rates for current YPL model parameters
+                        shearRates[i] = RheometerCorrection.ShearRateCorrection.GetShearRate(r1, r2, model.K, model.n, model.Tau0, velocities[i], out isFullySheared);
+                        rheogram.Measurements.Add(new ModelCalibration.FromRheometer.Model.RheometerMeasurement(shearRates[i], shearStresses[i]));
+                    }
+                    dChi2 = model.Chi2;
+                    //model.FitToKelessidis(rheogram, ModelCalibration.FromRheometer.Model.YPLModel.ModelType.YPL);
+                    model.FitToMullineux(rheogram, ModelCalibration.FromRheometer.Model.YPLModel.ModelType.YPL);
+                    rheogram.Measurements.Clear();
+                    dChi2 -= model.Chi2;
+                } while (System.Math.Abs(dChi2) > eps && count++ < 40);
+
+                for (int i = 0; i < nMeas; ++i)
+                {
+                    RheometerMeasurement meas = new(shearRates[i], shearStresses[i]);
+                    correctedRheogram.Measurements.Add(meas);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("{0} Exception caught during the correction from Newtonian shear rates to Yield-Power-Law ones.", ex);
+                return false;
+            };
         }
 
 
         public static double GetShearRate(double r1, double r2, double k, double n, double tau_y, double omega, out bool isFullySheared)
         {
-            double minV = FindMinimumRotationalVelocity(tau_y, k, r1 / r2, n);
-            if (omega > minV)
+            if (n == 1 & tau_y == 0)
             {
                 isFullySheared = true;
-                return GetFullyShearedShearRate(r1, r2, k, n, tau_y, omega);
+                return GetNewtonianShearRate(omega, r1 / r2);
+            }
+            else if (tau_y == 0)
+            {
+                isFullySheared = true;
+                return GetPowerLawShearRate(omega, r1 / r2, n);
             }
             else
             {
-                isFullySheared = false;
-                return GetNonFullyShearedShearRate(r1, r2, k, n, tau_y, omega);
+                double minV = FindMinimumRotationalVelocity(tau_y, k, r1 / r2, n);
+                if (omega > minV)
+                {
+                    isFullySheared = true;
+                    return GetFullyShearedShearRate(r1, r2, k, n, tau_y, omega);
+                }
+                else
+                {
+                    isFullySheared = false;
+                    return GetNonFullyShearedShearRate(r1, r2, k, n, tau_y, omega);
+                }
             }
         }
 
@@ -51,7 +111,7 @@ namespace OSDC.YPL.RheometerCorrection
         {
             //tex: Based on equation (7): 
             //$$ \left(\frac{k \Omega^{\star n}}{\tau_y} \right)^\frac 1n = \int_\kappa^1 \frac{1}{\tilde r} \left(\frac{1}{\tilde{r}^2} -1   \right)^{\frac 1n}d\tilde r  $$
-           
+
             double integral = IntegrationFKappaN(kappa, n);
             double factor = System.Math.Pow(k / tau_y, 1.0 / n);
             return integral / factor;
@@ -60,15 +120,15 @@ namespace OSDC.YPL.RheometerCorrection
         public static double GetFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
         {
             double c = CalculateC(k, omega, tau_y, n, r1, r2);
-            
+
             //tex: $\tau(r) = c / r^2$
-            double tau_r = c / (r1 * r1); 
+            double tau_r = c / (r1 * r1);
 
             //tex: $$ \dot{\gamma}(r) = \left[ \left(\frac{\tau_y}{k} \right) \left( \frac{\tau (r)}{\tau_y} \right) -1 \right]^{ \frac 1n }$$
             //with $r = R_1$
 
 
-            return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);        
+            return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);
         }
 
         public static double GetNonFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
@@ -80,7 +140,17 @@ namespace OSDC.YPL.RheometerCorrection
 
         public static double GetNewtonianShearRate(double omega, double kappa)
         {
-            return 2 * omega / (1 - kappa * kappa);
+            return 2.0 * omega / (1 - kappa * kappa);
+        }
+
+        public static double GetNewtonianRotationalVelocity(double shearRate, double kappa)
+        {
+            return shearRate * (1 - kappa * kappa) / 2.0;
+        }
+
+        public static double GetPowerLawShearRate(double omega, double kappa, double n)
+        {
+            return 2 * omega / n / (1 - System.Math.Pow(kappa, 2.0 / n));
         }
 
         public static double CalculateRPlug(double k, double omega, double tau_y, double n, double r1, double r2)
@@ -137,14 +207,14 @@ namespace OSDC.YPL.RheometerCorrection
             // It can be shown that 1) f(C) strictly increases over $ ]R_2^2 \tau_y, +\infty[ $
             // and 2) C exists if:
             //$$ \Omega > \Omega^\star = (\frac \tau k)^{\frac 1n} * f(\kappa,n) $$
-            
+
             // Newton-Raphson scheme is used to determine C from Eq. (8)
 
             double kappa = r1 / r2;
-            double leftHandSide =omega* System.Math.Pow( k / tau_y, 1.0 / n);
+            double leftHandSide = omega * System.Math.Pow(k / tau_y, 1.0 / n);
 
             //tex: for all non integer values of 1/n, the definition interval of the intragel is limited to: $[R_2^2 * \tau_y, +\infty[$ 
-            
+
             //tex: interestingly for n=0.5, C can take 2 values. The higher one is the true solution since the lower one comes from the
             // square elevation of Eq. (3b) to obtain Eq. (6)
 
@@ -216,7 +286,7 @@ namespace OSDC.YPL.RheometerCorrection
         /// <param name="r2"></param>
         /// <param name="nbOfIntervals"></param>
         /// <returns></returns>
-        public static double IntegrationEquation8(double c, double kappa, double n,double tau_y, double r2,  int nbOfIntervals = 100)
+        public static double IntegrationEquation8(double c, double kappa, double n, double tau_y, double r2, int nbOfIntervals = 100)
         {
             //tex: Performs the integration from equation (8):
             //$$\int_\kappa^1 \frac{1}{\tilde r} \left(\frac{c}{\tilde{r}^2 R_2^2 \tau_y}   -1   \right)^{\frac 1n}d\tilde r  $$

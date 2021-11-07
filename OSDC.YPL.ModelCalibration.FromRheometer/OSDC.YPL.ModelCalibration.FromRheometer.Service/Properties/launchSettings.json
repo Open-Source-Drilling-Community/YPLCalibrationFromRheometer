@@ -12,6 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchUrl": "YPLCalibrationFromRheometer/api/values",
+      "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -19,6 +20,7 @@
     "OSDC.YPL.ModelCalibration.FromRheometer": {
       "commandName": "Project",
       "launchUrl": "YPLCalibrationFromRheometer/api/values",
+      "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

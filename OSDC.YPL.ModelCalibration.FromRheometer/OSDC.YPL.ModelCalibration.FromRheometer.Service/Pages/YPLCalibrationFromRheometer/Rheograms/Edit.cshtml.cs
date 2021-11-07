@@ -91,7 +91,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Service.Pages.Rheograms
             return RedirectToPage("./Index");
         }
 
-        private bool RheogramExists(int id)
+        private static bool RheogramExists(int id)
         {
             return RheogramManager.Instance.Contains(id);
         }

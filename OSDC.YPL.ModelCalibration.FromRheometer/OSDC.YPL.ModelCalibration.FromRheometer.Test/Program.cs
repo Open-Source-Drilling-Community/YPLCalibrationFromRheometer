@@ -21,12 +21,12 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
             {
                 host = args[0];
             }
-            HttpClient client = new HttpClient();
+            HttpClient client = new();
             client.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             // test #1: read the IDs
-            List<int> initialRheogramIDs = null;
+            List<int> initialRheogramIDs;
             var a = client.GetAsync("values");
             a.Wait();
             HttpResponseMessage responseGetRheogramIDs = a.Result;
@@ -60,18 +60,18 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
                 Console.WriteLine("Test #1: read IDs: failure a");
             }
             // test #2: post a new rheogram
-            Rheogram rheogram = new Rheogram();
+            Rheogram rheogram = new();
             double tau0 = 2.0;
             double K = 0.5;
             double n = 0.75;
             for (double gammaDot = 1.0; gammaDot <= 100.0; gammaDot += 1.0)
             {
-                RheometerMeasurement measurement = new RheometerMeasurement();
+                RheometerMeasurement measurement = new();
                 measurement.ShearRate = gammaDot;
                 measurement.ShearStress = tau0 + K * System.Math.Pow(gammaDot, n);
                 rheogram.Measurements.Add(measurement);
             }
-            StringContent content = new StringContent(rheogram.GetJson(), Encoding.UTF8, "application/json");
+            StringContent content = new(rheogram.GetJson(), Encoding.UTF8, "application/json");
             a = client.PostAsync("values", content);
             a.Wait();
             HttpResponseMessage responseTaskPostRheogram = a.Result;
@@ -84,7 +84,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
                 Console.WriteLine("Test #2: post of rheogram: failure a");
             }
             // test #3: check that the new ID is present
-            List<int> newRheogramIDs = null;
+            List<int> newRheogramIDs;
             a = client.GetAsync("values");
             a.Wait();
             responseGetRheogramIDs = a.Result;
@@ -226,7 +226,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
             rheogram.Measurements.Clear();
             for (double gammaDot = 1.0; gammaDot <= 100.0; gammaDot += 1.0)
             {
-                RheometerMeasurement measurement = new RheometerMeasurement();
+                RheometerMeasurement measurement = new();
                 measurement.ShearRate = gammaDot;
                 measurement.ShearStress = tau0 + K * System.Math.Pow(gammaDot, n);
                 rheogram.Measurements.Add(measurement);
@@ -290,7 +290,7 @@ namespace OSDC.YPL.ModelCalibration.FromRheometer.Test
                 Console.WriteLine("Test #9: delete of rheogram: failure a");
             }
             // test #10: check that the rheogram has been deleted
-            List<int> updatedRheogramIDs = null;
+            List<int> updatedRheogramIDs;
             a = client.GetAsync("values");
             a.Wait();
             responseGetRheogramIDs = a.Result;
