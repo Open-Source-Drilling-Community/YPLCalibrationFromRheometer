@@ -1,0 +1,761 @@
+﻿@page "/YPLCalibrationFromRheometer/webapp/YPLCorrections"
+@using System.Text;
+@using YPLCalibrationFromRheometer.ModelClientShared;
+@using Newtonsoft.Json;
+
+<h1>YPLCorrections</h1>
+<div hidden="@IsHidSubPanel">
+    <div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td>R1 (m)</td>
+                    <td>R2 (m)</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsHidInputAdd)
+                {
+                    <tr>
+                        <td>
+                            <span class="label">@(calculationDataList[calcDataIdx].Name)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(calculationDataList[calcDataIdx].Description)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(calculationDataList[calcDataIdx].R1)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(calculationDataList[calcDataIdx].R2)</span>
+                        </td>
+                        <td></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>
+                            <input class="text" type="text" size="50" @bind="@updatedCalcDataName" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="50" @bind="@updatedCalcDataDescr" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="10" @bind="@updatedCalcDataR1" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="10" @bind="@updatedCalcDataR2" />
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Update(calcDataIdx))">Update</button>
+                            <button class="btn btn-primary" @onclick="@(() => Cancel(calcDataIdx))">Cancel</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+@if (calculationDataList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div hidden="@IsHidMainPanel">
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td>R1 (m)</td>
+                    <td>R2 (m)</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < calculationDataList.Count; i++)
+                {
+                    var local_i = i; // Do not use a loop variable directly in a lambda expression
+                    <tr>
+                        <td>
+                            <span class="label">@calculationDataList[i].Name</span>
+                        </td>
+                        <td>
+                            <span class="label">@calculationDataList[i].Description</span>
+                        </td>
+                        <td>
+                            <span class="label">@(calculationDataList[i].R1)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(calculationDataList[i].R2)</span>
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
+                            <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>
+                        <input class="text" type="text" size="50" @bind="@addedCalcDataName" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="50" @bind="@addedCalcDataDescr" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="10" @bind="@updatedCalcDataR1" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="10" @bind="@updatedCalcDataR2" />
+                    </td>
+                    <td align="right">
+                        <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @if (calcDataIdx >= 0)
+    {
+        int inputIterData1Count = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.Count;
+        int outputIterData1Count = calculationDataList[calcDataIdx].RheogramShearRateCorrected.RheometerMeasurementList.Count;
+        <div hidden="@IsHidSubPanel">
+            <div>
+                <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Input Rheogram</h2></button>
+                <div hidden="@IsHidInputPanel">
+                    <table class="table">
+                        <thead></thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <select @bind="@baseData1ID">
+                                        @foreach (Rheogram baseData1 in baseData1List)
+                                        {
+                                            <option value="@baseData1.ID">@baseData1.Name</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-primary" @onclick="@(() => UpdateInput())">Update</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot></tfoot>
+                    </table>
+                    <p>Warning, any change made to this Rheogram will be sent to the database and thus will affect other YPLCorrections which refer to it</p>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>ShearRate (1/s)</td>
+                                <td>ShearStress (Pa)</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (inputIterData1Count > 0)
+                            {
+                                @for (int j = 0; j < inputIterData1Count; j++)
+                                {
+                                    var local_j = j; // defined because loop variables cannot be used directly in a lambda expression (see below)
+                                    var inputIterData1 = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(j);
+                                    @if (inputIterData1 != null)
+                                    {
+                                        @if (IsHidInputAdd && j == rowIndex)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <input class="text" type="text" size="10" @bind="@updatedShearRate" />
+                                                </td>
+                                                <td>
+                                                    <input class="text" type="text" size="10" @bind="@updatedShearStress" />
+                                                </td>
+                                                <td align="right">
+                                                    @if (local_j > -1)
+                                                    {
+                                                        <button class="btn btn-primary" @onclick="@(() => UpdateRheometerMeasurement(local_j))">Update</button>
+                                                        <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement(local_j))">Cancel</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <span class="label">@(inputIterData1.ShearRate)</span>
+                                                </td>
+                                                <td>
+                                                    <span class="label">@(inputIterData1.ShearStress)</span>
+                                                </td>
+                                                <td align="right">
+                                                    @if (!IsHidInputAdd)
+                                                    {
+                                                        <button class="btn btn-primary" @onclick="@(() => EditRheometerMeasurement(local_j))">Edit</button>
+                                                        <button class="btn btn-primary" @onclick="@(() => DeleteRheometerMeasurement(local_j))">Delete</button>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            }
+                        </tbody>
+                        <tfoot hidden="@IsHidInputAdd">
+                            <tr>
+                                <td>
+                                    <input class="text" type="text" size="10" @bind="@addedShearRate" />
+                                </td>
+                                <td>
+                                    <input class="text" type="text" size="10" @bind="@addedShearStress" />
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-primary" @onclick="@(() => AddRheometerMeasurement())">Add</button>
+                                    <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement())">Cancel</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearRate corrected Rheogram</h2></button>
+                <table class="table" hidden="@IsHidCalcPanel">
+                    <thead>
+                        <tr>
+                            <td>ShearRate (1/s)</td>
+                            <td>ShearStress (Pa)</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (outputIterData1Count > 0)
+                        {
+                            @for (int j = 0; j < outputIterData1Count; j++)
+                            {
+                                var outputIterData1 = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(j);
+                                @if (outputIterData1 != null)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="label">@(calculationDataList[calcDataIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(j).ShearRate)</span>
+                                        </td>
+                                        <td>
+                                            <span class="label">@(calculationDataList[calcDataIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(j).ShearStress)</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    // default values
+    private const double YPLCorrection_R1 = .017245; // this value is the same as in Model.YPLCorrection (could maybe be shared through ModelClientShared)
+    private const double YPLCorrection_R2 = .018415; // this value is the same as in Model.YPLCorrection (could maybe be shared through ModelClientShared)
+
+    // http client
+    private HttpClient httpClient;
+
+    // html booleans for dynamic visualization
+    private bool IsHidMainPanel = false;
+    private bool IsHidSubPanel = true;
+    private bool IsHidInputPanel = true;
+    private bool IsHidInputAdd = false;
+    private bool IsHidCalcPanel = true;
+
+    // model data objects
+    private List<YPLCorrection> calculationDataList;
+    private List<Rheogram> baseData1List;
+
+    // UI binding variables
+    private string addedCalcDataName = null;
+    private string addedCalcDataDescr = null;
+    private double addedCalcDataR1 = YPLCorrection_R1;
+    private double addedCalcDataR2 = YPLCorrection_R2;
+    private string updatedCalcDataName = null;
+    private string updatedCalcDataDescr = null;
+    private double updatedCalcDataR1 = YPLCorrection_R1;
+    private double updatedCalcDataR2 = YPLCorrection_R2;
+    private double? addedShearRate = null;
+    private double? addedShearStress = null;
+    private double? updatedShearRate = null;
+    private double? updatedShearStress = null;
+
+    // variables identifying user's selected objects
+    private int calcDataIdx = -1; // the index of the selected YPLCorrection
+    private Guid calculationDataID = Guid.Empty;
+    private Guid baseData1ID = Guid.Empty;
+    private int rowIndex = -1; // the index of the row selected in the Input panel
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            string host = YPLCalibrationFromRheometer.WebAppClient.ConfigurationManager.Instance.Configuration.HostURL;
+            Console.WriteLine("Trying to load YPLCorrections from host: " + host);
+            SetHttpClient(host);
+            calculationDataList = await LoadYPLCorrections();
+            if (calculationDataList != null)
+            {
+                baseData1List = await LoadRheograms();
+            }
+            else
+            {
+                host = "http://host.docker.internal:5002/";
+                Console.WriteLine("Trying to load YPLCorrections from host: " + host);
+                SetHttpClient(host);
+                calculationDataList = await LoadYPLCorrections();
+                if (calculationDataList != null)
+                {
+                    baseData1List = await LoadRheograms();
+                }
+                else
+                {
+                    host = "http://localhost:5002/";
+                    Console.WriteLine("Trying to load YPLCorrections from host: " + host);
+                    SetHttpClient(host);
+                    calculationDataList = await LoadYPLCorrections();
+                    if (calculationDataList != null)
+                        baseData1List = await LoadRheograms();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            httpClient = null;
+            System.Console.WriteLine(e.Message);
+        }
+    }
+
+    private void SetHttpClient(string host)
+    {
+        httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    private async Task<List<YPLCorrection>> LoadYPLCorrections()
+    {
+        bool success = false;
+        try
+        {
+            var a = await httpClient.GetAsync("YPLCorrections");
+            if (a.IsSuccessStatusCode)
+            {
+                Guid[] ids = null;
+                string str = await a.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
+                }
+                this.calculationDataList = new List<YPLCorrection>();
+                YPLCorrection calculationData = null;
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    a = await httpClient.GetAsync("YPLCorrections/" + ids[i].ToString());
+                    if (a.IsSuccessStatusCode && a.Content != null)
+                    {
+                        str = await a.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            calculationData = JsonConvert.DeserializeObject<YPLCorrection>(str);
+                            if (calculationData == null)
+                                throw new NullReferenceException("Impossible to deserialize YPLCorrection string:" + str);
+                            this.calculationDataList.Add(calculationData);
+                        }
+                    }
+                }
+                if (this.calculationDataList.Count != ids.Length)
+                    throw new Exception("[devel] Inconsistent count of YPLCorrection-loaded IDs and loaded YPLCorrections. Verify that the database garbage collector is not set with a too small time update.");
+                success = true;
+            }
+            else
+            {
+                Console.WriteLine("Impossible to establish connection with host while loading YPLCorrections");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Loading YPLCorrections: impossible to establish connection with host");
+        }
+        if (success)
+        {
+            calculationDataList.Sort((yplc1, yplc2) => yplc1.Name.CompareTo(yplc2.Name));
+            Console.WriteLine("Loading YPLCorrections: connection with host established and YPLCorrections loaded");
+            return calculationDataList;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private async Task<List<Rheogram>> LoadRheograms()
+    {
+        bool success = false;
+        try
+        {
+            var a = await httpClient.GetAsync("Rheograms");
+            if (a.IsSuccessStatusCode)
+            {
+                Guid[] ids = null;
+                string str = await a.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
+                }
+                baseData1List = new List<Rheogram>();
+                Rheogram baseData1 = null;
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    a = await httpClient.GetAsync("Rheograms/" + ids[i].ToString());
+                    if (a.IsSuccessStatusCode && a.Content != null)
+                    {
+                        str = await a.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            baseData1 = JsonConvert.DeserializeObject<Rheogram>(str);
+                            if (baseData1 == null)
+                                throw new NullReferenceException("Impossible to deserialize baseData1 string:" + str);
+                            baseData1List.Add(baseData1);
+                        }
+                    }
+                }
+                if (baseData1List.Count != ids.Length)
+                    throw new Exception("[devel] Inconsistent count of Rheogram-loaded IDs and loaded Rheograms.");
+                success = true;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error while loading Rheograms");
+        }
+        if (success)
+        {
+            baseData1List.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
+            return baseData1List;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private void Edit(int idx)
+    {
+        if (calculationDataList != null && idx >= 0 && idx < calculationDataList.Count)
+        {
+            calcDataIdx = idx;
+            calculationDataID = calculationDataList[idx].ID;
+            updatedCalcDataName = calculationDataList[idx].Name;
+            updatedCalcDataR1 = calculationDataList[idx].R1;
+            updatedCalcDataR2 = calculationDataList[idx].R2;
+            updatedCalcDataDescr = calculationDataList[idx].Description;
+            baseData1ID = calculationDataList[idx].RheogramInput.ID;
+            IsHidMainPanel = true;
+            IsHidSubPanel = false;
+        }
+    }
+
+    private async void Delete(int idx)
+    {
+        if (calculationDataList != null && idx >= 0 && idx < calculationDataList.Count && calculationDataList[idx] != null && !calculationDataList[idx].ID.Equals(System.Guid.Empty))
+        {
+            // delete YPLCorrection from database (output children are implicitly deleted from their database)
+            var a = await httpClient.DeleteAsync("YPLCorrections/" + calculationDataList[idx].ID);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while deleting YPLCorrection");
+            }
+        }
+    }
+
+    private async void Update(int idx)
+    {
+        if (calculationDataList != null && idx >= 0 && idx < calculationDataList.Count && !calculationDataList[idx].ID.Equals(System.Guid.Empty) && !string.IsNullOrEmpty(updatedCalcDataName))
+        {
+            calculationDataList[idx].Name = updatedCalcDataName;
+            calculationDataList[idx].Description = updatedCalcDataDescr;
+            calculationDataList[idx].R1 = updatedCalcDataR1;
+            calculationDataList[idx].R2 = updatedCalcDataR2;
+
+            // PUT YPLCorrection into the YPLCorrectionsTable (calculation is performed and output children database is also updated)
+            StringContent content = new StringContent(calculationDataList[idx].GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("YPLCorrections/" + calculationDataList[idx].ID, content);
+            if (a.IsSuccessStatusCode)
+            {
+                updatedCalcDataName = null;
+                updatedCalcDataDescr = null;
+                updatedCalcDataR1 = YPLCorrection_R1;
+                updatedCalcDataR2 = YPLCorrection_R2;
+
+                IsHidMainPanel = false;
+                IsHidSubPanel = true;
+                calcDataIdx = -1;
+                baseData1ID = Guid.Empty;
+
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while putting the YPLCorrection");
+            }
+        }
+    }
+
+    private void Cancel(int idx)
+    {
+        if (calculationDataList != null && idx >= 0 && idx < calculationDataList.Count)
+        {
+            IsHidMainPanel = false;
+            IsHidSubPanel = true;
+            calcDataIdx = -1;
+        }
+    }
+
+    private async void Add()
+    {
+        if (!string.IsNullOrEmpty(addedCalcDataName) && baseData1List != null && baseData1List.Count > 0)
+        {
+            YPLCorrection addedCalcData = new YPLCorrection();
+            addedCalcData.ID = Guid.NewGuid();
+            addedCalcData.Name = addedCalcDataName;
+            addedCalcData.R1 = addedCalcDataR1;
+            addedCalcData.R2 = addedCalcDataR2;
+            addedCalcData.Description = addedCalcDataDescr;
+            addedCalcData.RheogramInput = baseData1List[0]; // by default, the first available Rheogram is used as input
+            addedCalcData.RheogramShearRateCorrected = new Rheogram();
+            addedCalcData.RheogramShearRateCorrected.ID = Guid.NewGuid();
+            addedCalcData.RheogramShearRateCorrected.Name = addedCalcData.Name + "-calculated-shearRateCorrected";
+
+            // POST the YPLCorrection (note that it adds RheogramInput to the input database, triggers the CalculateOutputRheogram() method and adds the corresponding output to the output database)
+            StringContent content = new StringContent(addedCalcData.GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PostAsync("YPLCorrections", content);
+            if (a.IsSuccessStatusCode)
+            {
+                addedCalcDataName = null;
+                addedCalcDataDescr = null;
+                addedCalcDataR1 = YPLCorrection_R1;
+                addedCalcDataR2 = YPLCorrection_R2;
+
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while posting YPLCorrection");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        // empty UI edit box
+        addedCalcDataName = null;
+        addedCalcDataDescr = null;
+        addedCalcDataR1 = YPLCorrection_R1;
+        addedCalcDataR2 = YPLCorrection_R2;
+    }
+
+    private async void UpdateInput()
+    {
+        try
+        {
+            // first GET the selected Rheogram
+            Rheogram baseData1 = null;
+            var a = await httpClient.GetAsync("Rheograms/" + baseData1ID.ToString());
+            if (a.IsSuccessStatusCode && a.Content != null)
+            {
+                string str = await a.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    baseData1 = JsonConvert.DeserializeObject<Rheogram>(str);
+                    if (baseData1 == null)
+                        throw new NullReferenceException("Impossible to deserialize Rheogram string:" + str);
+                    calculationDataList[calcDataIdx].RheogramInput = baseData1;
+
+                    // then PUT the YPLCorrection with an updated RheogramInput value (! uses a specific PutAsync() overload)
+                    StringContent content = new StringContent(baseData1.GetJson(), Encoding.UTF8, "application/json");
+                    a = await httpClient.PutAsync("YPLCorrections" + "/input/" + calculationDataID.ToString(), content);
+                    if (a.IsSuccessStatusCode)
+                    {
+                        await OnInitializedAsync();
+                        await InvokeAsync(() => { StateHasChanged(); });
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error while updating the YPLCorrection with the selected Rheogram");
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Error while getting the selected Rheogram");
+        }
+    }
+
+    private void EditRheometerMeasurement(int rowIdx)
+    {
+        rowIndex = rowIdx;
+        IsHidInputAdd = true;
+        updatedShearRate = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearRate;
+        updatedShearStress = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearStress;
+    }
+
+    private async void DeleteRheometerMeasurement(int rowIdx)
+    {
+        rowIndex = rowIdx;
+        if (calculationDataList[calcDataIdx] != null && calculationDataList[calcDataIdx].RheogramInput != null)
+        {
+            int iterData1Count = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.Count;
+            if (iterData1Count > 0)
+            {
+                // remove the RheometerMeasurement to be deleted
+                RheometerMeasurement iterData1 = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx);
+                if (iterData1 != null)
+                {
+                    calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.Remove(iterData1);
+                }
+
+                // then update the YPLCorrection with an updated RheogramInput value (! uses a specific PutAsync() overload)
+                if (!calculationDataID.Equals(Guid.Empty))
+                {
+                    StringContent content = new StringContent(calculationDataList[calcDataIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
+                    var a = await httpClient.PutAsync("YPLCorrections" + "/input/" + calculationDataID.ToString(), content);
+                    if (a.IsSuccessStatusCode)
+                    {
+                        await OnInitializedAsync();
+                        await InvokeAsync(() => { StateHasChanged(); });
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error while deleting a RheometerMeasurement in the process of putting YPLCorrection");
+                    }
+                }
+            }
+        }
+    }
+
+    private async void UpdateRheometerMeasurement(int rowIdx)
+    {
+        rowIndex = rowIdx;
+        int iterData1Count = calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.Count;
+
+        if (calculationDataList[calcDataIdx] != null && !calculationDataID.Equals(Guid.Empty) && iterData1Count > 0)
+        {
+            // collect values from UI
+            if (updatedShearRate.HasValue)
+            {
+                calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearRate = (double)updatedShearRate;
+                calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearStress = (double)updatedShearStress;
+            }
+
+            // then refresh the UI
+            updatedShearRate = null;
+            updatedShearStress = null;
+            IsHidInputAdd = false;
+            rowIndex = -1;
+
+            // finally update the YPLCorrection with an updated RheogramInput value (! uses a specific PutAsync() overload)
+            StringContent content = new StringContent(calculationDataList[calcDataIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("YPLCorrections" + "/input/" + calculationDataID.ToString(), content);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while updating a RheometerMeasurement in the process of putting YPLCorrection");
+            }
+        }
+    }
+
+    private void CancelRheometerMeasurement(int rowIdx)
+    {
+        // rowIndex is just used to make the distinction with the no-argument overload
+        IsHidInputAdd = false;
+        rowIndex = -1;
+        // empty UI edit boxes
+        updatedShearRate = null;
+        updatedShearStress = null;
+    }
+
+    private async void AddRheometerMeasurement()
+    {
+        if (calculationDataList[calcDataIdx] != null && calculationDataList[calcDataIdx].RheogramInput != null && !calculationDataID.Equals(Guid.Empty))
+        {
+            RheometerMeasurement addedIterData1 = new RheometerMeasurement(); // attribute must be set separately because non-empty constructors cannot be passed through the ModelClientShared json conversion mechanism
+            if (addedShearRate.HasValue)
+            {
+                addedIterData1.ShearRate = (double)addedShearRate; // else unchanged
+                addedIterData1.ShearStress = (double)addedShearStress; // else unchanged
+            }
+
+            calculationDataList[calcDataIdx].RheogramInput.RheometerMeasurementList.Add(addedIterData1);
+
+            // update the UI
+            addedShearRate = null;
+            addedShearStress = null;
+
+            // then update the YPLCorrection with an updated RheogramInput value (! uses a specific PutAsync() overload)
+            StringContent content = new StringContent(calculationDataList[calcDataIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("YPLCorrections" + "/input/" + calculationDataID.ToString(), content);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while adding a RheometerMeasurement in the process of putting YPLCorrection");
+            }
+        }
+    }
+
+    private void CancelRheometerMeasurement()
+    {
+        // empty UI edit boxes
+        addedShearRate = null;
+        addedShearStress = null;
+    }
+
+    private void HideInput()
+    {
+        IsHidInputPanel = !IsHidInputPanel;
+    }
+
+    private void HideCalc()
+    {
+        IsHidCalcPanel = !IsHidCalcPanel;
+    }
+}
+
+

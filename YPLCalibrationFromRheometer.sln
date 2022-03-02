@@ -1,0 +1,96 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.Service", "YPLCalibrationFromRheometer.Service\YPLCalibrationFromRheometer.Service.csproj", "{0600E920-F4A9-4403-A221-FA03B908E7FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C51A9E36-7881-442E-9778-C4DFD73F663A} = {C51A9E36-7881-442E-9778-C4DFD73F663A}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.Test", "YPLCalibrationFromRheometer.Test\YPLCalibrationFromRheometer.Test.csproj", "{E2BEDF1E-86D2-41D7-9129-7CA0B4B8CDA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.JsonSD", "YPLCalibrationFromRheometer.JsonSD\YPLCalibrationFromRheometer.JsonSD.csproj", "{C51A9E36-7881-442E-9778-C4DFD73F663A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.Model", "YPLCalibrationFromRheometer.Model\YPLCalibrationFromRheometer.Model.csproj", "{4A519C56-BA34-4617-B53B-BDC8CD85C293}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.JsonCL", "YPLCalibrationFromRheometer.JsonCL\YPLCalibrationFromRheometer.JsonCL.csproj", "{5BD5BCA2-DC43-42C0-BC44-7424918A75E8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.NUnit", "YPLCalibrationFromRheometer.NUnit\YPLCalibrationFromRheometer.NUnit.csproj", "{55A5A327-8375-4727-99D7-11D0017EDBE4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6B100DEE-53F4-4B85-80D0-E397A653F042}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.RheometerCorrectionApp", "YPLCalibrationFromRheometer.RheometerCorrectionApp\YPLCalibrationFromRheometer.RheometerCorrectionApp.csproj", "{68E42985-25C0-42FA-982A-242392F18CB3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.WebAppClient", "YPLCalibrationFromRheometer.WebAppClient\YPLCalibrationFromRheometer.WebAppClient.csproj", "{F0488265-1EC5-4FB9-A7B4-49186001FBA5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.ModelClientShared", "YPLCalibrationFromRheometer.ModelClientShared\YPLCalibrationFromRheometer.ModelClientShared.csproj", "{43AAE33B-D226-483D-9D4F-41D1CD038195}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORCE.General.Math", "General.Math\NORCE.General.Math.csproj", "{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORCE.General.Statistics", "General.Statistics\NORCE.General.Statistics.csproj", "{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORCE.General.Std", "General.Std\NORCE.General.Std.csproj", "{490AE8FF-27AA-414F-860F-FAF647CF6945}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0600E920-F4A9-4403-A221-FA03B908E7FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0600E920-F4A9-4403-A221-FA03B908E7FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0600E920-F4A9-4403-A221-FA03B908E7FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0600E920-F4A9-4403-A221-FA03B908E7FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2BEDF1E-86D2-41D7-9129-7CA0B4B8CDA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2BEDF1E-86D2-41D7-9129-7CA0B4B8CDA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2BEDF1E-86D2-41D7-9129-7CA0B4B8CDA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2BEDF1E-86D2-41D7-9129-7CA0B4B8CDA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C51A9E36-7881-442E-9778-C4DFD73F663A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C51A9E36-7881-442E-9778-C4DFD73F663A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C51A9E36-7881-442E-9778-C4DFD73F663A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C51A9E36-7881-442E-9778-C4DFD73F663A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A519C56-BA34-4617-B53B-BDC8CD85C293}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A519C56-BA34-4617-B53B-BDC8CD85C293}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A519C56-BA34-4617-B53B-BDC8CD85C293}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A519C56-BA34-4617-B53B-BDC8CD85C293}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BD5BCA2-DC43-42C0-BC44-7424918A75E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BD5BCA2-DC43-42C0-BC44-7424918A75E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BD5BCA2-DC43-42C0-BC44-7424918A75E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BD5BCA2-DC43-42C0-BC44-7424918A75E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55A5A327-8375-4727-99D7-11D0017EDBE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55A5A327-8375-4727-99D7-11D0017EDBE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55A5A327-8375-4727-99D7-11D0017EDBE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55A5A327-8375-4727-99D7-11D0017EDBE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68E42985-25C0-42FA-982A-242392F18CB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68E42985-25C0-42FA-982A-242392F18CB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68E42985-25C0-42FA-982A-242392F18CB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68E42985-25C0-42FA-982A-242392F18CB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0488265-1EC5-4FB9-A7B4-49186001FBA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0488265-1EC5-4FB9-A7B4-49186001FBA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0488265-1EC5-4FB9-A7B4-49186001FBA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0488265-1EC5-4FB9-A7B4-49186001FBA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43AAE33B-D226-483D-9D4F-41D1CD038195}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43AAE33B-D226-483D-9D4F-41D1CD038195}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43AAE33B-D226-483D-9D4F-41D1CD038195}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43AAE33B-D226-483D-9D4F-41D1CD038195}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{490AE8FF-27AA-414F-860F-FAF647CF6945}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{490AE8FF-27AA-414F-860F-FAF647CF6945}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{490AE8FF-27AA-414F-860F-FAF647CF6945}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{490AE8FF-27AA-414F-860F-FAF647CF6945}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0DEB4821-24BD-44C3-8DDA-4157ED60EBC4}
+	EndGlobalSection
+EndGlobal

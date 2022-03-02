@@ -1,0 +1,242 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "YPLCalibrationMaster",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "YPLCalibration": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/definitions/YPLCalibration"
+        }
+      ]
+    },
+    "YPLCorrection": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/definitions/YPLCorrection"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "YPLCalibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "string",
+          "format": "guid"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "RheogramInput": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        },
+        "YPLModelKelessidis": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
+            }
+          ]
+        },
+        "YPLModelMullineux": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
+            }
+          ]
+        }
+      }
+    },
+    "Rheogram": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "string",
+          "format": "guid"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ShearStressStandardDeviation": {
+          "type": "number",
+          "format": "double"
+        },
+        "RheometerMeasurementList": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/RheometerMeasurement"
+          }
+        },
+        "Count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "IsReadOnly": {
+          "type": "boolean"
+        }
+      }
+    },
+    "RheometerMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "string",
+          "format": "guid"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ShearRate": {
+          "type": "number",
+          "format": "double"
+        },
+        "ShearStress": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "YPLModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "string",
+          "format": "guid"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Tau0": {
+          "type": "number",
+          "format": "double"
+        },
+        "K": {
+          "type": "number",
+          "format": "double"
+        },
+        "N": {
+          "type": "number",
+          "format": "double"
+        },
+        "Chi2": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "YPLCorrection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "string",
+          "format": "guid"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "R1": {
+          "type": "number",
+          "format": "double"
+        },
+        "R2": {
+          "type": "number",
+          "format": "double"
+        },
+        "RheogramInput": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        },
+        "RheogramShearRateCorrected": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

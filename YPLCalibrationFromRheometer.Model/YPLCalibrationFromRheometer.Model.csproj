@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="docfx.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="docfx.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\General.Math\NORCE.General.Math.csproj" />
+    <ProjectReference Include="..\General.Statistics\NORCE.General.Statistics.csproj" />
+    <ProjectReference Include="..\General.Std\NORCE.General.Std.csproj" />
+  </ItemGroup>
+
+</Project>

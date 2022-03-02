@@ -1,0 +1,572 @@
+﻿@page "/YPLCalibrationFromRheometer/webapp/Rheograms"
+@using System.Text;
+@using YPLCalibrationFromRheometer.ModelClientShared;
+@using Newtonsoft.Json;
+
+<h1>Rheograms</h1>
+<p>Warning, any change made to the Rheogram's listed below may affect YPLCalibrations which refer to it</p>
+<div hidden="@IsHidSubPanel">
+    <div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td>Shear stress standard deviation (Pa)</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsHidInputAdd)
+                {
+                    <tr>
+                        <td>
+                            <span class="label">@(baseData1List[baseData1Idx].Name)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(baseData1List[baseData1Idx].Description)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(baseData1List[baseData1Idx].ShearStressStandardDeviation)</span>
+                        </td>
+                        <td></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>
+                            <input class="text" type="text" size="50" @bind="@updatedBaseData1Name" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="50" @bind="@updatedBaseData1Descr" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="10" @bind="@updatedBaseData1StdStress" />
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Update(baseData1Idx))">Update</button>
+                            <button class="btn btn-primary" @onclick="@(() => Cancel(baseData1Idx))">Cancel</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+@if (baseData1List == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div hidden="@IsHidMainPanel">
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td>Shear stress standard deviation (Pa)</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < baseData1List.Count; i++)
+                {
+                    var local_i = i; // Do not use a loop variable directly in a lambda expression
+                    <tr>
+                        <td>
+                            <span class="label">@baseData1List[i].Name</span>
+                        </td>
+                        <td>
+                            <span class="label">@(baseData1List[i].Description)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(baseData1List[i].ShearStressStandardDeviation)</span>
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
+                            <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>
+                        <input class="text" type="text" size="50" @bind="@addedBaseData1Name" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="50" @bind="@addedBaseData1Descr" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="10" @bind="@addedBaseData1StdStress" />
+                    </td>
+                    <td align="right">
+                        <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @if (baseData1Idx >= 0)
+    {
+        int inputIterData1Count = baseData1List[baseData1Idx].RheometerMeasurementList.Count;
+        <div hidden="@IsHidSubPanel">
+            <div>
+                <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>RheometerMeasurements</h2></button>
+                <table class="table" hidden="@IsHidInputPanel">
+                    <thead>
+                        <tr>
+                            <td>ShearRate (1/s)</td>
+                            <td>ShearStress (Pa)</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (inputIterData1Count > 0)
+                        {
+                            @for (int j = 0; j < inputIterData1Count; j++)
+                            {
+                                var local_j = j; // defined because loop variables cannot be used directly in a lambda expression (see below)
+                                var inputIterData1 = baseData1List[baseData1Idx].RheometerMeasurementList.ElementAt(j);
+                                @if (inputIterData1 != null)
+                                {
+                                    @if (IsHidInputAdd && j == rowIndex)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <input class="text" type="text" size="10" @bind="@updatedShearRate" />
+                                            </td>
+                                            <td>
+                                                <input class="text" type="text" size="10" @bind="@updatedShearStress" />
+                                            </td>
+                                            <td align="right">
+                                                @if (local_j > -1)
+                                                {
+                                                    <button class="btn btn-primary" @onclick="@(() => UpdateRheometerMeasurement(local_j))">Update</button>
+                                                    <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement(local_j))">Cancel</button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="label">@(inputIterData1.ShearRate)</span>
+                                            </td>
+                                            <td>
+                                                <span class="label">@(inputIterData1.ShearStress)</span>
+                                            </td>
+                                            <td align="right">
+                                                @if (!IsHidInputAdd)
+                                                {
+                                                    <button class="btn btn-primary" @onclick="@(() => EditRheometerMeasurement(local_j))">Edit</button>
+                                                    <button class="btn btn-primary" @onclick="@(() => DeleteRheometerMeasurement(local_j))">Delete</button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            }
+                        }
+                    </tbody>
+                    <tfoot hidden="@IsHidInputAdd">
+                        <tr>
+                            <td>
+                                <input class="text" type="text" size="10" @bind="@addedShearRate" />
+                            </td>
+                            <td>
+                                <input class="text" type="text" size="10" @bind="@addedShearStress" />
+                            </td>
+                            <td align="right">
+                                <button class="btn btn-primary" @onclick="@(() => AddRheometerMeasurement())">Add</button>
+                                <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement())">Cancel</button>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    // default values
+    private const double Rheogram_StdShearStress = .01; // this value is the same as in Model.Rheogram (could maybe be shared through ModelClientShared)
+
+    // http client
+    private HttpClient httpClient;
+
+    private bool IsHidMainPanel = false;
+    private bool IsHidSubPanel = true;
+    private bool IsHidInputPanel = true;
+    private bool IsHidInputAdd = false;
+    private bool IsHidCalcPanel = true;
+
+    // main data object
+    private List<Rheogram> baseData1List;
+
+    // temporary objects are used essentially to post or put modifications to the database
+    private string addedBaseData1Name = null;
+    private string addedBaseData1Descr = null;
+    private double? addedBaseData1StdStress = Rheogram_StdShearStress;
+    private double? addedShearRate = null;
+    private double? addedShearStress = null;
+    private string updatedBaseData1Name = null;
+    private string updatedBaseData1Descr = null;
+    private double? updatedBaseData1StdStress = Rheogram_StdShearStress;
+    private double? updatedShearRate = null;
+    private double? updatedShearStress = null;
+
+    private int baseData1Idx = -1;
+    private Guid baseData1ID = Guid.Empty;
+    private int rowIndex = -1; // the index of the row selected in the Input panel
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            string host = YPLCalibrationFromRheometer.WebAppClient.ConfigurationManager.Instance.Configuration.HostURL;
+            Console.WriteLine("Trying to load Rheograms from host: " + host);
+            SetHttpClient(host);
+            baseData1List = await LoadRheograms();
+            if (baseData1List == null)
+            {
+            host = "http://host.docker.internal:5002/";
+            Console.WriteLine("Trying to load Rheograms from host: " + host);
+            SetHttpClient(host);
+            baseData1List = await LoadRheograms();
+            if (baseData1List == null)
+            {
+                host = "http://localhost:5002/";
+                Console.WriteLine("Trying to load Rheograms from host: " + host);
+                SetHttpClient(host);
+                baseData1List = await LoadRheograms();
+            }
+            }
+        }
+        catch (Exception e)
+        {
+            httpClient = null;
+            System.Console.WriteLine(e.Message);
+        }
+    }
+
+    private void SetHttpClient(string host)
+    {
+        httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    private async Task<List<Rheogram>> LoadRheograms()
+    {
+        bool success = false;
+        try
+        {
+            var a = await httpClient.GetAsync("Rheograms");
+            if (a.IsSuccessStatusCode)
+            {
+                Guid[] ids = null;
+                string str = await a.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
+                }
+                baseData1List = new List<Rheogram>();
+                Rheogram baseData1 = null;
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    a = await httpClient.GetAsync("Rheograms/" + ids[i].ToString());
+                    if (a.IsSuccessStatusCode && a.Content != null)
+                    {
+                        str = await a.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            baseData1 = JsonConvert.DeserializeObject<Rheogram>(str);
+                            if (baseData1 == null)
+                                throw new NullReferenceException("Impossible to deserialize Rheograms string:" + str);
+                            baseData1List.Add(baseData1);
+                        }
+                    }
+                }
+                if (baseData1List.Count != ids.Length)
+                    throw new Exception("[devel] Inconsistent count of Rheogram-loaded IDs and loaded Rheograms.");
+                success = true;
+            }
+            else
+            {
+                Console.WriteLine("Impossible to establish connection with host while loading Rheograms");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("Loading Rheograms: impossible to establish connection with host");
+        }
+        if (success)
+        {
+            baseData1List.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
+            Console.WriteLine("Loading Rheograms: connection with host established and Rheograms loaded");
+            return baseData1List;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private void Edit(int idx)
+    {
+        if (baseData1List != null && idx >= 0 && idx < baseData1List.Count)
+        {
+            baseData1Idx = idx;
+            updatedBaseData1Name = baseData1List[idx].Name;
+            updatedBaseData1Descr = baseData1List[idx].Description;
+            updatedBaseData1StdStress = baseData1List[idx].ShearStressStandardDeviation;
+            baseData1ID = baseData1List[idx].ID;
+            IsHidMainPanel = true;
+            IsHidSubPanel = false;
+        }
+    }
+
+    private async void Delete(int idx)
+    {
+        if (baseData1List != null && idx >= 0 && idx < baseData1List.Count && baseData1List[idx] != null && !baseData1List[idx].ID.Equals(System.Guid.Empty))
+        {
+            // delete Rheogram from database
+            var a = await httpClient.DeleteAsync("Rheograms/" + baseData1List[idx].ID);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while deleting Rheogram");
+            }
+        }
+    }
+
+    private async void Update(int idx)
+    {
+        if (baseData1List != null && idx >= 0 && idx < baseData1List.Count && !baseData1List[idx].ID.Equals(System.Guid.Empty) &&
+            !string.IsNullOrEmpty(updatedBaseData1Name) && updatedBaseData1StdStress != null && updatedBaseData1StdStress > 0.0)
+        {
+            baseData1List[idx].Name = updatedBaseData1Name;
+            baseData1List[idx].Description = updatedBaseData1Descr;
+            baseData1List[idx].ShearStressStandardDeviation = (double)updatedBaseData1StdStress;
+
+            // PUT Rheogram into the RheogramInputsTable (update of all YPLCalibrations which reference this Rheogram is performed)
+            StringContent content = new StringContent(baseData1List[idx].GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("Rheograms/" + baseData1List[idx].ID, content);
+            if (a.IsSuccessStatusCode)
+            {
+                updatedBaseData1Name = null;
+                updatedBaseData1Descr = null;
+                updatedBaseData1StdStress = Rheogram_StdShearStress;
+
+                IsHidMainPanel = false;
+                IsHidSubPanel = true;
+                baseData1Idx = -1;
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while putting the Rheogram");
+            }
+        }
+    }
+
+    private void Cancel(int idx)
+    {
+        if (baseData1List != null && idx >= 0 && idx < baseData1List.Count)
+        {
+            IsHidMainPanel = false;
+            IsHidSubPanel = true;
+            baseData1Idx = -1;
+        }
+    }
+
+    private async void Add()
+    {
+        if (!string.IsNullOrEmpty(addedBaseData1Name) && addedBaseData1StdStress != null && addedBaseData1StdStress > 0.0)
+        {
+            Rheogram addedRheogram = new Rheogram();
+            addedRheogram.ID = Guid.NewGuid();
+            addedRheogram.Name = addedBaseData1Name;
+            addedRheogram.Description = addedBaseData1Descr;
+            addedRheogram.ShearStressStandardDeviation = (double)addedBaseData1StdStress;
+
+            // POST the Rheogram
+            StringContent content = new StringContent(addedRheogram.GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PostAsync("Rheograms", content);
+            if (a.IsSuccessStatusCode)
+            {
+                addedBaseData1Name = null;
+                addedBaseData1Descr = null;
+                addedBaseData1StdStress = Rheogram_StdShearStress;
+
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while posting Rheogram");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        // empty UI edit box
+        addedBaseData1Name = null;
+        addedBaseData1Descr = null;
+        addedBaseData1StdStress = Rheogram_StdShearStress;
+    }
+
+    private void EditRheometerMeasurement(int rowIdx)
+    {
+        rowIndex = rowIdx;
+        IsHidInputAdd = true;
+        updatedShearRate = baseData1List[baseData1Idx].RheometerMeasurementList.ElementAt(rowIdx).ShearRate;
+        updatedShearStress = baseData1List[baseData1Idx].RheometerMeasurementList.ElementAt(rowIdx).ShearStress;
+    }
+
+    private async void DeleteRheometerMeasurement(int rowIdx)
+    {
+        rowIndex = rowIdx;
+        if (baseData1List[baseData1Idx] != null)
+        {
+            int iterData1Count = baseData1List[baseData1Idx].RheometerMeasurementList.Count;
+            if (iterData1Count > 0)
+            {
+                // remove the RheometerMeasurement to be deleted
+                RheometerMeasurement iterData1 = baseData1List[baseData1Idx].RheometerMeasurementList.ElementAt(rowIdx);
+                if (iterData1 != null)
+                {
+                    baseData1List[baseData1Idx].RheometerMeasurementList.Remove(iterData1);
+                }
+
+                // then update the database
+                if (!baseData1ID.Equals(Guid.Empty))
+                {
+                    StringContent content = new StringContent(baseData1List[baseData1Idx].GetJson(), Encoding.UTF8, "application/json");
+                    var a = await httpClient.PutAsync("Rheograms" + baseData1ID.ToString(), content);
+                    if (a.IsSuccessStatusCode)
+                    {
+                        await OnInitializedAsync();
+                        await InvokeAsync(() => { StateHasChanged(); });
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error while deleting a RheometerMeasurement in the process of putting Rheogram");
+                    }
+                }
+            }
+        }
+    }
+
+    private async void UpdateRheometerMeasurement(int rowIdx)
+    {
+        rowIndex = rowIdx;
+        int iterData1Count = baseData1List[baseData1Idx].RheometerMeasurementList.Count;
+
+        if (baseData1List[baseData1Idx] != null && !baseData1ID.Equals(Guid.Empty) && iterData1Count > 0)
+        {
+            // collect value from UI
+            if (updatedShearRate.HasValue)
+            {
+                baseData1List[baseData1Idx].RheometerMeasurementList.ElementAt(rowIdx).ShearRate = (double)updatedShearRate; // else unchanged
+                baseData1List[baseData1Idx].RheometerMeasurementList.ElementAt(rowIdx).ShearStress = (double)updatedShearStress; // else unchanged
+            }
+
+            // then refresh the UI
+            updatedShearRate = null;
+            updatedShearStress = null;
+            IsHidInputAdd = false;
+            rowIndex = -1;
+
+            // finally update the Rheogram
+            StringContent content = new StringContent(baseData1List[baseData1Idx].GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("Rheograms" + baseData1ID.ToString(), content);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while updating a RheometerMeasurement in the process of putting Rheogram");
+            }
+        }
+    }
+
+    private void CancelRheometerMeasurement(int rowIdx)
+    {
+        // rowIndex is just used to make the distinction with the no-argument overload
+        IsHidInputAdd = false;
+        rowIndex = -1;
+        // empty UI edit boxes
+        updatedShearRate = null;
+        updatedShearStress = null;
+    }
+
+    private async void AddRheometerMeasurement()
+    {
+        if (baseData1List[baseData1Idx] != null && !baseData1ID.Equals(Guid.Empty))
+        {
+            RheometerMeasurement addedIterData1 = new RheometerMeasurement(); // attribute must be set separately because non-empty constructors cannot be passed through the ModelClientShared json conversion mechanism
+            if (addedShearRate.HasValue)
+            {
+                addedIterData1.ShearRate = (double)addedShearRate; // else unchanged
+                addedIterData1.ShearStress = (double)addedShearStress; // else unchanged
+            }
+
+            baseData1List[baseData1Idx].RheometerMeasurementList.Add(addedIterData1);
+
+            // update UI
+            addedShearRate = null;
+            addedShearStress = null;
+
+            // then update the database
+            StringContent content = new StringContent(baseData1List[baseData1Idx].GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("Rheograms" + baseData1ID.ToString(), content);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                Console.WriteLine("Error while addind a RheometerMeasurement in the process of putting Rheogram");
+            }
+        }
+    }
+
+    private void CancelRheometerMeasurement()
+    {
+        // empty UI edit boxes
+        addedShearRate = null;
+        addedShearStress = null;
+    }
+
+    private void HideInput()
+    {
+        IsHidInputPanel = !IsHidInputPanel;
+    }
+
+    private void HideCalc()
+    {
+        IsHidCalcPanel = !IsHidCalcPanel;
+    }
+    }
+
+
