@@ -3,7 +3,7 @@ Yield Power Law Model Calibration Methods
 
 Objective
 ===
-This repository contains micro-services to calibrate Yield Power Law rheological behaviors.
+This repository contains micro-services to calibrate Yield Power Law rheological behaviors and correct Couette rheometer measurements.
 
 Scope
 ===
@@ -12,20 +12,24 @@ The calibration methods cover:
 * calibration in transient conditions
 
 The calibration methods are also available for different measurement types:
-* a series of shear rate and shear stress for example measured with a couette rheometer
+* a series of shear rate and shear stress for example measured with a Couette rheometer
 * a series of flow-rate and differential pressure for example with a pipe rheometer
+
+Shear rate and shear stress measurements obtained under the newtonian fluid assumption can be corrected for non-newtonian effects which should be the base scenario with standard drilling fluids.
 
 Software solution layout
 ===
 The software solutions contain:
-* A model where the actual calibration is made.
+* A model where the actual calibration and correction are made.
 * Unit tests to control that the implemented method works and that any later modifications do not break backward compatibility.
-* A wrapper microservice implemented as a web api server and containerized with docker. The web API can be found in [service]api/values.
+* A microservice implemented and containerized with docker. The web API can be found in [host]/[service]/api/values where [service]=OSDC.YPL.ModelCalibration.FromRheometer and [host]=https://app.DigiWells.no
 * An example test program to check that the container works properly.
 * The web service also provides online documentation. The online documentation can be found in [service].
-* The web service default page provide a simple web interface to access the functionalities of the web api.
+* The web service default web page provides a web interface to handle rheograms, calibrations and corrections according to the CRUD API.
+* The web app client is based on Blazor server technology
+* A SQLite database allows for data storage on the digiwells server but also locally if needed.
 
-The development is made in C#. The projects utilize .Net Standard and therefore are compatible with both Windows, Linux and MacOS operating systems. 
+The development is made in C#. The projects utilize .NET Standard LTS (.NET Core 3.1) and therefore are compatible with both Windows, Linux and MacOS operating systems. 
 Visual Studio is used for the developmenent but it should be possible to build the solution from the command line for those who just have the .Net 
 environment without Visual Studio.
 
