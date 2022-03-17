@@ -66,9 +66,9 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                 {
                     values = JsonConvert.DeserializeObject<YPLCorrection>(str);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine(e.ToString());
+                    Console.WriteLine(ex.ToString());
                 }
             }
             return values;

@@ -41,11 +41,10 @@ namespace YPLCalibrationFromRheometer.Model
         public Rheogram RheogramShearRateCorrected { get; set; }
 
         /// <summary>
-        /// default constructor
+        /// parameterless constructor to allow for deserialization
         /// </summary>
         public YPLCorrection() : base()
         {
-
         }
 
         /// <summary>
@@ -104,8 +103,10 @@ namespace YPLCalibrationFromRheometer.Model
         /// <returns></returns>
         public object Clone()
         {
-            YPLCorrection copy = new YPLCorrection(this);
-            copy.ID = ID;
+            YPLCorrection copy = new YPLCorrection(this)
+            {
+                ID = ID
+            };
             return copy;
         }
 
@@ -127,10 +128,8 @@ namespace YPLCalibrationFromRheometer.Model
                         RheogramShearRateCorrected.ID = Guid.NewGuid();
                     if (RheogramShearRateCorrected.Name == null)
                         RheogramShearRateCorrected.Name = RheogramInput.Name + "-corrected";
-                    List<RheometerMeasurement> outputDataList = RheogramShearRateCorrected.RheometerMeasurementList;
-                    if (outputDataList == null)
-                        outputDataList = new List<RheometerMeasurement>(); // this case should not arrive since RheometerMeasurementList are instantiated in Rheogram ctor, still risk exists as it is a public settable attribute
-                    outputDataList.Clear();
+                    // this case should not arrive since RheometerMeasurementList are instantiated in Rheogram ctor, still risk exists as it is a public settable attribute
+                    RheogramShearRateCorrected.RheometerMeasurementList.Clear();
 
                     if (success)
                     {
@@ -154,7 +153,6 @@ namespace YPLCalibrationFromRheometer.Model
                             double eps = 1e-5;
                             int count = 0;
 
-
                             double dChi2 = -999.25;
                             do
                             {
@@ -175,6 +173,10 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 RheometerMeasurement meas = new RheometerMeasurement(shearRates[i], shearStresses[i]);
                                 RheogramShearRateCorrected.RheometerMeasurementList.Add(meas);
+                            }
+                            if (count > 40)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Shear rate correction calculation did not converge");
                             }
                             return true;
                         }
@@ -199,8 +201,9 @@ namespace YPLCalibrationFromRheometer.Model
 
         public static double GetShearRate(double r1, double r2, double k, double n, double tau_y, double omega, out bool isFullySheared)
         {
-            if (n == 1 & tau_y == 0)
+            if (tau_y < 0 || (n == 1 & tau_y == 0))
             {
+                // the case tau_y is not compatible with the YPL parameter identification process, hence the algorithm will simply return the uncorrected Newtonian shear rate values
                 isFullySheared = true;
                 return GetNewtonianShearRate(omega, r1 / r2);
             }
@@ -225,6 +228,11 @@ namespace YPLCalibrationFromRheometer.Model
             }
         }
 
+        public static double GetNewtonianShearRate(double omega, double kappa)
+        {
+            return 2.0 * omega / (1 - kappa * kappa);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -241,37 +249,6 @@ namespace YPLCalibrationFromRheometer.Model
             double integral = IntegrationFKappaN(kappa, n);
             double factor = System.Math.Pow(k / tau_y, 1.0 / n);
             return integral / factor;
-        }
-
-        public static double GetFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
-        {
-            double c = CalculateC(k, omega, tau_y, n, r1, r2);
-
-            //tex: $\tau(r) = c / r^2$
-            double tau_r = c / (r1 * r1);
-
-            //tex: $$ \dot{\gamma}(r) = \left[ \left(\frac{\tau_y}{k} \right) \left( \frac{\tau (r)}{\tau_y} \right) -1 \right]^{ \frac 1n }$$
-            //with $r = R_1$
-
-
-            return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);
-        }
-
-        public static double GetNonFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
-        {
-            double rPlug = CalculateRPlug(k, omega, tau_y, n, r1, r2);
-            double tau_r = tau_y * rPlug * rPlug / (r1 * r1);
-            return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);
-        }
-
-        public static double GetNewtonianShearRate(double omega, double kappa)
-        {
-            return 2.0 * omega / (1 - kappa * kappa);
-        }
-
-        public static double GetNewtonianRotationalVelocity(double shearRate, double kappa)
-        {
-            return shearRate * (1 - kappa * kappa) / 2.0;
         }
 
         public static double GetPowerLawShearRate(double omega, double kappa, double n)
@@ -366,6 +343,32 @@ namespace YPLCalibrationFromRheometer.Model
                 System.Diagnostics.Debug.WriteLine("Numerical error in CalculateC");
             }
             return c;
+        }
+
+        public static double GetFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
+        {
+            double c = CalculateC(k, omega, tau_y, n, r1, r2);
+
+            //tex: $\tau(r) = c / r^2$
+            double tau_r = c / (r1 * r1);
+
+            //tex: $$ \dot{\gamma}(r) = \left[ \left(\frac{\tau_y}{k} \right) \left( \frac{\tau (r)}{\tau_y} \right) -1 \right]^{ \frac 1n }$$
+            //with $r = R_1$
+
+
+            return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);
+        }
+
+        public static double GetNonFullyShearedShearRate(double r1, double r2, double k, double n, double tau_y, double omega)
+        {
+            double rPlug = CalculateRPlug(k, omega, tau_y, n, r1, r2);
+            double tau_r = tau_y * rPlug * rPlug / (r1 * r1);
+            return System.Math.Pow((tau_y / k) * (tau_r / tau_y - 1.0), 1.0 / n);
+        }
+
+        public static double GetNewtonianRotationalVelocity(double shearRate, double kappa)
+        {
+            return shearRate * (1 - kappa * kappa) / 2.0;
         }
 
         /// <summary>

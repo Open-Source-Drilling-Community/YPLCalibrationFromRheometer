@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "YPLCalibrationFromRheometer.WebAppClient": {
+    "YPLCalibrationFromRheometer.WebApp.Client": {
       "commandName": "Project",
       "launchUrl": "YPLCalibrationFromRheometer/webapp/Values",
       "launchBrowser": true,

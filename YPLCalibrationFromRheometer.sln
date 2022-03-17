@@ -22,15 +22,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.RheometerCorrectionApp", "YPLCalibrationFromRheometer.RheometerCorrectionApp\YPLCalibrationFromRheometer.RheometerCorrectionApp.csproj", "{68E42985-25C0-42FA-982A-242392F18CB3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.WebAppClient", "YPLCalibrationFromRheometer.WebAppClient\YPLCalibrationFromRheometer.WebAppClient.csproj", "{F0488265-1EC5-4FB9-A7B4-49186001FBA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.WebApp.Client", "YPLCalibrationFromRheometer.WebApp.Client\YPLCalibrationFromRheometer.WebApp.Client.csproj", "{F0488265-1EC5-4FB9-A7B4-49186001FBA5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPLCalibrationFromRheometer.ModelClientShared", "YPLCalibrationFromRheometer.ModelClientShared\YPLCalibrationFromRheometer.ModelClientShared.csproj", "{43AAE33B-D226-483D-9D4F-41D1CD038195}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORCE.General.Math", "General.Math\NORCE.General.Math.csproj", "{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NORCE.General.Math", "General.Math\NORCE.General.Math.csproj", "{43AC78C0-5EA5-4CE0-8564-DFB94158EE4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORCE.General.Statistics", "General.Statistics\NORCE.General.Statistics.csproj", "{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NORCE.General.Statistics", "General.Statistics\NORCE.General.Statistics.csproj", "{F5D8C7C0-26D3-4472-AC3E-2B4E23AA73C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NORCE.General.Std", "General.Std\NORCE.General.Std.csproj", "{490AE8FF-27AA-414F-860F-FAF647CF6945}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NORCE.General.Std", "General.Std\NORCE.General.Std.csproj", "{490AE8FF-27AA-414F-860F-FAF647CF6945}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

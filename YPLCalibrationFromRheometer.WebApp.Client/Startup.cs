@@ -1,16 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace YPLCalibrationFromRheometer.WebAppClient
+namespace YPLCalibrationFromRheometer.WebApp.Client
 {
     public class Startup
     {
@@ -32,6 +27,13 @@ namespace YPLCalibrationFromRheometer.WebAppClient
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseForwardedHeaders();
+            // This needs to match with what is defined in "charts/<helm-chart-name>/templates/values.yaml ingress.Path
+            app.UsePathBase("/YPLCalibrationFromRheometer/webapp");
+
+            if (!String.IsNullOrEmpty(Configuration["YPLCalibrationHostURL"]))
+                YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL = Configuration["YPLCalibrationHostURL"];
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -43,14 +45,14 @@ namespace YPLCalibrationFromRheometer.WebAppClient
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
-                endpoints.MapFallbackToPage("/YPLCalibrationFromRheometer/webapp/{*page}", "/_Host");
+                endpoints.MapFallbackToPage("/_Host");
             });
         }
     }

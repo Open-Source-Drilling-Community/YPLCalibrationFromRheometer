@@ -1,55 +1,25 @@
 ﻿using System;
 using System.IO;
 using System.Data.SQLite;
+using Microsoft.Extensions.Logging;
 
 namespace YPLCalibrationFromRheometer.Service
 {
-    /// <summary>
-    /// A manager for the sql database connection. The manager implements the singleton pattern as defined by 
-    /// Gamma, Erich, et al. "Design patterns: Abstraction and reuse of object-oriented design." 
-    /// European Conference on Object-Oriented Programming. Springer, Berlin, Heidelberg, 1993.
-    /// </summary>
     public class SQLConnectionManager
     {
-        private static SQLConnectionManager instance_ = null;
+        private static ILogger logger_;
+        private static SQLiteConnection connection_;
 
-        private SQLiteConnection connection_ = null;
-
-        private object lock_ = new object();
-
-        /// <summary>
-        /// default constructor is private when implementing a singleton pattern
-        /// </summary>
-        private SQLConnectionManager()
+        public static SQLiteConnection GetConnection(ILoggerFactory loggerFactory)
         {
-
+            if (logger_ == null)
+                logger_ = loggerFactory.CreateLogger<SQLConnectionManager>();
+            if (connection_ == null)
+                Initialize();
+            return connection_;
         }
 
-        public static SQLConnectionManager Instance
-        {
-            get
-            {
-                if (instance_ == null)
-                {
-                    instance_ = new SQLConnectionManager();
-                }
-                return instance_;
-            }
-        }
-
-        public SQLiteConnection Connection
-        {
-            get
-            {
-                if (connection_ == null)
-                {
-                    Initialize();
-                }
-                return connection_;
-            }
-        }
-
-        private void ManageYPLCalibrationFromRheometerDatabases()
+        private static void ManageYPLCalibrationFromRheometerDatabase()
         {
             #region YPLCalibrationsTable
             var command = connection_.CreateCommand();
@@ -57,17 +27,15 @@ namespace YPLCalibrationFromRheometer.Service
             long count = -1;
             try
             {
-                using (var reader = command.ExecuteReader())
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        count = reader.GetInt64(0);
-                    }
+                    count = reader.GetInt64(0);
                 }
             }
-            catch (SQLiteException e)
+            catch (SQLiteException ex)
             {
-                Console.WriteLine("YPLCalibrationsTable does not exist and will be created");
+                logger_.LogWarning(ex, "YPLCalibrationsTable does not exist and will be created");
             }
             if (count < 0)
             {
@@ -87,9 +55,9 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     int res = command.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to create YPLCalibrationsTable and will be dropped.");
+                    logger_.LogError(ex, "Impossible to create YPLCalibrationsTable and will be dropped");
                     success = false;
                 }
                 if (success)
@@ -100,11 +68,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("YPLCalibrationsTable has been successfully indexed.");
+                        logger_.LogInformation("YPLCalibrationsTable has been successfully created");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to index YPLCalibrationsTable and will be dropped.");
+                        logger_.LogError(ex, "Impossible to index YPLCalibrationsTable and will be dropped");
                         success = false;
                     }
                 }
@@ -115,12 +83,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("YPLCalibrationsTable has been successfully dropped.");
+                        logger_.LogWarning("YPLCalibrationsTable has been successfully dropped");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to drop YPLCalibrationsTable.");
-                        success = false;
+                        logger_.LogError(ex, "Impossible to drop YPLCalibrationsTable");
                     }
                 }
             }
@@ -132,17 +99,15 @@ namespace YPLCalibrationFromRheometer.Service
             count = -1;
             try
             {
-                using (var reader = command.ExecuteReader())
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        count = reader.GetInt64(0);
-                    }
+                    count = reader.GetInt64(0);
                 }
             }
-            catch (SQLiteException e)
+            catch (SQLiteException ex)
             {
-                Console.WriteLine("YPLCorrectionsTable does not exist and will be created");
+                logger_.LogWarning(ex, "YPLCorrectionsTable does not exist and will be created");
             }
             if (count < 0)
             {
@@ -163,9 +128,9 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     int res = command.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to create YPLCorrectionsTable and will be dropped.");
+                    logger_.LogError(ex, "Impossible to create YPLCorrectionsTable and will be dropped");
                     success = false;
                 }
                 if (success)
@@ -176,11 +141,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("YPLCorrectionsTable has been successfully indexed.");
+                        logger_.LogInformation("YPLCorrectionsTable has been successfully created");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to index YPLCorrectionsTable and will be dropped.");
+                        logger_.LogError(ex, "Impossible to index YPLCorrectionsTable and will be dropped");
                         success = false;
                     }
                 }
@@ -191,12 +156,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("YPLCorrectionsTable has been successfully dropped.");
+                        logger_.LogWarning("YPLCorrectionsTable has been successfully dropped");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to drop YPLCorrectionsTable.");
-                        success = false;
+                        logger_.LogError(ex, "Impossible to drop YPLCorrectionsTable");
                     }
                 }
             }
@@ -208,17 +172,15 @@ namespace YPLCalibrationFromRheometer.Service
             count = -1;
             try
             {
-                using (var reader = command.ExecuteReader())
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        count = reader.GetInt64(0);
-                    }
+                    count = reader.GetInt64(0);
                 }
             }
-            catch (SQLiteException e)
+            catch (SQLiteException ex)
             {
-                Console.WriteLine("RheogramInputsTable does not exist and will be created");
+                logger_.LogWarning(ex, "RheogramInputsTable does not exist and will be created");
             }
             if (count < 0)
             {
@@ -234,9 +196,9 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     int res = command.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to create RheogramInputsTable and will be dropped.");
+                    logger_.LogError(ex, "Impossible to create RheogramInputsTable and will be dropped");
                     success = false;
                 }
                 if (success)
@@ -247,11 +209,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("RheogramInputsTable has been successfully indexed.");
+                        logger_.LogInformation("RheogramInputsTable has been successfully created");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to index RheogramInputsTable and will be dropped.");
+                        logger_.LogError(ex, "Impossible to index RheogramInputsTable and will be dropped");
                         success = false;
                     }
                 }
@@ -262,12 +224,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("RheogramInputsTable has been successfully dropped.");
+                        logger_.LogWarning("RheogramInputsTable has been successfully dropped");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to drop RheogramInputsTable.");
-                        success = false;
+                        logger_.LogError(ex, "Impossible to drop RheogramInputsTable");
                     }
                 }
             }
@@ -279,17 +240,15 @@ namespace YPLCalibrationFromRheometer.Service
             count = -1;
             try
             {
-                using (var reader = command.ExecuteReader())
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        count = reader.GetInt64(0);
-                    }
+                    count = reader.GetInt64(0);
                 }
             }
-            catch (SQLiteException e)
+            catch (SQLiteException ex)
             {
-                Console.WriteLine("YPLModelOutputsTable does not exist and will be created");
+                logger_.LogWarning(ex, "YPLModelOutputsTable does not exist and will be created");
             }
             if (count < 0)
             {
@@ -305,9 +264,9 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     int res = command.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to create YPLModelOutputsTable and will be dropped.");
+                    logger_.LogError(ex, "Impossible to create YPLModelOutputsTable and will be dropped");
                     success = false;
                 }
                 if (success)
@@ -318,11 +277,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("YPLModelOutputsTable has been successfully indexed.");
+                        logger_.LogInformation("YPLModelOutputsTable has been successfully created");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to index YPLModelOutputsTable and will be dropped.");
+                        logger_.LogError(ex, "Impossible to index YPLModelOutputsTable and will be dropped");
                         success = false;
                     }
                 }
@@ -333,12 +292,11 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("YPLModelOutputsTable has been successfully dropped.");
+                        logger_.LogWarning("YPLModelOutputsTable has been successfully dropped");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to drop YPLModelOutputsTable.");
-                        success = false;
+                        logger_.LogError(ex, "Impossible to drop YPLModelOutputsTable");
                     }
                 }
             }
@@ -350,17 +308,15 @@ namespace YPLCalibrationFromRheometer.Service
             count = -1;
             try
             {
-                using (var reader = command.ExecuteReader())
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        count = reader.GetInt64(0);
-                    }
+                    count = reader.GetInt64(0);
                 }
             }
-            catch (SQLiteException e)
+            catch (SQLiteException ex)
             {
-                Console.WriteLine("RheogramOutputsTable does not exist and will be created");
+                logger_.LogWarning(ex, "RheogramOutputsTable does not exist and will be created");
             }
             if (count < 0)
             {
@@ -376,24 +332,23 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     int res = command.ExecuteNonQuery();
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to create RheogramOutputsTable and will be dropped.");
+                    logger_.LogError(ex, "Impossible to create RheogramOutputsTable and will be dropped");
                     success = false;
                 }
                 if (success)
                 {
-                    Console.WriteLine("RheogramOutputsTable has been successfully created and will be indexed.");
                     command.CommandText =
                         @"CREATE UNIQUE INDEX RheogramOutputsTableIndex ON RheogramOutputsTable (ID)";
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("RheogramOutputsTable has been successfully indexed.");
+                        logger_.LogInformation("RheogramOutputsTable has been successfully created");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to index RheogramOutputsTable and will be dropped.");
+                        logger_.LogError(ex, "Impossible to index RheogramOutputsTable and will be dropped");
                         success = false;
                     }
                 }
@@ -404,19 +359,18 @@ namespace YPLCalibrationFromRheometer.Service
                     try
                     {
                         int res = command.ExecuteNonQuery();
-                        Console.WriteLine("RheogramOutputsTable has been successfully dropped.");
+                        logger_.LogWarning("RheogramOutputsTable has been successfully dropped");
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to drop RheogramOutputsTable.");
-                        success = false;
+                        logger_.LogError(ex, "Impossible to drop RheogramOutputsTable");
                     }
                 }
             }
             #endregion
         }
 
-        private void Initialize()
+        private static void Initialize()
         {
             string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
             if (!Directory.Exists(homeDirectory))
@@ -425,9 +379,9 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     Directory.CreateDirectory(homeDirectory);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Impossible to create home directory for local storage.");
+                    logger_.LogError(ex, "Impossible to create home directory for local storage");
                 }
             }
             if (Directory.Exists(homeDirectory))
@@ -435,7 +389,7 @@ namespace YPLCalibrationFromRheometer.Service
                 string connectionString = @"URI=file:" + homeDirectory + Path.DirectorySeparatorChar + "YPLCalibrationFromRheometer.db";
                 connection_ = new SQLiteConnection(connectionString);
                 connection_.Open();
-                ManageYPLCalibrationFromRheometerDatabases();
+                ManageYPLCalibrationFromRheometerDatabase();
             }
         }
 

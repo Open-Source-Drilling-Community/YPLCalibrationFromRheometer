@@ -1,61 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Data.SQLite;
 using Newtonsoft.Json;
 using YPLCalibrationFromRheometer.Model;
+using Microsoft.Extensions.Logging;
 
 namespace YPLCalibrationFromRheometer.Service
 {
-    /// <summary>
-    /// A manager for YPLCorrection. The manager implements the singleton pattern as defined by 
-    /// Gamma, Erich, et al. "Design patterns: Abstraction and reuse of object-oriented design." 
-    /// European Conference on Object-Oriented Programming. Springer, Berlin, Heidelberg, 1993.
-    /// </summary>
     public class YPLCorrectionManager
     {
-        private static YPLCorrectionManager instance_ = null;
+        private readonly ILogger logger_;
+        private readonly object lock_ = new object();
+        private readonly RheogramManager rheogramManager_;
+        private readonly SQLiteConnection connection_;
 
-        private Random random_ = new Random();
-
-        private object lock_ = new object();
-
-        /// <summary>
-        /// default constructor is private when implementing a singleton pattern
-        /// </summary>
-        private YPLCorrectionManager()
+        public YPLCorrectionManager(ILoggerFactory loggerFactory, RheogramManager rheogramManager)
         {
-            // first initiate a call to the database to make sure all its tables are initialized and in the same time, make sure default Rheogram's are created
-            RheogramManager.Instance.GetIDs();
-
-            // then launch a garbage collector which automatically removes old YPLCorrection's from the database
-            Thread thread = new Thread(new ThreadStart(GC));
-            thread.Start();
-        }
-
-        public static YPLCorrectionManager Instance
-        {
-            get
-            {
-                if (instance_ == null)
-                {
-                    instance_ = new YPLCorrectionManager();
-                }
-                return instance_;
-
-            }
-        }
-
-        /// <summary>
-        /// database garbage collector
-        /// </summary>
-        private void GC()
-        {
-            while (true)
-            {
-                Remove(DateTime.UtcNow - TimeSpan.FromSeconds(360000));
-                Thread.Sleep(10000);
-            }
+            logger_ = loggerFactory.CreateLogger<YPLCorrectionManager>();
+            connection_ = SQLConnectionManager.GetConnection(loggerFactory);
+            rheogramManager_ = rheogramManager;
         }
 
         public int Count
@@ -63,22 +26,21 @@ namespace YPLCalibrationFromRheometer.Service
             get
             {
                 int count = 0;
-                if (SQLConnectionManager.Instance.Connection != null)
+                if (connection_ != null)
                 {
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                    var command = connection_.CreateCommand();
                     command.CommandText = @"SELECT COUNT(*) FROM YPLCorrectionsTable";
                     try
                     {
-                        using (var reader = command.ExecuteReader())
+                        using SQLiteDataReader reader = command.ExecuteReader();
+                        if (reader.Read())
                         {
-                            if (reader.Read())
-                            {
-                                count = (int)reader.GetInt64(0);
-                            }
+                            count = (int)reader.GetInt64(0);
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
+                        logger_.LogError(ex, "Impossible to count records in the YPLCorrectionsTable");
                     }
                 }
                 return count;
@@ -87,32 +49,31 @@ namespace YPLCalibrationFromRheometer.Service
 
         public bool Clear()
         {
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
                 bool success = false;
                 lock (lock_)
                 {
-                    using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                    using SQLiteTransaction transaction = connection_.BeginTransaction();
+                    try
                     {
-                        try
-                        {
-                            // first empty RheogramOutputsTable
-                            var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM RheogramOutputsTable";
-                            command.ExecuteNonQuery();
+                        // first empty RheogramOutputsTable
+                        var command = connection_.CreateCommand();
+                        command.CommandText = @"DELETE FROM RheogramOutputsTable";
+                        command.ExecuteNonQuery();
 
-                            // then empty YPLCorrectionsTable
-                            command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM YPLCorrectionsTable";
-                            command.ExecuteNonQuery();
+                        // then empty YPLCorrectionsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"DELETE FROM YPLCorrectionsTable";
+                        command.ExecuteNonQuery();
 
-                            transaction.Commit();
-                            success = true;
-                        }
-                        catch (SQLiteException e)
-                        {
-                            transaction.Rollback();
-                        }
+                        transaction.Commit();
+                        success = true;
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        transaction.Rollback();
+                        logger_.LogError(ex, "Impossible to clear the YPLCalibrationsTable or the RheogramOutputsTable");
                     }
                 }
                 return success;
@@ -126,23 +87,21 @@ namespace YPLCalibrationFromRheometer.Service
         public bool Contains(Guid guid)
         {
             int count = 0;
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
-                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                var command = connection_.CreateCommand();
                 command.CommandText = @"SELECT COUNT(*) FROM YPLCorrectionsTable WHERE ID = '" + guid + "'";
                 try
                 {
-                    using (var reader = command.ExecuteReader())
+                    using SQLiteDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
                     {
-                        if (reader.Read())
-                        {
-                            count = (int)reader.GetInt64(0);
-                        }
+                        count = (int)reader.GetInt64(0);
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to count rows from YPLCorrectionsTable");
+                    logger_.LogError(ex, "Impossible to count rows from YPLCorrectionsTable");
                 }
             }
             return count >= 1;
@@ -151,24 +110,22 @@ namespace YPLCalibrationFromRheometer.Service
         public List<Guid> GetIDs()
         {
             List<Guid> ids = new List<Guid>();
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
-                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                var command = connection_.CreateCommand();
                 command.CommandText = @"SELECT ID FROM YPLCorrectionsTable";
                 try
                 {
-                    using (var reader = command.ExecuteReader())
+                    using SQLiteDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            if (!reader.IsDBNull(0))
-                                ids.Add(reader.GetGuid(0));
-                        }
+                        if (!reader.IsDBNull(0))
+                            ids.Add(reader.GetGuid(0));
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to get IDs from YPLCorrectionsTable");
+                    logger_.LogError(ex, "Impossible to get IDs from YPLCorrectionsTable");
                 }
             }
             return ids;
@@ -178,323 +135,505 @@ namespace YPLCalibrationFromRheometer.Service
         {
             if (guid != null && !guid.Equals(Guid.Empty))
             {
-                YPLCorrection calculationData = null;
-                if (SQLConnectionManager.Instance.Connection != null)
+                YPLCorrection yplCorrection = null;
+                if (connection_ != null)
                 {
                     Guid inputID = Guid.Empty;
                     Guid shearRateCorrectedID = Guid.Empty;
 
                     // first retrieve the YPLCorrection itself
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                    var command = connection_.CreateCommand();
                     command.CommandText = @"SELECT Name, Description, R1, R2, RheogramInputID, RheogramShearRateCorrectedID FROM YPLCorrectionsTable " +
                         "WHERE ID = '" + guid.ToString() + "'";
                     try
                     {
-                        using (var reader = command.ExecuteReader())
+                        using SQLiteDataReader reader = command.ExecuteReader();
+                        if (reader.Read() && !reader.IsDBNull(0))
                         {
-                            if (reader.Read() && !reader.IsDBNull(0))
+                            yplCorrection = new YPLCorrection()
                             {
-                                calculationData = new YPLCorrection();
-                                calculationData.ID = guid;
-                                calculationData.Name = reader.GetString(0);
-                                calculationData.Description = reader.GetString(1);
-                                calculationData.R1 = reader.GetDouble(2);
-                                calculationData.R2 = reader.GetDouble(3);
-                                inputID = reader.GetGuid(4);
-                                shearRateCorrectedID = reader.GetGuid(5);
-                            }
+                                ID = guid,
+                                Name = reader.GetString(0),
+                                Description = reader.GetString(1),
+                                R1 = reader.GetDouble(2),
+                                R2 = reader.GetDouble(3)
+                            };
+                            inputID = reader.GetGuid(4);
+                            shearRateCorrectedID = reader.GetGuid(5);
+                        }
+                        else
+                        {
+                            logger_.LogInformation("No YPLCorrection in the database");
+                            return null;
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to get the YPLCorrection with the given guid from YPLCorrectionsTable");
+                        logger_.LogError(ex, "Impossible to get the YPLCorrection with the given ID from YPLCorrectionsTable");
+                        return null;
                     }
 
-                    // then retrieve its RheogramInput with the RheogramManager
-                    Rheogram baseData1 = RheogramManager.Instance.Get(inputID);
-                    if (baseData1 != null)
+                    // then retrieve its RheogramInput with the rheogramManager_
+                    Rheogram rheogram = rheogramManager_.Get(inputID);
+                    if (rheogram != null)
                     {
-                        calculationData.RheogramInput = baseData1;
+                        yplCorrection.RheogramInput = rheogram;
 
                         // then retrieve its RheogramShearRateCorrected directly from RheogramOutputsTable
-                        command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                        command = connection_.CreateCommand();
                         command.CommandText = @"SELECT Name, Rheogram " +
                             "FROM RheogramOutputsTable WHERE ID = '" + shearRateCorrectedID.ToString() + "'";
                         try
                         {
-                            using (var reader = command.ExecuteReader())
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
                             {
-                                if (reader.Read() && !reader.IsDBNull(0))
-                                {
-                                    string name = reader.GetString(0);
-                                    string json = reader.GetString(1);
-                                    Rheogram baseData2 = JsonConvert.DeserializeObject<Rheogram>(json);
-                                    if (baseData2 == null || !baseData2.ID.Equals(shearRateCorrectedID) || !baseData2.Name.Equals(name))
-                                        throw (new SQLiteException("SQLite database corrupted: Rheogram has been jsonified with the wrong ID or Name."));
-                                    calculationData.RheogramShearRateCorrected = baseData2;
-                                }
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                Rheogram baseData2 = JsonConvert.DeserializeObject<Rheogram>(json);
+                                if (baseData2 == null || !baseData2.ID.Equals(shearRateCorrectedID) || !baseData2.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: Rheogram has been jsonified with the wrong ID or Name."));
+                                yplCorrection.RheogramShearRateCorrected = baseData2;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such Rheogram output associated to the Rheogram input in the RheogramOutputsTable");
+                                return null;
                             }
                         }
-                        catch (SQLiteException e)
+                        catch (SQLiteException ex)
                         {
-                            Console.WriteLine("Impossible to get RheogramShearRateCorrectedID from RheogramOutputsTable");
+                            logger_.LogError(ex, "Impossible to get such Rheogram output from RheogramOutputsTable");
+                            return null;
                         }
+                        // Finalizing
+                        logger_.LogInformation("Returning the YPLCorrection of given ID");
+                        return yplCorrection;
                     }
                     else
                     {
-                        Console.WriteLine("Error while getting the RheogramInput of the YPLCorrection for the given guid from the RheogramInputsTable. Should not be null.");
+                        logger_.LogWarning("No RheogramInput associated to the YPLCorrection of given ID");
+                        return null;
                     }
                 }
-                return calculationData;
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                    return null;
+                }
             }
             else
             {
+                logger_.LogWarning("The given YPLCorrection ID is null or empty");
                 return null;
             }
         }
 
-        public bool Add(YPLCorrection calculationData)
+        /// <summary>
+        /// performs calculations on the given YPLCorrection and adds it to the database
+        /// </summary>
+        public bool Add(YPLCorrection yplCorrection)
         {
-            bool result = false;
             // every YPLCorrection added to the database should have both RheogramInput and RheogramShearRateCorrected different from null and with non empty ID
-            if (calculationData != null && calculationData.RheogramInput != null && calculationData.RheogramShearRateCorrected != null &&
-                !calculationData.RheogramInput.ID.Equals(Guid.Empty) && !calculationData.RheogramShearRateCorrected.ID.Equals(Guid.Empty))
+            if (yplCorrection != null && yplCorrection.RheogramInput != null && yplCorrection.RheogramShearRateCorrected != null &&
+                !yplCorrection.RheogramInput.ID.Equals(Guid.Empty) && !yplCorrection.RheogramShearRateCorrected.ID.Equals(Guid.Empty))
             {
-                if (SQLConnectionManager.Instance.Connection != null)
+                // first apply calculations
+                if (!yplCorrection.CalculateRheogramShearRateCorrected())
+                {
+                    logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
+                    return false;
+                }
+
+                // then update to database
+                if (connection_ != null)
                 {
                     lock (lock_)
                     {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                        using var transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        try
                         {
-                            bool success = true;
-                            try
+                            // first add the YPLCorrection to the YPLCorrectionsTable
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"INSERT INTO YPLCorrectionsTable " +
+                                "(ID, Name, Description, R1, R2, RheogramInputID, RheogramShearRateCorrectedID, TimeStamp) VALUES (" +
+                                "'" + yplCorrection.ID.ToString() + "', " +
+                                "'" + yplCorrection.Name + "', " +
+                                "'" + yplCorrection.Description + "', " +
+                                "'" + yplCorrection.R1.ToString() + "', " +
+                                "'" + yplCorrection.R2.ToString() + "', " +
+                                "'" + yplCorrection.RheogramInput.ID.ToString() + "', " +
+                                "'" + yplCorrection.RheogramShearRateCorrected.ID.ToString() + "', " +
+                                "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" +
+                                ")";
+                            int count = command.ExecuteNonQuery();
+                            if (count == 1)
                             {
-                                // first add the YPLCorrection to the YPLCorrectionsTable
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"INSERT INTO YPLCorrectionsTable " +
-                                    "(ID, Name, Description, R1, R2, RheogramInputID, RheogramShearRateCorrectedID, TimeStamp) VALUES (" +
-                                    "'" + calculationData.ID.ToString() + "', " +
-                                    "'" + calculationData.Name + "', " +
-                                    "'" + calculationData.Description + "', " +
-                                    "'" + calculationData.R1.ToString() + "', " +
-                                    "'" + calculationData.R2.ToString() + "', " +
-                                    "'" + calculationData.RheogramInput.ID.ToString() + "', " +
-                                    "'" + calculationData.RheogramShearRateCorrected.ID.ToString() + "', " +
-                                    "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" +
-                                    ")";
-                                int count = command.ExecuteNonQuery();
-                                result = count == 1;
-                                if (result)
+                                // then add YPLModelOutput to the RheogramOutputsTable
+                                Rheogram rheogram = yplCorrection.RheogramShearRateCorrected;
+                                if (rheogram != null)
                                 {
-                                    // then add YPLModelOutput to the RheogramOutputsTable
-                                    Rheogram baseData2 = calculationData.RheogramShearRateCorrected;
-                                    if (baseData2 == null)
+                                    string json = JsonConvert.SerializeObject(rheogram);
+                                    command = connection_.CreateCommand();
+                                    command.CommandText = @"INSERT INTO RheogramOutputsTable (ID, Name, Rheogram) " +
+                                        "VALUES (" +
+                                        "'" + rheogram.ID.ToString() + "', " +
+                                        "'" + rheogram.Name + "', " +
+                                        "'" + json + "'" +
+                                        ")";
+                                    count = command.ExecuteNonQuery();
+                                    if (count != 1)
                                     {
+                                        logger_.LogWarning("Impossible to insert the calculated Rheogram into the RheogramOutputsTable");
                                         success = false;
-                                        Console.WriteLine("Impossible to add RheogramShearRateCorrected into RheogramOutputsTable because it is null");
-                                    }
-                                    else
-                                    {
-                                        string json = JsonConvert.SerializeObject(baseData2);
-                                        command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                        command.CommandText = @"INSERT INTO RheogramOutputsTable (ID, Name, Rheogram) " +
-                                            "VALUES (" +
-                                            "'" + baseData2.ID.ToString() + "', " +
-                                            "'" + baseData2.Name + "', " +
-                                            "'" + json + "'" +
-                                            ")";
-                                        count = command.ExecuteNonQuery();
-                                        result = count == 1;
-                                        if (result)
-                                        {
-                                            success = true;
-                                        }
-                                        else
-                                        {
-                                            success = false;
-                                            Console.WriteLine("Impossible to insert RheogramShearRateCorrected into RheogramOutputsTable");
-                                        }
-
                                     }
                                 }
                                 else
                                 {
+                                    logger_.LogWarning("Impossible to get the Rheogram");
                                     success = false;
-                                    Console.WriteLine("Impossible to insert YPLCorrection into YPLCorrectionsTable");
                                 }
                             }
-                            catch (SQLiteException e)
+                            else
                             {
+                                logger_.LogWarning("Impossible to insert the YPLCorrection into the YPLCorrectionsTable");
                                 success = false;
-                                Console.WriteLine("Error while inserting YPLCorrection into YPLCorrectionsTable");
                             }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to add the YPLCorrection into YPLCorrectionsTable");
+                            success = false;
+                        }
+                        // Finalizing
+                        if (success)
+                        {
+                            transaction.Commit();
+                            logger_.LogInformation("Added the YPLCorrection of given ID into the YPLCorrectionsTable successfully");
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                        }
+                        return success;
+                    }
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                    return false;
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The YPLCorrection ID or the ID of some of its attributes are null or empty");
+                return false;
+            }
+        }
 
+        /// <summary>
+        /// creates a YPLCorrection from the given Rheogram and adds it to the database 
+        /// </summary>
+        public bool Add(Rheogram rheogram)
+        {
+            if (rheogram != null && !rheogram.ID.Equals(Guid.Empty))
+            {
+                YPLCorrection yplCorrection = new YPLCorrection()
+                {
+                    ID = Guid.NewGuid()
+                };
+                yplCorrection.Name = "DefaultName-" + yplCorrection.ID.ToString()[..8];
+                yplCorrection.Description = "DefaultDescription-" + yplCorrection.ID.ToString()[..8];
+                // R1 and R2 are set to their default value
+                yplCorrection.RheogramInput = rheogram;
+                yplCorrection.RheogramInput.ID = rheogram.ID;
+                yplCorrection.RheogramInput.Name = yplCorrection.Name + "-input";
+                yplCorrection.RheogramShearRateCorrected = new Rheogram
+                {
+                    ID = Guid.NewGuid(),
+                    Name = yplCorrection.Name + "-calculated-shearRateCorrected"
+                };
+
+                if (Add(yplCorrection))
+                {
+                    logger_.LogInformation("Created a YPLCorrection from the given Rheogram successfully");
+                    return true;
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to add a YPLCorrection from the given Rheogram");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("Impossible to create a YPLCorrection from the given Rheogram which is null or badly identified");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// removes the YPLCorrection of given guid from the database (Rheogram output children are also removed)
+        /// </summary>
+        public bool Remove(Guid guid)
+        {
+            if (guid != null && !guid.Equals(Guid.Empty))
+            {
+                YPLCorrection yplCorrection = Get(guid);
+
+                // every YPLCorrection added to the database should have both RheogramInput and YPLModelOutput different from null
+                if (yplCorrection != null && yplCorrection.RheogramInput != null && yplCorrection.RheogramShearRateCorrected != null)
+                {
+                    if (connection_ != null)
+                    {
+                        lock (lock_)
+                        {
+                            using SQLiteTransaction transaction = connection_.BeginTransaction();
+                            bool success = true;
+                            // first delete YPLCorrection from YPLCorrectionsTable
+                            try
+                            {
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"DELETE FROM YPLCorrectionsTable WHERE ID = '" + guid.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count < 0)
+                                {
+                                    logger_.LogWarning("Impossible to delete the YPLCorrection of given ID from the YPLCorrectionsTable");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to delete the YPLCorrection of given ID from YPLCorrectionsTable");
+                                success = false;
+                            }
+                            if (success)
+                            {
+                                // then delete RheogramShearRateCorrected from RheogramOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM RheogramOutputsTable WHERE ID = '" + yplCorrection.RheogramShearRateCorrected.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the calculated Rheogram from the RheogramOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the calculated Rheogram from the RheogramOutputsTable");
+                                    success = false;
+                                }
+                            }
                             if (success)
                             {
                                 transaction.Commit();
+                                logger_.LogInformation("Removed the YPLCorrection of given ID from the YPLCorrectionsTable successfully");
                             }
                             else
                             {
                                 transaction.Rollback();
                             }
+                            return success;
                         }
                     }
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// create a YPLCorrection from the given Rheogram as RheogramInput, let the remaining parameters the same and perform the calculation
-        /// </summary>
-        public bool Add(Rheogram baseData1)
-        {
-            bool success = false;
-            if (baseData1 != null && !baseData1.ID.Equals(Guid.Empty))
-            {
-                YPLCorrection calculationData = new YPLCorrection();
-                calculationData.ID = Guid.NewGuid();
-                calculationData.Name = "DefaultName-" + calculationData.ID.ToString().Substring(0, 8);
-                calculationData.Description = "DefaultDescription-" + calculationData.ID.ToString().Substring(0, 8);
-                // R1 and R2 are set to their default value
-                calculationData.RheogramInput = baseData1;
-                calculationData.RheogramInput.ID = baseData1.ID;
-                calculationData.RheogramInput.Name = calculationData.Name + "-input";
-                calculationData.RheogramShearRateCorrected= new Rheogram();
-                calculationData.RheogramShearRateCorrected.ID = Guid.NewGuid();
-                calculationData.RheogramShearRateCorrected.Name = calculationData.Name + "-calculated-shearRateCorrected";
-
-                calculationData.CalculateRheogramShearRateCorrected();
-
-                Add(calculationData);
-
-                success = true;
-            }
-
-            return success;
-        }
-
-        public bool Remove(YPLCorrection calculationData)
-        {
-            bool result = false;
-            if (calculationData != null)
-            {
-                result = Remove(calculationData.ID);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// remove the YPLCorrection of the given guid and its Rheogram output children
-        /// </summary>
-        public bool Remove(Guid guid)
-        {
-            bool result = false;
-            if (!guid.Equals(Guid.Empty))
-            {
-                YPLCorrection calculationData = Get(guid);
-
-                // every YPLCorrection added to the database should have both RheogramInput and YPLModelOutput different from null
-                if (calculationData != null && calculationData.RheogramInput != null && calculationData.RheogramShearRateCorrected != null)
-                {
-                    if (SQLConnectionManager.Instance.Connection != null)
+                    else
                     {
-                        lock (lock_)
-                        {
-                            using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
-                            {
-                                bool success = true;
-                                // first delete YPLCorrection from YPLCorrectionsTable
-                                try
-                                {
-                                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                    command.CommandText = @"DELETE FROM YPLCorrectionsTable WHERE ID = '" + guid.ToString() + "'";
-                                    int count = command.ExecuteNonQuery();
-                                    result = count >= 0;
-                                    if (!result)
-                                    {
-                                        success = false;
-                                    }
-                                }
-                                catch (SQLiteException e)
-                                {
-                                    Console.WriteLine("Impossible to delete YPLCorrection with the given guid from YPLCorrectionsTable");
-                                    success = false;
-                                }
-
-                                // then delete RheogramShearRateCorrected from RheogramOutputsTable
-                                Guid calculatedID = calculationData.RheogramShearRateCorrected.ID;
-                                if (success && !calculatedID.Equals(Guid.Empty))
-                                {
-                                    try
-                                    {
-                                        var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                        command.CommandText = @"DELETE FROM RheogramOutputsTable WHERE ID = '" + calculatedID.ToString() + "'";
-                                        int count = command.ExecuteNonQuery();
-                                        result = count >= 0;
-                                        if (!result)
-                                        {
-                                            success = false;
-                                        }
-                                    }
-                                    catch (SQLiteException e)
-                                    {
-                                        success = false;
-                                        Console.WriteLine("Impossible to delete the RheogramShearRateCorrected with the given calculatedID from RheogramOutputsTable");
-                                    }
-                                }
-
-                                if (success)
-                                {
-                                    transaction.Commit();
-                                }
-                                else
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-                        }
+                        logger_.LogWarning("Impossible to access the SQLite database");
                     }
                 }
+                else
+                {
+                    logger_.LogWarning("Impossible to remove the YPLCorrection of given ID because it is null or one of its attributes is");
+                }
             }
-            return result;
+            else
+            {
+                logger_.LogWarning("The YPLCorrection ID is null or empty");
+            }
+            return false;
         }
 
         /// <summary>
-        /// remove all YPLCorrection and their Rheogram output children older than the given date
+        /// removes all YPLCorrections referencing the Rheogram of given ID
+        /// </summary>
+        public bool RemoveReferences(Guid guid)
+        {
+            if (guid != null && !guid.Equals(Guid.Empty))
+            {
+                if (connection_ != null)
+                {
+                    // first select all YPLCorrections referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
+                    List<Guid> parentIds = new List<Guid>();
+                    var command = connection_.CreateCommand();
+                    command.CommandText = @"SELECT YPLCorrectionsTable.ID " +
+                        "FROM YPLCorrectionsTable, RheogramInputsTable " +
+                        "WHERE YPLCorrectionsTable.RheogramInputID = RheogramInputsTable.ID " +
+                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
+                    try
+                    {
+                        using SQLiteDataReader reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Guid parentId = reader.GetGuid(0);
+                            if (parentId != null && !parentId.Equals(Guid.Empty))
+                                parentIds.Add(parentId);
+                        }
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to retrieve YPLCorrections referencing the Rheogram of given ID from YPLCorrectionsTable");
+                        return false;
+                    }
+
+                    // then delete all of them through the use of the YPLCorrectionManager (which ensures their children outputs are properly deleted)
+                    foreach (Guid parentId in parentIds)
+                    {
+                        if (!Remove(parentId))
+                        {
+                            logger_.LogWarning("Impossible to delete one of the YPLCorrections referencing the Rheogram of given ID from YPLCorrectionsTable");
+                            return false;
+                        }
+                    }
+                    // Finalizing
+                    logger_.LogInformation("Removed all YPLCorrections referencing the Rheogram of given ID from the YPLCorrectionsTable successfully");
+                    return true;
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The Rheogram ID is null or empty");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// removes all YPLCorrections older than the given date
         /// </summary>
         public bool Remove(DateTime old)
         {
-            bool success = true;
-            if (SQLConnectionManager.Instance.Connection != null)
+            Guid guid;
+            if (connection_ != null)
             {
-                lock (lock_)
+                var command = connection_.CreateCommand();
+                command.CommandText = @"SELECT ID FROM YPLCorrectionsTable WHERE TimeStamp < '" + (old - DateTime.MinValue).TotalSeconds.ToString() + "'";
+                try
                 {
-                    using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                    using SQLiteDataReader reader = command.ExecuteReader();
+                    if (reader.Read() && !reader.IsDBNull(0))
                     {
-                        Guid guid = Guid.Empty;
-                        var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                        command.CommandText = @"SELECT ID FROM YPLCorrectionsTable WHERE TimeStamp < '" + (old - DateTime.MinValue).TotalSeconds.ToString() + "'";
+                        guid = reader.GetGuid(0);
+                        if (Remove(guid))
+                        {
+                            logger_.LogInformation("Some old YPLCorrections have been cleaned from the YPLCorrectionsTable successfully");
+                            return true;
+                        }
+                        else
+                        {
+                            logger_.LogWarning("Impossible to clean old YPLCorrections from the YPLCorrectionsTable");
+                        }
+                    }
+                    else
+                    {
+                        logger_.LogInformation("No old YPLCorrections have been found in the YPLCorrectionsTable");
+                        return true;
+                    }
+                }
+                catch (SQLiteException ex)
+                {
+                    logger_.LogError(ex, "Impossible to clean old YPLCorrections from the YPLCorrectionsTable");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("Impossible to access the SQLite database");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// performs calculations on the given YPLCorrection and updates the YPLCorrection of given ID in the database
+        /// </summary>
+        public bool Update(Guid guid, YPLCorrection updatedYplCorrection)
+        {
+            bool success = true;
+            if (guid != null && !guid.Equals(Guid.Empty) && updatedYplCorrection != null && !updatedYplCorrection.ID.Equals(Guid.Empty) &&
+                updatedYplCorrection.RheogramInput != null && updatedYplCorrection.RheogramShearRateCorrected != null)
+            {
+                // first apply calculations
+                if (!updatedYplCorrection.CalculateRheogramShearRateCorrected())
+                {
+                    logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
+                    return false;
+                }
+
+                // then update to database
+                if (connection_ != null)
+                {
+                    lock (lock_)
+                    {
+                        using SQLiteTransaction transaction = connection_.BeginTransaction();
+                        // first update the relevant fields in YPLCorrectionsTable (other fields never change)
                         try
                         {
-                            using (var reader = command.ExecuteReader())
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"UPDATE YPLCorrectionsTable SET " +
+                                "Name = '" + updatedYplCorrection.Name + "', " +
+                                "Description = '" + updatedYplCorrection.Description + "', " +
+                                "R1 = '" + updatedYplCorrection.R1 + "', " +
+                                "R2 = '" + updatedYplCorrection.R2 + "', " +
+                                "RheogramInputID = '" + updatedYplCorrection.RheogramInput.ID.ToString() + "', " +
+                                "TimeStamp = '" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "' " +
+                                "WHERE ID = '" + guid.ToString() + "'";
+                            int count = command.ExecuteNonQuery();
+                            if (count != 1)
                             {
-                                if (reader.Read() && !reader.IsDBNull(0))
-                                {
-                                    guid = reader.GetGuid(0);
-                                }
+                                logger_.LogWarning("Impossible to update the YPLCorrection");
+                                success = false;
                             }
                         }
-                        catch (SQLiteException e)
+                        catch (SQLiteException ex)
                         {
+                            logger_.LogError(ex, "Impossible to update the YPLCorrection");
                             success = false;
-                            Console.WriteLine("Impossible to retrieve old RheogramShearRateCorrectedID from YPLCorrectionsTable");
                         }
 
+                        // then update RheogramShearRateCorrected (which may have changed after calculation) in RheogramOutputsTable 
                         if (success)
                         {
-                            Remove(guid);
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCorrection.RheogramShearRateCorrected);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE RheogramOutputsTable SET " +
+                                    "Name = '" + updatedYplCorrection.RheogramShearRateCorrected.Name + "', " +
+                                    "Rheogram = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCorrection.RheogramShearRateCorrected.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated Rheogram associated to the given YPLCorrection");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated Rheogram associated to the given YPLCorrection");
+                                success = false;
+                            }
+                        }
+                        // Finalizing
+                        if (success)
+                        {
                             transaction.Commit();
+                            logger_.LogInformation("Updated the given YPLCorrection successfully");
+                            return true;
                         }
                         else
                         {
@@ -502,100 +641,83 @@ namespace YPLCalibrationFromRheometer.Service
                         }
                     }
                 }
-            }
-            return success;
-        }
-
-        public bool Update(Guid guid, YPLCorrection updatedCalculation)
-        {
-            bool success = true;
-            if (guid != null && !guid.Equals(Guid.Empty) && updatedCalculation != null && !updatedCalculation.ID.Equals(Guid.Empty) &&
-                updatedCalculation.RheogramInput != null && updatedCalculation.RheogramShearRateCorrected != null)
-            {
-                if (SQLConnectionManager.Instance.Connection != null)
+                else
                 {
-                    lock (lock_)
-                    {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
-                        {
-                            // first update the relevant fields in YPLCorrectionsTable (other fields never change)
-                            try
-                            {
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"UPDATE YPLCorrectionsTable SET " +
-                                    "Name = '" + updatedCalculation.Name + "', " +
-                                    "Description = '" + updatedCalculation.Description + "', " +
-                                    "R1 = '" + updatedCalculation.R1 + "', " +
-                                    "R2 = '" + updatedCalculation.R2 + "', " +
-                                    "RheogramInputID = '" + updatedCalculation.RheogramInput.ID.ToString() + "', " +
-                                    "TimeStamp = '" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "' " +
-                                    "WHERE ID = '" + guid.ToString() + "'";
-                                int count = command.ExecuteNonQuery();
-                                success = count == 1;
-                            }
-                            catch (SQLiteException e)
-                            {
-                                success = false;
-                                Console.WriteLine("Impossible to update YPLCorrectionsTable");
-                            }
-
-                            // then update RheogramShearRateCorrected (which may have changed after calculation) in RheogramOutputsTable 
-                            if (success)
-                            {
-                                try
-                                {
-                                    string json = JsonConvert.SerializeObject(updatedCalculation.RheogramShearRateCorrected);
-                                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                    command.CommandText = @"UPDATE RheogramOutputsTable SET " +
-                                        "Name = '" + updatedCalculation.RheogramShearRateCorrected.Name + "', " +
-                                        "Rheogram = '" + json + "' " +
-                                        "WHERE ID = '" + updatedCalculation.RheogramShearRateCorrected.ID.ToString() + "'";
-                                    int count = command.ExecuteNonQuery();
-                                    success = count == 1;
-                                }
-                                catch (SQLiteException e)
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-
-                            if (success)
-                            {
-                                transaction.Commit();
-                            }
-                            else
-                            {
-                                transaction.Rollback();
-                            }
-                        }
-                    }
+                    logger_.LogWarning("Impossible to access the SQLite database");
                 }
             }
-            return success;
+            else
+            {
+                logger_.LogWarning("The YPLCorrection ID or the ID of some of its attributes are null or empty");
+            }
+            return false;
         }
 
         /// <summary>
-        /// update a YPLCorrection of the given parentId with the given Rheogram as RheogramInput, let the remaining parameters the same and perform the calculation
+        /// updates all YPLCorrections referencing the Rheogram of given ID
         /// </summary>
-        public bool Update(Guid parentId, Rheogram baseData1)
+        public bool UpdateReferences(Guid guid, Rheogram updatedRheogram)
         {
-            bool success = false;
-
-            if (baseData1 != null && !baseData1.ID.Equals(Guid.Empty))
+            if (guid != null && !guid.Equals(Guid.Empty) && updatedRheogram != null)
             {
-                YPLCorrection calculationData = Get(parentId);
-                if (calculationData != null)
+                if (connection_ != null)
                 {
-                    calculationData.RheogramInput = baseData1;
+                    // select all YPLCorrections referencing the Rheogram identified by the given ID from YPLCorrectionsTable 
+                    List<Guid> parentIds = new List<Guid>();
+                    var command2 = connection_.CreateCommand();
+                    command2.CommandText = @"SELECT YPLCorrectionsTable.ID " +
+                        "FROM YPLCorrectionsTable, RheogramInputsTable " +
+                        "WHERE YPLCorrectionsTable.RheogramInputID = RheogramInputsTable.ID " +
+                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
+                    try
+                    {
+                        using SQLiteDataReader reader = command2.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Guid parentId = reader.GetGuid(0);
+                            if (parentId != null && !parentId.Equals(Guid.Empty))
+                                parentIds.Add(parentId);
+                        }
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to access to the YPLCorrection referencing the Rheogram of given ID from YPLCorrectionsTable");
+                        return false;
+                    }
 
-                    calculationData.CalculateRheogramShearRateCorrected();
-
-                    if (Update(parentId, calculationData))
-                        success = true;
+                    // then update all of them
+                    foreach (Guid parentId in parentIds)
+                    {
+                        YPLCorrection yplCorrection = Get(parentId);
+                        if (yplCorrection != null)
+                        {
+                            yplCorrection.RheogramInput = updatedRheogram;
+                            if (!Update(parentId, yplCorrection))
+                            {
+                                logger_.LogWarning("Impossible to delete one of the YPLCorrections referencing the Rheogram of given ID");
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            logger_.LogWarning("Impossible to get one of the YPLCorrections referencing the Rheogram of given ID");
+                            return false;
+                        }
+                    }
+                    // Finalizing
+                    logger_.LogWarning("Updated YPLCorrections referencing the Rheogram of given ID successfully");
+                    return true;
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
                 }
             }
-
-            return success;
+            else
+            {
+                logger_.LogWarning("Impossible to update the YPLCorrections referencing the Rheogram which is null or badly identified");
+            }
+            return false;
         }
     }
 }

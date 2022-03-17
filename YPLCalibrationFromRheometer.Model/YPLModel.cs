@@ -100,8 +100,10 @@ namespace YPLCalibrationFromRheometer.Model
         /// <returns></returns>
         public object Clone()
         {
-            YPLModel copy = new YPLModel(this);
-            copy.ID = ID;
+            YPLModel copy = new YPLModel(this)
+            {
+                ID = ID
+            };
             return copy;
         }
 
@@ -182,8 +184,10 @@ namespace YPLCalibrationFromRheometer.Model
 
                     double eps = 1e-6;
                     int count = 0;
-                    double K_, n_, chi2_;
-                    double derivateChi2a = FP(tau0, logGammas, logTaus, gammas, taus, sigs, out K_, out n_, out chi2_);
+                    double derivateChi2a = FP(tau0, logGammas, logTaus, gammas, taus, sigs, out _, out _, out _);
+                    double K_;
+                    double n_;
+                    double chi2_;
                     do
                     {
                         double tau0b = tau0 + 1e-3 * tau0;
@@ -191,7 +195,7 @@ namespace YPLCalibrationFromRheometer.Model
                         {
                             tau0b = 1e-3;
                         }
-                        double derivateChi2b = FP(tau0b, logGammas, logTaus, gammas, taus, sigs, out K_, out n_, out chi2_);
+                        double derivateChi2b = FP(tau0b, logGammas, logTaus, gammas, taus, sigs, out _, out _, out _);
                         double differential = (derivateChi2b - derivateChi2a) / (tau0b - tau0);
                         tau0 -= derivateChi2a / differential;
                         if (tau0 > minShearStress)
@@ -219,9 +223,6 @@ namespace YPLCalibrationFromRheometer.Model
         /// <returns>The chi-square after fitting</returns>
         public void FitToMullineux(Rheogram rheogram, ModelType model = ModelType.YPL)
         {
-            Tau0 = 0;
-            K = 1;
-            N = 1;
             Chi2 = -1;
             if (rheogram != null && rheogram.RheometerMeasurementList != null && rheogram.RheometerMeasurementList.Count >= 3)
             {
@@ -252,8 +253,7 @@ namespace YPLCalibrationFromRheometer.Model
                     n0 = 0.01;
                     fn0 = F(rheoMeasList, n0);
                     double n1 = 1.0;
-                    double fn1 = F(rheoMeasList, n1);
-                    if (fn0 * fn1 < 0)
+                    if (fn0 * F(rheoMeasList, n1) < 0)
                     {
                         count = 0;
                         do
@@ -263,7 +263,6 @@ namespace YPLCalibrationFromRheometer.Model
                             if (fn0 * fnx < 0)
                             {
                                 n1 = nx;
-                                fn1 = fnx;
                             }
                             else
                             {
@@ -321,8 +320,7 @@ namespace YPLCalibrationFromRheometer.Model
                 logGammas_and_logTaus.Add(new Pair<double, double>(logGammas[i], logTaus[i])); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
             }
             double logK;
-            Pair<double, double> logK_and_n_ = new Pair<double, double>(); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
-            logK_and_n_ = DataModelling.LinearRegression(logGammas_and_logTaus);
+            Pair<double, double> logK_and_n_ = DataModelling.LinearRegression(logGammas_and_logTaus); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
             logK = logK_and_n_.Left;
             n_ = logK_and_n_.Right;
             K_ = Math.Exp(logK);
@@ -354,8 +352,7 @@ namespace YPLCalibrationFromRheometer.Model
                 logGammas_and_logTaus.Add(new Pair<double, double>(logGammas[i], logTaus[i]));
             }
             double logKb, nb; // TODO: these variables are not outed so could be avoided
-            Pair<double, double> logKb_and_nb = new Pair<double, double>(); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
-            logKb_and_nb = DataModelling.LinearRegression(logGammas_and_logTaus);
+            Pair<double, double> logKb_and_nb = DataModelling.LinearRegression(logGammas_and_logTaus); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
             logKb = logKb_and_nb.Left;
             nb = logKb_and_nb.Right;
             Tau0 = tau0b;

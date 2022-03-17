@@ -4,27 +4,21 @@ using System.Linq;
 using System.Data.SQLite;
 using Newtonsoft.Json;
 using YPLCalibrationFromRheometer.Model;
+using Microsoft.Extensions.Logging;
 
 namespace YPLCalibrationFromRheometer.Service
 {
-    /// <summary>
-    /// A manager for Rheograms. The manager implements the singleton pattern as defined by 
-    /// Gamma, Erich, et al. "Design patterns: Abstraction and reuse of object-oriented design." 
-    /// European Conference on Object-Oriented Programming. Springer, Berlin, Heidelberg, 1993.
-    /// </summary>
     public class RheogramManager
     {
-        private static RheogramManager instance_ = null;
+        private readonly ILogger logger_;
+        private readonly object lock_ = new object();
+        private readonly SQLiteConnection connection_;
 
-        private Random random_ = new Random();
-
-        private object lock_ = new object();
-
-        /// <summary>
-        /// default constructor is private when implementing a singleton pattern
-        /// </summary>
-        private RheogramManager()
+        public RheogramManager(ILoggerFactory loggerFactory)
         {
+            logger_ = loggerFactory.CreateLogger<RheogramManager>();
+            connection_ = SQLConnectionManager.GetConnection(loggerFactory);
+
             // first initiate a call to the database to make sure all its tables are initialized
             List<Guid> baseData1Ids = GetIDs();
 
@@ -33,40 +27,26 @@ namespace YPLCalibrationFromRheometer.Service
                 FillDefault();
         }
 
-        public static RheogramManager Instance
-        {
-            get
-            {
-                if (instance_ == null)
-                {
-                    instance_ = new RheogramManager();
-                }
-                return instance_;
-
-            }
-        }
-
         public int Count
         {
             get
             {
                 int count = 0;
-                if (SQLConnectionManager.Instance.Connection != null)
+                if (connection_ != null)
                 {
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                    var command = connection_.CreateCommand();
                     command.CommandText = @"SELECT COUNT(*) FROM RheogramInputsTable";
                     try
                     {
-                        using (var reader = command.ExecuteReader())
+                        using var reader = command.ExecuteReader();
+                        if (reader.Read())
                         {
-                            if (reader.Read())
-                            {
-                                count = (int)reader.GetInt64(0);
-                            }
+                            count = (int)reader.GetInt64(0);
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
+                        logger_.LogError(ex, "Impossible to count records in the RheogramInputsTable");
                     }
                 }
                 return count;
@@ -75,25 +55,24 @@ namespace YPLCalibrationFromRheometer.Service
 
         public bool Clear()
         {
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
                 bool success = false;
                 lock (lock_)
                 {
-                    using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                    using var transaction = connection_.BeginTransaction();
+                    try
                     {
-                        try
-                        {
-                            var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM RheogramInputsTable";
-                            int count = command.ExecuteNonQuery();
-                            transaction.Commit();
-                            success = true;
-                        }
-                        catch (SQLiteException e)
-                        {
-                            transaction.Rollback();
-                        }
+                        var command = connection_.CreateCommand();
+                        command.CommandText = @"DELETE FROM RheogramInputsTable";
+                        int count = command.ExecuteNonQuery();
+                        transaction.Commit();
+                        success = true;
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        transaction.Rollback();
+                        logger_.LogError(ex, "Impossible to clear the RheogramInputsTable");
                     }
                 }
                 return success;
@@ -107,22 +86,21 @@ namespace YPLCalibrationFromRheometer.Service
         public bool Contains(Guid guid)
         {
             int count = 0;
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
-                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                var command = connection_.CreateCommand();
                 command.CommandText = @"SELECT COUNT(*) FROM RheogramInputsTable WHERE ID = '" + guid.ToString() + "'";
                 try
                 {
-                    using (var reader = command.ExecuteReader())
+                    using var reader = command.ExecuteReader();
+                    if (reader.Read() && !reader.IsDBNull(0))
                     {
-                        if (reader.Read() && !reader.IsDBNull(0))
-                        {
-                            count = (int)reader.GetInt64(0);
-                        }
+                        count = (int)reader.GetInt64(0);
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
+                    logger_.LogError(ex, "Impossible to count rows from RheogramInputsTable");
                 }
             }
             return count >= 1;
@@ -131,24 +109,22 @@ namespace YPLCalibrationFromRheometer.Service
         public List<Guid> GetIDs()
         {
             List<Guid> ids = new List<Guid>();
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
-                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                var command = connection_.CreateCommand();
                 command.CommandText = @"SELECT ID FROM RheogramInputsTable";
                 try
                 {
-                    using (var reader = command.ExecuteReader())
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            if (!reader.IsDBNull(0))
-                                ids.Add(reader.GetGuid(0));
-                        }
+                        if (!reader.IsDBNull(0))
+                            ids.Add(reader.GetGuid(0));
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to get IDs from RheogramInputsTable");
+                    logger_.LogError(ex, "Impossible to get IDs from RheogramInputsTable");
                 }
             }
             return ids;
@@ -158,276 +134,234 @@ namespace YPLCalibrationFromRheometer.Service
         {
             if (guid != null && !guid.Equals(Guid.Empty))
             {
-                Rheogram baseData1 = null;
-                if (SQLConnectionManager.Instance.Connection != null)
+                Rheogram rheogram = null;
+                if (connection_ != null)
                 {
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                    var command = connection_.CreateCommand();
                     command.CommandText = @"SELECT Name, Rheogram " +
                         "FROM RheogramInputsTable WHERE ID = '" + guid.ToString() + "'";
                     try
                     {
-                        using (var reader = command.ExecuteReader())
+                        using var reader = command.ExecuteReader();
+                        if (reader.Read() && !reader.IsDBNull(0))
                         {
-                            if (reader.Read() && !reader.IsDBNull(0))
-                            {
-                                string name = reader.GetString(0);
-                                string json = reader.GetString(1);
-                                baseData1 = JsonConvert.DeserializeObject<Rheogram>(json);
-                                if (!baseData1.ID.Equals(guid) || !baseData1.Name.Equals(name))
-                                    throw (new SQLiteException("SQLite database corrupted: RheometerMeasurement has been jsonified with the wrong ID or Name."));
-                            }
+                            string name = reader.GetString(0);
+                            string json = reader.GetString(1);
+                            rheogram = JsonConvert.DeserializeObject<Rheogram>(json);
+                            if (!rheogram.ID.Equals(guid) || !rheogram.Name.Equals(name))
+                                throw (new SQLiteException("SQLite database corrupted: RheometerMeasurement has been jsonified with the wrong ID or Name."));
+                        }
+                        else
+                        {
+                            logger_.LogInformation("No Rheogram in the database");
+                            return null;
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to get ID from RheogramInputsTable");
+                        logger_.LogError(ex, "Impossible to get the Rheogram with the given ID from RheogramInputsTable");
+                        return null;
                     }
+                    // Finalizing
+                    logger_.LogInformation("Returning the Rheogram of given ID from RheogramInputsTable");
+                    return rheogram;
                 }
-                return baseData1;
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
             }
             else
             {
-                return null;
+                logger_.LogWarning("The given Rheogram ID is null or empty");
             }
+            return null;
         }
 
-        public bool Add(Rheogram baseData1)
+        public bool Add(Rheogram rheogram)
         {
-            bool result = false;
-            if (baseData1 != null && baseData1.ID != null && !baseData1.ID.Equals(Guid.Empty))
+            if (rheogram != null && rheogram.ID != null && !rheogram.ID.Equals(Guid.Empty))
             {
-                if (SQLConnectionManager.Instance.Connection != null)
+                if (connection_ != null)
                 {
                     lock (lock_)
                     {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                        using var transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        try
                         {
-                            try
+                            string json = JsonConvert.SerializeObject(rheogram);
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"INSERT INTO RheogramInputsTable (ID, Name, Rheogram) " +
+                                "VALUES (" +
+                                "'" + rheogram.ID.ToString() + "', " +
+                                "'" + rheogram.Name + "', " +
+                                "'" + json + "'" +
+                                ")";
+                            int count = command.ExecuteNonQuery();
+                            if (count != 1)
                             {
-                                string json = JsonConvert.SerializeObject(baseData1);
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"INSERT INTO RheogramInputsTable (ID, Name, Rheogram) " +
-                                    "VALUES (" +
-                                    "'" + baseData1.ID.ToString() + "', " +
-                                    "'" + baseData1.Name + "', " +
-                                    "'" + json + "'" +
-                                    ")";
-                                int count = command.ExecuteNonQuery();
-                                result = count == 1;
-                                if (result)
-                                {
-                                    transaction.Commit();
-                                }
-                                else
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-                            catch (SQLiteException e)
-                            {
-                                transaction.Rollback();
+                                logger_.LogWarning("Impossible to insert the Rheogram into the RheogramInputsTable");
+                                success = false;
                             }
                         }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to add the Rheogram into RheogramInputsTable");
+                            success = false;
+                        }
+                        // Finalizing
+                        if (success)
+                        {
+                            transaction.Commit();
+                            logger_.LogInformation("Added the Rheogram of given ID into the RheogramInputsTable successfully");
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                        }
+                        return success;
                     }
                 }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
             }
-            return result;
+            else
+            {
+                logger_.LogWarning("The Rheogram is null or its ID is null or empty");
+            }
+            return false;
         }
 
-        public bool Remove(Rheogram baseData1)
+        public bool Remove(Rheogram rheogram)
         {
-            bool result = false;
-            if (baseData1 != null)
+            if (rheogram != null)
             {
-                result = Remove(baseData1.ID);
+                return Remove(rheogram.ID);
             }
-            return result;
+            else
+            {
+                logger_.LogWarning("The given Rheogram is null");
+                return false;
+            }
         }
 
         public bool Remove(Guid guid)
         {
-            bool result = false;
             if (guid != null && !guid.Equals(Guid.Empty))
             {
-                if (SQLConnectionManager.Instance.Connection != null)
+                if (connection_ != null)
                 {
-                    // first select all YPLCalibration referencing as their RheogramInput the Rheogram identified by the given guid from YPLCalibrationsTable 
-                    List<Guid> parentIds = new List<Guid>();
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                    command.CommandText = @"SELECT YPLCalibrationsTable.ID " +
-                        "FROM YPLCalibrationsTable, RheogramInputsTable " +
-                        "WHERE YPLCalibrationsTable.RheogramInputID = RheogramInputsTable.ID " +
-                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
-                    try
-                    {
-                        using (var reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                Guid parentId = reader.GetGuid(0);
-                                if (parentId != null && !parentId.Equals(Guid.Empty))
-                                    parentIds.Add(parentId);
-                            }
-                            result = true;
-                        }
-                    }
-                    catch (SQLiteException e)
-                    {
-                        Console.WriteLine("Impossible to retrieve YPLCalibration referencing as their RheogramInput the Rheogram with the given guid from YPLCalibrationsTable");
-                        return result;
-                    }
-
-                    // then delete all of them through the use of the YPLCalibrationManager (which ensures their children outputs are properly deleted)
-                    foreach (Guid parentId in parentIds)
-                    {
-                        result = YPLCalibrationManager.Instance.Remove(parentId);
-                        if (!result)
-                        {
-                            Console.WriteLine("Impossible to delete YPLCalibration referencing as their RheogramInput the Rheogram with the given guid from YPLCalibrationsTable");
-                            break;
-                        }
-                    }
-
-                    // finally delete the Rheogram identified by the given guid from RheogramInputsTable
-                    if (result)
-                    {
-                        lock (lock_)
-                        {
-                            using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
-                            {
-                                bool success = true;
-                                try
-                                {
-                                    command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                    command.CommandText = @"DELETE FROM RheogramInputsTable WHERE ID = '" + guid.ToString() + "'";
-                                    int count = command.ExecuteNonQuery();
-                                    result = count >= 0;
-                                    if (result)
-                                    {
-                                        success = true;
-                                    }
-                                    else
-                                    {
-                                        success = false;
-                                        Console.WriteLine("No Rheogram with the given guid found for deletion in RheogramInputsTable");
-                                    }
-                                }
-                                catch (SQLiteException e)
-                                {
-                                    success = false;
-                                    Console.WriteLine("Impossible to delete the Rheogram with the given guid from RheogramInputsTable");
-                                }
-
-                                if (success)
-                                {
-                                    transaction.Commit();
-                                }
-                                else
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-
-        public bool Update(Guid guid, Rheogram updatedBaseData1)
-        {
-            bool result = false;
-            if (guid != null && !guid.Equals(Guid.Empty) && updatedBaseData1 != null)
-            {
-                if (SQLConnectionManager.Instance.Connection != null)
-                {
-                    // first update the Rheogram identified by the given baseData1ID from RheogramInputsTable
+                    // delete the Rheogram identified by the given guid from RheogramInputsTable
                     lock (lock_)
                     {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                        using var transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        try
                         {
-                            try
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"DELETE FROM RheogramInputsTable WHERE ID = '" + guid.ToString() + "'";
+                            int count = command.ExecuteNonQuery();
+                            if (count < 0)
                             {
-                                // make sure the ID stored in the json string matches the expected one
-                                updatedBaseData1.ID = guid;
-                                string json = JsonConvert.SerializeObject(updatedBaseData1);
-
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"UPDATE RheogramInputsTable SET " +
-                                    "Name = '" + updatedBaseData1.Name + "', " +
-                                    "Rheogram = '" + json + "' " +
-                                    "WHERE ID = '" + guid.ToString() + "'";
-                                int count = command.ExecuteNonQuery();
-                                result = count == 1;
-                                if (result)
-                                {
-                                    transaction.Commit();
-                                }
-                                else
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-                            catch (SQLiteException e)
-                            {
-                                transaction.Rollback();
+                                logger_.LogWarning("Impossible to delete the Rheogram of given ID from the RheogramInputsTable");
+                                success = false;
                             }
                         }
-                    }
-
-                    // then select all YPLCalibration referencing as their RheogramInput the Rheogram identified by the given baseData1ID from YPLCalibrationsTable 
-                    List<Guid> parentIds = new List<Guid>();
-                    var command2 = SQLConnectionManager.Instance.Connection.CreateCommand();
-                    command2.CommandText = @"SELECT YPLCalibrationsTable.ID " +
-                        "FROM YPLCalibrationsTable, RheogramInputsTable " +
-                        "WHERE YPLCalibrationsTable.RheogramInputID = RheogramInputsTable.ID " +
-                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
-                    try
-                    {
-                        using (var reader = command2.ExecuteReader())
+                        catch (SQLiteException ex)
                         {
-                            while (reader.Read())
-                            {
-                                Guid parentId = reader.GetGuid(0);
-                                if (parentId != null && !parentId.Equals(Guid.Empty))
-                                    parentIds.Add(parentId);
-                            }
-                            result = true;
+                            logger_.LogError(ex, "Impossible to delete the Rheogram of given ID from RheogramInputsTable");
+                            success = false;
                         }
-                    }
-                    catch (SQLiteException e)
-                    {
-                        Console.WriteLine("Impossible to retrieve YPLCalibration referencing as their RheogramInput the Rheogram with the given guid from YPLCalibrationsTable");
-                        return result;
-                    }
 
-                    // finally update all of them through the use of the YPLCalibrationManager (which ensures calculations are properly udpated)
-                    foreach (Guid parentId in parentIds)
-                    {
-                        YPLCalibration calculationData = YPLCalibrationManager.Instance.Get(parentId);
-                        if (calculationData != null)
+                        if (success)
                         {
-                            calculationData.RheogramInput = updatedBaseData1;
-                            result = YPLCalibrationManager.Instance.Update(parentId, calculationData);
-                            if (!result)
-                            {
-                                Console.WriteLine("Impossible to delete YPLCalibration referencing as their RheogramInput the Rheogram with the given guid from YPLCalibrationsTable");
-                                break;
-                            }
+                            transaction.Commit();
+                            logger_.LogInformation("Removed the Rheogram of given ID from the RheogramInputsTable successfully");
                         }
                         else
                         {
-                            Console.WriteLine("Impossible to get YPLCalibration with the given parentId from YPLCalibrationsTable");
+                            transaction.Rollback();
+                        }
+                        // Finalizing
+                        return success;
+                    }
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The Rheogram ID is null or empty");
+            }
+            return false;
+        }
+
+        public bool Update(Guid guid, Rheogram rheogram)
+        {
+            if (guid != null && !guid.Equals(Guid.Empty) && rheogram != null)
+            {
+                if (connection_ != null)
+                {
+                    // update the Rheogram identified by the given ID from RheogramInputsTable
+                    lock (lock_)
+                    {
+                        using var transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        try
+                        {
+                            // make sure the ID stored in the json string matches the expected one
+                            rheogram.ID = guid;
+                            string json = JsonConvert.SerializeObject(rheogram);
+
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"UPDATE RheogramInputsTable SET " +
+                                "Name = '" + rheogram.Name + "', " +
+                                "Rheogram = '" + json + "' " +
+                                "WHERE ID = '" + guid.ToString() + "'";
+                            int count = command.ExecuteNonQuery();
+                            if (count != 1)
+                            {
+                                logger_.LogWarning("Impossible to update the Rheogram of given ID");
+                                success = false;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to update Rheogram of given ID");
+                            success = false;
+                        }
+                        if (success)
+                        {
+                            transaction.Commit();
+                            logger_.LogInformation("Updated the Rheogram of given ID successfully");
+                            return true;
+                        }
+                        else
+                        {
+                            transaction.Rollback();
                             return false;
                         }
                     }
                 }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
             }
-            return result;
+            else
+            {
+                logger_.LogWarning("The Rheogram is null or its ID is null or empty");
+            }
+            return false;
         }
 
         /// <summary>
-        /// populate databasewith a few default Rheograms
+        /// populates database with a few default Rheograms
         /// </summary>
         private void FillDefault()
         {
@@ -437,54 +371,58 @@ namespace YPLCalibrationFromRheometer.Service
                 //////////////////////////////////
                 // Example Rheogram #1 //
                 //////////////////////////////////
-                Rheogram baseData1 = new Rheogram();
-                baseData1.ID = Guid.NewGuid();
-                baseData1.Name = "Herschel-bulkley fluid";
-                baseData1.Description = "Yield stress 2.000Pa, consistency index 0.750Pa.s^N and flow behavior index 0.500";
-                baseData1.ShearStressStandardDeviation = 0.01; // Pa
-                if (baseData1.RheometerMeasurementList == null)
+                Rheogram rheogram = new Rheogram
                 {
-                    baseData1.RheometerMeasurementList = new List<RheometerMeasurement>();
+                    ID = Guid.NewGuid(),
+                    Name = "Herschel-bulkley fluid",
+                    Description = "Yield stress 2.000Pa, consistency index 0.750Pa.s^N and flow behavior index 0.500",
+                    ShearStressStandardDeviation = 0.01 // Pa
+                };
+                if (rheogram.RheometerMeasurementList == null)
+                {
+                    rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
                 }
                 /// RheometerMeasurements
-                baseData1.Add(new RheometerMeasurement(1, 2.750));
-                baseData1.Add(new RheometerMeasurement(2, 3.061));
-                baseData1.Add(new RheometerMeasurement(4, 3.5));
-                baseData1.Add(new RheometerMeasurement(8, 4.121));
-                baseData1.Add(new RheometerMeasurement(16, 5.000));
-                baseData1.Add(new RheometerMeasurement(32, 6.243));
-                baseData1.Add(new RheometerMeasurement(64, 8));
-                baseData1.Add(new RheometerMeasurement(128, 10.485));
-                baseData1.Add(new RheometerMeasurement(256, 14));
-                baseData1.Add(new RheometerMeasurement(512, 18.971));
+                rheogram.Add(new RheometerMeasurement(1, 2.750));
+                rheogram.Add(new RheometerMeasurement(2, 3.061));
+                rheogram.Add(new RheometerMeasurement(4, 3.5));
+                rheogram.Add(new RheometerMeasurement(8, 4.121));
+                rheogram.Add(new RheometerMeasurement(16, 5.000));
+                rheogram.Add(new RheometerMeasurement(32, 6.243));
+                rheogram.Add(new RheometerMeasurement(64, 8));
+                rheogram.Add(new RheometerMeasurement(128, 10.485));
+                rheogram.Add(new RheometerMeasurement(256, 14));
+                rheogram.Add(new RheometerMeasurement(512, 18.971));
 
-                Add(baseData1);
+                Add(rheogram);
 
                 //////////////////////////////////
                 // Example Rheogram #2 //
                 //////////////////////////////////
-                baseData1 = new Rheogram();
-                baseData1.ID = Guid.NewGuid();
-                baseData1.Name = "Quemada fluid";
-                baseData1.Description = "Zero viscosity infinite, infinite viscosity 0.025Pa.s, reference shear rate 300.000 1/s and flow behavior index 0.400";
-                baseData1.ShearStressStandardDeviation = 0.01; // Pa
-                if (baseData1.RheometerMeasurementList == null)
+                rheogram = new Rheogram
                 {
-                    baseData1.RheometerMeasurementList = new List<RheometerMeasurement>();
+                    ID = Guid.NewGuid(),
+                    Name = "Quemada fluid",
+                    Description = "Zero viscosity infinite, infinite viscosity 0.025Pa.s, reference shear rate 300.000 1/s and flow behavior index 0.400",
+                    ShearStressStandardDeviation = 0.01 // Pa
+                };
+                if (rheogram.RheometerMeasurementList == null)
+                {
+                    rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
                 }
                 /// RheometerMeasurements
-                baseData1.Add(new RheometerMeasurement(1, 2.911));
-                baseData1.Add(new RheometerMeasurement(2, 3.545));
-                baseData1.Add(new RheometerMeasurement(4, 4.387));
-                baseData1.Add(new RheometerMeasurement(8, 5.538));
-                baseData1.Add(new RheometerMeasurement(16, 7.157));
-                baseData1.Add(new RheometerMeasurement(32, 9.51));
-                baseData1.Add(new RheometerMeasurement(64, 13.043));
-                baseData1.Add(new RheometerMeasurement(128, 18.523));
-                baseData1.Add(new RheometerMeasurement(256, 27.304));
-                baseData1.Add(new RheometerMeasurement(512, 41.818));
+                rheogram.Add(new RheometerMeasurement(1, 2.911));
+                rheogram.Add(new RheometerMeasurement(2, 3.545));
+                rheogram.Add(new RheometerMeasurement(4, 4.387));
+                rheogram.Add(new RheometerMeasurement(8, 5.538));
+                rheogram.Add(new RheometerMeasurement(16, 7.157));
+                rheogram.Add(new RheometerMeasurement(32, 9.51));
+                rheogram.Add(new RheometerMeasurement(64, 13.043));
+                rheogram.Add(new RheometerMeasurement(128, 18.523));
+                rheogram.Add(new RheometerMeasurement(256, 27.304));
+                rheogram.Add(new RheometerMeasurement(512, 41.818));
 
-                Add(baseData1);
+                Add(rheogram);
             }
         }
     }

@@ -91,9 +91,9 @@ namespace YPLCalibrationFromRheometer.Test
                 {
                     values = JsonConvert.DeserializeObject<Rheogram>(str);
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    Console.WriteLine(e.ToString());
+                    Console.WriteLine(ex.ToString());
                 }
             }
             return values;

@@ -1,61 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Data.SQLite;
 using Newtonsoft.Json;
 using YPLCalibrationFromRheometer.Model;
+using Microsoft.Extensions.Logging;
 
 namespace YPLCalibrationFromRheometer.Service
 {
-    /// <summary>
-    /// A manager for YPLCalibration. The manager implements the singleton pattern as defined by 
-    /// Gamma, Erich, et al. "Design patterns: Abstraction and reuse of object-oriented design." 
-    /// European Conference on Object-Oriented Programming. Springer, Berlin, Heidelberg, 1993.
-    /// </summary>
     public class YPLCalibrationManager
     {
-        private static YPLCalibrationManager instance_ = null;
+        private readonly ILogger logger_;
+        private readonly object lock_ = new object();
+        private readonly RheogramManager rheogramManager_;
+        private readonly SQLiteConnection connection_;
 
-        private Random random_ = new Random();
-
-        private object lock_ = new object();
-
-        /// <summary>
-        /// default constructor is private when implementing a singleton pattern
-        /// </summary>
-        private YPLCalibrationManager()
+        public YPLCalibrationManager(ILoggerFactory loggerFactory, RheogramManager rheogramManager)
         {
-            // first initiate a call to the database to make sure all its tables are initialized and in the same time, make sure default Rheogram's are created
-            RheogramManager.Instance.GetIDs();
-
-            // then launch a garbage collector which automatically removes old YPLCalibration's from the database
-            Thread thread = new Thread(new ThreadStart(GC));
-            thread.Start();
-        }
-
-        public static YPLCalibrationManager Instance
-        {
-            get
-            {
-                if (instance_ == null)
-                {
-                    instance_ = new YPLCalibrationManager();
-                }
-                return instance_;
-
-            }
-        }
-
-        /// <summary>
-        /// database garbage collector
-        /// </summary>
-        private void GC()
-        {
-            while (true)
-            {
-                Remove(DateTime.UtcNow - TimeSpan.FromSeconds(360000));
-                Thread.Sleep(10000);
-            }
+            logger_ = loggerFactory.CreateLogger<YPLCalibrationManager>();
+            connection_ = SQLConnectionManager.GetConnection(loggerFactory);
+            rheogramManager_ = rheogramManager;
         }
 
         public int Count
@@ -63,22 +26,21 @@ namespace YPLCalibrationFromRheometer.Service
             get
             {
                 int count = 0;
-                if (SQLConnectionManager.Instance.Connection != null)
+                if (connection_ != null)
                 {
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                    var command = connection_.CreateCommand();
                     command.CommandText = @"SELECT COUNT(*) FROM YPLCalibrationsTable";
                     try
                     {
-                        using (var reader = command.ExecuteReader())
+                        using SQLiteDataReader reader = command.ExecuteReader();
+                        if (reader.Read())
                         {
-                            if (reader.Read())
-                            {
-                                count = (int)reader.GetInt64(0);
-                            }
+                            count = (int)reader.GetInt64(0);
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
+                        logger_.LogError(ex, "Impossible to count records in the YPLCalibrationsTable");
                     }
                 }
                 return count;
@@ -87,32 +49,31 @@ namespace YPLCalibrationFromRheometer.Service
 
         public bool Clear()
         {
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
                 bool success = false;
                 lock (lock_)
                 {
-                    using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                    using var transaction = connection_.BeginTransaction();
+                    try
                     {
-                        try
-                        {
-                            // first empty YPLModelOutputsTable
-                            var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM YPLModelOutputsTable";
-                            command.ExecuteNonQuery();
+                        // first empty YPLModelOutputsTable
+                        var command = connection_.CreateCommand();
+                        command.CommandText = @"DELETE FROM YPLModelOutputsTable";
+                        command.ExecuteNonQuery();
 
-                            // then empty YPLCalibrationsTable
-                            command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM YPLCalibrationsTable";
-                            command.ExecuteNonQuery();
+                        // then empty YPLCalibrationsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"DELETE FROM YPLCalibrationsTable";
+                        command.ExecuteNonQuery();
 
-                            transaction.Commit();
-                            success = true;
-                        }
-                        catch (SQLiteException e)
-                        {
-                            transaction.Rollback();
-                        }
+                        transaction.Commit();
+                        success = true;
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        transaction.Rollback();
+                        logger_.LogError(ex, "Impossible to clear the YPLCalibrationsTable or the YPLModelOutputsTable");
                     }
                 }
                 return success;
@@ -126,23 +87,21 @@ namespace YPLCalibrationFromRheometer.Service
         public bool Contains(Guid guid)
         {
             int count = 0;
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
-                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                var command = connection_.CreateCommand();
                 command.CommandText = @"SELECT COUNT(*) FROM YPLCalibrationsTable WHERE ID = '" + guid + "'";
                 try
                 {
-                    using (var reader = command.ExecuteReader())
+                    using SQLiteDataReader reader = command.ExecuteReader();
+                    if (reader.Read())
                     {
-                        if (reader.Read())
-                        {
-                            count = (int)reader.GetInt64(0);
-                        }
+                        count = (int)reader.GetInt64(0);
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to count rows from YPLCalibrationsTable");
+                    logger_.LogError(ex, "Impossible to count rows from YPLCalibrationsTable");
                 }
             }
             return count >= 1;
@@ -151,24 +110,22 @@ namespace YPLCalibrationFromRheometer.Service
         public List<Guid> GetIDs()
         {
             List<Guid> ids = new List<Guid>();
-            if (SQLConnectionManager.Instance.Connection != null)
+            if (connection_ != null)
             {
-                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                var command = connection_.CreateCommand();
                 command.CommandText = @"SELECT ID FROM YPLCalibrationsTable";
                 try
                 {
-                    using (var reader = command.ExecuteReader())
+                    using SQLiteDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            if (!reader.IsDBNull(0))
-                                ids.Add(reader.GetGuid(0));
-                        }
+                        if (!reader.IsDBNull(0))
+                            ids.Add(reader.GetGuid(0));
                     }
                 }
-                catch (SQLiteException e)
+                catch (SQLiteException ex)
                 {
-                    Console.WriteLine("Impossible to get IDs from YPLCalibrationsTable");
+                    logger_.LogError(ex, "Impossible to get IDs from YPLCalibrationsTable");
                 }
             }
             return ids;
@@ -178,402 +135,606 @@ namespace YPLCalibrationFromRheometer.Service
         {
             if (guid != null && !guid.Equals(Guid.Empty))
             {
-                YPLCalibration calculationData = null;
-                if (SQLConnectionManager.Instance.Connection != null)
+                YPLCalibration yplCalibration = null;
+                if (connection_ != null)
                 {
                     Guid inputID = Guid.Empty;
                     Guid yplModelKelessidisID = Guid.Empty;
                     Guid yplModelMullineuxID = Guid.Empty;
 
                     // first retrieve the YPLCalibration itself
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                    var command = connection_.CreateCommand();
                     command.CommandText = @"SELECT Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID FROM YPLCalibrationsTable " +
                         "WHERE ID = '" + guid.ToString() + "'";
                     try
                     {
-                        using (var reader = command.ExecuteReader())
+                        using SQLiteDataReader reader = command.ExecuteReader();
+                        if (reader.Read() && !reader.IsDBNull(0))
                         {
-                            if (reader.Read() && !reader.IsDBNull(0))
+                            yplCalibration = new YPLCalibration
                             {
-                                calculationData = new YPLCalibration();
-                                calculationData.ID = guid;
-                                calculationData.Name = reader.GetString(0);
-                                calculationData.Description = reader.GetString(1);
-                                inputID = reader.GetGuid(2);
-                                yplModelMullineuxID = reader.GetGuid(3);
-                                yplModelKelessidisID = reader.GetGuid(4);
-                            }
+                                ID = guid,
+                                Name = reader.GetString(0),
+                                Description = reader.GetString(1)
+                            };
+                            inputID = reader.GetGuid(2);
+                            yplModelMullineuxID = reader.GetGuid(3);
+                            yplModelKelessidisID = reader.GetGuid(4);
+                        }
+                        else
+                        {
+                            logger_.LogInformation("No YPLCalibration in the database");
+                            return null;
                         }
                     }
-                    catch (SQLiteException e)
+                    catch (SQLiteException ex)
                     {
-                        Console.WriteLine("Impossible to get the YPLCalibration with the given guid from YPLCalibrationsTable");
+                        logger_.LogError(ex, "Impossible to get the YPLCalibration with the given ID from YPLCalibrationsTable");
+                        return null;
                     }
 
                     // then retrieve its RheogramInput with the RheogramsManager
-                    Rheogram baseData1 = RheogramManager.Instance.Get(inputID);
-                    if (baseData1 != null)
+                    Rheogram rheogram = rheogramManager_.Get(inputID);
+                    if (rheogram != null)
                     {
-                        calculationData.RheogramInput = baseData1;
+                        yplCalibration.RheogramInput = rheogram;
 
                         // then retrieve its Mullineux YPLModelOutput directly from YPLModelOutputsTable
-                        command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                        command = connection_.CreateCommand();
                         command.CommandText = @"SELECT Name, YPLModel " +
                             "FROM YPLModelOutputsTable WHERE ID = '" + yplModelMullineuxID.ToString() + "'";
                         try
                         {
-                            using (var reader = command.ExecuteReader())
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
                             {
-                                if (reader.Read() && !reader.IsDBNull(0))
-                                {
-                                    string name = reader.GetString(0);
-                                    string json = reader.GetString(1);
-                                    YPLModel baseData2 = JsonConvert.DeserializeObject<YPLModel>(json);
-                                    if (baseData2 == null || !baseData2.ID.Equals(yplModelMullineuxID) || !baseData2.Name.Equals(name))
-                                        throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
-                                    calculationData.YPLModelMullineux = baseData2;
-                                }
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel yplModel = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (yplModel == null || !yplModel.ID.Equals(yplModelMullineuxID) || !yplModel.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCalibration.YPLModelMullineux = yplModel;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
                             }
                         }
-                        catch (SQLiteException e)
+                        catch (SQLiteException ex)
                         {
-                            Console.WriteLine("Impossible to get YPLModelMullineuxID from YPLModelOutputsTable");
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
                         }
 
                         // then retrieve its Kelessidis YPLModelOutput directly from YPLModelOutputsTable
-                        command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                        command = connection_.CreateCommand();
                         command.CommandText = @"SELECT Name, YPLModel " +
                             "FROM YPLModelOutputsTable WHERE ID = '" + yplModelKelessidisID.ToString() + "'";
                         try
                         {
-                            using (var reader = command.ExecuteReader())
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
                             {
-                                if (reader.Read() && !reader.IsDBNull(0))
-                                {
-                                    string name = reader.GetString(0);
-                                    string json = reader.GetString(1);
-                                    YPLModel baseData2 = JsonConvert.DeserializeObject<YPLModel>(json);
-                                    if (baseData2 == null || !baseData2.ID.Equals(yplModelKelessidisID) || !baseData2.Name.Equals(name))
-                                        throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
-                                    calculationData.YPLModelKelessidis = baseData2;
-                                }
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel baseData2 = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (baseData2 == null || !baseData2.ID.Equals(yplModelKelessidisID) || !baseData2.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCalibration.YPLModelKelessidis = baseData2;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
                             }
                         }
-                        catch (SQLiteException e)
+                        catch (SQLiteException ex)
                         {
-                            Console.WriteLine("Impossible to get YPLModelKelessidisID from YPLModelOutputsTable");
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
                         }
+                        // Finalizing
+                        logger_.LogInformation("Returning the YPLCalibration of given ID");
+                        return yplCalibration;
                     }
                     else
                     {
-                        Console.WriteLine("Error while getting the RheogramInput of the YPLCalibration for the given guid from the RheogramInputsTable. Should not be null.");
+                        logger_.LogWarning("No RheogramInput associated to the YPLCalibration of given ID");
+                        return null;
                     }
                 }
-                return calculationData;
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                    return null;
+                }
             }
             else
             {
+                logger_.LogWarning("The given YPLCalibration ID is null or empty");
                 return null;
             }
         }
 
-        public bool Add(YPLCalibration calculationData)
+        /// <summary>
+        /// performs calculations on the given YPLCalibration and adds it to the database
+        /// </summary>
+        public bool Add(YPLCalibration yplCalibration)
         {
-            bool result = false;
             // every YPLCalibration added to the database should have both RheogramInput and YPLModelOutput different from null and with non empty ID
-            if (calculationData != null && calculationData.RheogramInput != null && calculationData.YPLModelKelessidis != null && calculationData.YPLModelMullineux != null &&
-                !calculationData.RheogramInput.ID.Equals(Guid.Empty) && !calculationData.YPLModelKelessidis.ID.Equals(Guid.Empty) && !calculationData.YPLModelMullineux.ID.Equals(Guid.Empty))
+            if (yplCalibration != null && yplCalibration.RheogramInput != null && yplCalibration.YPLModelKelessidis != null && yplCalibration.YPLModelMullineux != null &&
+                !yplCalibration.RheogramInput.ID.Equals(Guid.Empty) && !yplCalibration.YPLModelKelessidis.ID.Equals(Guid.Empty) && !yplCalibration.YPLModelMullineux.ID.Equals(Guid.Empty))
             {
-                if (SQLConnectionManager.Instance.Connection != null)
+                // first apply calculations
+                if (!yplCalibration.CalculateYPLModelMullineux() || !yplCalibration.CalculateYPLModelKelessidis())
+                {
+                    logger_.LogWarning("Impossible to calculate outputs for the given YPLCalibration");
+                    return false;
+                }
+
+                // then update to database
+                if (connection_ != null)
                 {
                     lock (lock_)
                     {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                        using SQLiteTransaction transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        try
                         {
-                            bool success = true;
-                            try
+                            // first add the YPLCalibration to the YPLCalibrationsTable
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"INSERT INTO YPLCalibrationsTable " +
+                                "(ID, Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID, TimeStamp) VALUES (" +
+                                "'" + yplCalibration.ID.ToString() + "', " +
+                                "'" + yplCalibration.Name + "', " +
+                                "'" + yplCalibration.Description + "', " +
+                                "'" + yplCalibration.RheogramInput.ID.ToString() + "', " +
+                                "'" + yplCalibration.YPLModelMullineux.ID.ToString() + "', " +
+                                "'" + yplCalibration.YPLModelKelessidis.ID.ToString() + "', " +
+                                "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" +
+                                ")";
+                            int count = command.ExecuteNonQuery();
+                            if (count == 1)
                             {
-                                // first add the YPLCalibration to the YPLCalibrationsTable
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"INSERT INTO YPLCalibrationsTable " +
-                                    "(ID, Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID, TimeStamp) VALUES (" +
-                                    "'" + calculationData.ID.ToString() + "', " +
-                                    "'" + calculationData.Name + "', " +
-                                    "'" + calculationData.Description + "', " +
-                                    "'" + calculationData.RheogramInput.ID.ToString() + "', " +
-                                    "'" + calculationData.YPLModelMullineux.ID.ToString() + "', " +
-                                    "'" + calculationData.YPLModelKelessidis.ID.ToString() + "', " +
-                                    "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" +
-                                    ")";
-                                int count = command.ExecuteNonQuery();
-                                result = count == 1;
-                                if (result)
+                                // then add Mullineux YPLModelOutput to the YPLModelOutputsTable
+                                YPLModel yplModel = yplCalibration.YPLModelMullineux;
+                                if (yplModel != null)
                                 {
-                                    // then add Mullineux YPLModelOutput to the YPLModelOutputsTable
-                                    YPLModel baseData2 = calculationData.YPLModelMullineux;
-                                    if (baseData2 == null)
+                                    string json = JsonConvert.SerializeObject(yplModel);
+                                    command = connection_.CreateCommand();
+                                    command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                        "VALUES (" +
+                                        "'" + yplModel.ID.ToString() + "', " +
+                                        "'" + yplModel.Name + "', " +
+                                        "'" + json + "'" +
+                                        ")";
+                                    count = command.ExecuteNonQuery();
+                                    if (count != 1)
                                     {
+                                        logger_.LogWarning("Impossible to insert the calculated Mullineux YPLModel into the YPLModelOutputsTable");
                                         success = false;
-                                        Console.WriteLine("Impossible to add Mullineux YPLModelOutput into YPLModelOutputsTable because it is null");
-                                    }
-                                    else
-                                    {
-                                        string json = JsonConvert.SerializeObject(baseData2);
-                                        command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
-                                            "VALUES (" +
-                                            "'" + baseData2.ID.ToString() + "', " +
-                                            "'" + baseData2.Name + "', " +
-                                            "'" + json + "'" +
-                                            ")";
-                                        count = command.ExecuteNonQuery();
-                                        result = count == 1;
-                                        if (result)
-                                        {
-                                            success = true;
-                                        }
-                                        else
-                                        {
-                                            success = false;
-                                            Console.WriteLine("Impossible to insert Mullineux YPLModelOutput into YPLModelOutputsTable");
-                                        }
-
-                                    }
-
-                                    // then add Kelessidis YPLModelOutput to the YPLModelOutputsTable
-                                    baseData2 = calculationData.YPLModelKelessidis;
-                                    if (baseData2 == null)
-                                    {
-                                        success = false;
-                                        Console.WriteLine("Impossible to add Kelessidis YPLModelOutput into YPLModelOutputsTable because it is null");
-                                    }
-                                    else
-                                    {
-                                        string json = JsonConvert.SerializeObject(baseData2);
-                                        command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
-                                            "VALUES (" +
-                                            "'" + baseData2.ID.ToString() + "', " +
-                                            "'" + baseData2.Name + "', " +
-                                            "'" + json + "'" +
-                                            ")";
-                                        count = command.ExecuteNonQuery();
-                                        result = count == 1;
-                                        if (result)
-                                        {
-                                            success = true;
-                                        }
-                                        else
-                                        {
-                                            success = false;
-                                            Console.WriteLine("Impossible to insert Kelessidis YPLModelOutput into YPLModelOutputsTable");
-                                        }
-
                                     }
                                 }
                                 else
                                 {
+                                    logger_.LogWarning("Impossible to get the YPLModel");
                                     success = false;
-                                    Console.WriteLine("Impossible to insert YPLCalibration into YPLCalibrationsTable");
+                                }
+                                if (success)
+                                {
+                                    // then add Kelessidis YPLModelOutput to the YPLModelOutputsTable
+                                    yplModel = yplCalibration.YPLModelKelessidis;
+                                    if (yplModel != null)
+                                    {
+                                        string json = JsonConvert.SerializeObject(yplModel);
+                                        command = connection_.CreateCommand();
+                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                            "VALUES (" +
+                                            "'" + yplModel.ID.ToString() + "', " +
+                                            "'" + yplModel.Name + "', " +
+                                            "'" + json + "'" +
+                                            ")";
+                                        count = command.ExecuteNonQuery();
+                                        if (count != 1)
+                                        {
+                                            logger_.LogWarning("Impossible to insert the calculated Kelessidis YPLModel into the YPLModelOutputsTable");
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        logger_.LogWarning("Impossible to get the YPLModel");
+                                        success = false;
+                                    }
                                 }
                             }
-                            catch (SQLiteException e)
+                            else
                             {
+                                logger_.LogWarning("Impossible to insert the YPLCalibration into the YPLCalibrationsTable");
                                 success = false;
-                                Console.WriteLine("Error while inserting YPLCalibration into YPLCalibrationsTable");
                             }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to add the YPLCalibration into YPLCalibrationsTable");
+                            success = false;
+                        }
+                        // Finalizing
+                        if (success)
+                        {
+                            transaction.Commit();
+                            logger_.LogInformation("Added the YPLCalibration of given ID into the YPLCalibrationsTable successfully");
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                        }
+                        return success;
+                    }
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                    return false;
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The YPLCalibration ID or the ID of some of its attributes are null or empty");
+                return false;
+            }
+        }
 
+        /// <summary>
+        /// creates a YPLCalibration from the given Rheogram and adds it to the database 
+        /// </summary>
+        public bool Add(Rheogram rheogram)
+        {
+            if (rheogram != null && !rheogram.ID.Equals(Guid.Empty))
+            {
+                YPLCalibration yplCalibration = new YPLCalibration
+                {
+                    ID = Guid.NewGuid()
+                };
+                yplCalibration.Name = "DefaultName-" + yplCalibration.ID.ToString()[..8];
+                yplCalibration.Description = "DefaultDescription-" + yplCalibration.ID.ToString()[..8];
+                yplCalibration.RheogramInput = rheogram;
+                yplCalibration.RheogramInput.ID = rheogram.ID;
+                yplCalibration.RheogramInput.Name = yplCalibration.Name + "-input";
+                yplCalibration.YPLModelKelessidis = new YPLModel
+                {
+                    ID = Guid.NewGuid(),
+                    Name = yplCalibration.Name + "-calculated-Kelessidis"
+                };
+                yplCalibration.YPLModelMullineux = new YPLModel
+                {
+                    ID = Guid.NewGuid(),
+                    Name = yplCalibration.Name + "-calculated-Mullineux"
+                };
+
+                if (Add(yplCalibration))
+                {
+                    logger_.LogInformation("Created a YPLCalibration from the given Rheogram successfully");
+                    return true;
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to add a YPLCalibration from the given Rheogram");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("Impossible to create a YPLCalibration from the given Rheogram which is null or badly identified");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// removes the YPLCalibration of given guid from the database (YPLModel output children are also removed)
+        /// </summary>
+        public bool Remove(Guid guid)
+        {
+            if (guid != null && !guid.Equals(Guid.Empty))
+            {
+                YPLCalibration yplCalibration = Get(guid);
+
+                // every YPLCalibration added to the database should have both RheogramInput and YPLModelOutput different from null
+                if (yplCalibration != null && yplCalibration.RheogramInput != null && yplCalibration.YPLModelKelessidis != null && yplCalibration.YPLModelMullineux != null)
+                {
+                    if (connection_ != null)
+                    {
+                        lock (lock_)
+                        {
+                            using var transaction = connection_.BeginTransaction();
+                            bool success = true;
+                            // first delete YPLCalibration from YPLCalibrationsTable
+                            try
+                            {
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"DELETE FROM YPLCalibrationsTable WHERE ID = '" + guid.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count < 0)
+                                {
+                                    logger_.LogWarning("Impossible to delete the YPLCalibration of given ID from the YPLCalibrationsTable");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to delete the YPLCalibration of given ID from YPLCalibrationsTable");
+                                success = false;
+                            }
+                            if (success)
+                            {
+                                // then delete Mullineux YPLModelOutput from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCalibration.YPLModelMullineux.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the calculated Mullineux YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the calculated Mullineux YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
+                            if (success)
+                            {
+                                // then delete Kelessidis YPLModelOutput from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCalibration.YPLModelKelessidis.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the calculated Kelessidis YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the calculated Kelessidis YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
                             if (success)
                             {
                                 transaction.Commit();
+                                logger_.LogInformation("Removed the YPLCalibration of given ID from the YPLCalibrationsTable successfully");
                             }
                             else
                             {
                                 transaction.Rollback();
                             }
+                            return success;
                         }
                     }
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// create a YPLCalibration from the given Rheogram as RheogramInput, let the remaining parameters the same and perform the calculation
-        /// </summary>
-        public bool Add(Rheogram baseData1)
-        {
-            bool success = false;
-            if (baseData1 != null && !baseData1.ID.Equals(Guid.Empty))
-            {
-                YPLCalibration calculationData = new YPLCalibration();
-                calculationData.ID = Guid.NewGuid();
-                calculationData.Name = "DefaultName-" + calculationData.ID.ToString().Substring(0, 8);
-                calculationData.Description = "DefaultDescription-" + calculationData.ID.ToString().Substring(0, 8);
-                calculationData.RheogramInput = baseData1;
-                calculationData.RheogramInput.ID = baseData1.ID;
-                calculationData.RheogramInput.Name = calculationData.Name + "-input";
-                calculationData.YPLModelKelessidis = new YPLModel();
-                calculationData.YPLModelKelessidis.ID = Guid.NewGuid();
-                calculationData.YPLModelKelessidis.Name = calculationData.Name + "-calculated-Kelessidis";
-                calculationData.YPLModelMullineux = new YPLModel();
-                calculationData.YPLModelMullineux.ID = Guid.NewGuid();
-                calculationData.YPLModelMullineux.Name = calculationData.Name + "-calculated-Mullineux";
-
-                calculationData.CalculateYPLModelMullineux();
-                calculationData.CalculateYPLModelKelessidis();
-
-                Add(calculationData);
-
-                success = true;
-            }
-
-            return success;
-        }
-
-        public bool Remove(YPLCalibration calculationData)
-        {
-            bool result = false;
-            if (calculationData != null)
-            {
-                result = Remove(calculationData.ID);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// remove the YPLCalibration of the given guid and its Rheogram output children
-        /// </summary>
-        public bool Remove(Guid guid)
-        {
-            bool result = false;
-            if (!guid.Equals(Guid.Empty))
-            {
-                YPLCalibration calculationData = Get(guid);
-
-                // every YPLCalibration added to the database should have both RheogramInput and YPLModelOutput different from null
-                if (calculationData != null && calculationData.RheogramInput != null && calculationData.YPLModelKelessidis != null && calculationData.YPLModelMullineux != null)
-                {
-                    if (SQLConnectionManager.Instance.Connection != null)
+                    else
                     {
-                        lock (lock_)
-                        {
-                            using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
-                            {
-                                bool success = true;
-                                // first delete YPLCalibration from YPLCalibrationsTable
-                                try
-                                {
-                                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                    command.CommandText = @"DELETE FROM YPLCalibrationsTable WHERE ID = '" + guid.ToString() + "'";
-                                    int count = command.ExecuteNonQuery();
-                                    result = count >= 0;
-                                    if (!result)
-                                    {
-                                        success = false;
-                                    }
-                                }
-                                catch (SQLiteException e)
-                                {
-                                    Console.WriteLine("Impossible to delete YPLCalibration with the given guid from YPLCalibrationsTable");
-                                    success = false;
-                                }
-
-                                // then delete Mullineux YPLModelOutput from YPLModelOutputsTable
-                                Guid calculatedID = calculationData.YPLModelMullineux.ID;
-                                if (success && !calculatedID.Equals(Guid.Empty))
-                                {
-                                    try
-                                    {
-                                        var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                        command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + calculatedID.ToString() + "'";
-                                        int count = command.ExecuteNonQuery();
-                                        result = count >= 0;
-                                        if (!result)
-                                        {
-                                            success = false;
-                                        }
-                                    }
-                                    catch (SQLiteException e)
-                                    {
-                                        success = false;
-                                        Console.WriteLine("Impossible to delete the Mullineux YPLModel with the given calculatedID from YPLModelOutputsTable");
-                                    }
-                                }
-
-                                // then delete Kelessidis YPLModelOutput from YPLModelOutputsTable
-                                calculatedID = calculationData.YPLModelKelessidis.ID;
-                                if (success && !calculatedID.Equals(Guid.Empty))
-                                {
-                                    try
-                                    {
-                                        var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                        command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + calculatedID.ToString() + "'";
-                                        int count = command.ExecuteNonQuery();
-                                        result = count >= 0;
-                                        if (!result)
-                                        {
-                                            success = false;
-                                        }
-                                    }
-                                    catch (SQLiteException e)
-                                    {
-                                        success = false;
-                                        Console.WriteLine("Impossible to delete the Kelessidis YPLModel with the given calculatedID from YPLModelOutputsTable");
-                                    }
-                                }
-
-                                if (success)
-                                {
-                                    transaction.Commit();
-                                }
-                                else
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-                        }
+                        logger_.LogWarning("Impossible to access the SQLite database");
                     }
                 }
+                else
+                {
+                    logger_.LogWarning("Impossible to remove the YPLCalibration of given ID because it is null or one of its attributes is");
+                }
             }
-            return result;
+            else
+            {
+                logger_.LogWarning("The YPLCalibration ID is null or empty");
+            }
+            return false;
         }
 
         /// <summary>
-        /// remove all YPLCalibration and their Rheogram output children older than the given date
+        /// removes all YPLCalibrations referencing the Rheogram of given ID
+        /// </summary>
+        public bool RemoveReferences(Guid guid)
+        {
+            if (guid != null && !guid.Equals(Guid.Empty))
+            {
+                if (connection_ != null)
+                {
+                    // first select all YPLCalibrations referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
+                    List<Guid> parentIds = new List<Guid>();
+                    var command = connection_.CreateCommand();
+                    command.CommandText = @"SELECT YPLCalibrationsTable.ID " +
+                        "FROM YPLCalibrationsTable, RheogramInputsTable " +
+                        "WHERE YPLCalibrationsTable.RheogramInputID = RheogramInputsTable.ID " +
+                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
+                    try
+                    {
+                        using SQLiteDataReader reader = command.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Guid parentId = reader.GetGuid(0);
+                            if (parentId != null && !parentId.Equals(Guid.Empty))
+                                parentIds.Add(parentId);
+                        }
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to retrieve YPLCalibrations referencing the Rheogram of given ID from YPLCalibrationsTable");
+                        return false;
+                    }
+
+                    // then delete all of them through the use of the YPLCalibrationManager (which ensures their children outputs are properly deleted)
+                    foreach (Guid parentId in parentIds)
+                    {
+                        if (!Remove(parentId))
+                        {
+                            logger_.LogWarning("Impossible to delete one of the YPLCalibrations referencing the Rheogram of given ID from YPLCalibrationsTable");
+                            return false;
+                        }
+                    }
+                    // Finalizing
+                    logger_.LogInformation("Removed all YPLCalibrations referencing the Rheogram of given ID from the YPLCalibrationsTable successfully");
+                    return true;
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The Rheogram ID is null or empty");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// removes all YPLCalibrations older than the given date
         /// </summary>
         public bool Remove(DateTime old)
         {
-            bool success = true;
-            if (SQLConnectionManager.Instance.Connection != null)
+            Guid guid;
+            if (connection_ != null)
             {
-                lock (lock_)
+                var command = connection_.CreateCommand();
+                command.CommandText = @"SELECT ID FROM YPLCalibrationsTable WHERE TimeStamp < '" + (old - DateTime.MinValue).TotalSeconds.ToString() + "'";
+                try
                 {
-                    using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                    using SQLiteDataReader reader = command.ExecuteReader();
+                    if (reader.Read() && !reader.IsDBNull(0))
                     {
-                        Guid guid = Guid.Empty;
-                        var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                        command.CommandText = @"SELECT ID FROM YPLCalibrationsTable WHERE TimeStamp < '" + (old - DateTime.MinValue).TotalSeconds.ToString() + "'";
+                        guid = reader.GetGuid(0);
+                        if (Remove(guid))
+                        {
+                            logger_.LogInformation("Some old YPLCalibrations have been cleaned from the YPLCalibrationsTable successfully");
+                            return true;
+                        }
+                        else
+                        {
+                            logger_.LogWarning("Impossible to clean old YPLCalibrations from the YPLCalibrationsTable");
+                        }
+                    }
+                    else
+                    {
+                        logger_.LogInformation("No old YPLCalibrations have been found in the YPLCalibrationsTable");
+                        return true;
+                    }
+                }
+                catch (SQLiteException ex)
+                {
+                    logger_.LogError(ex, "Impossible to clean old YPLCalibrations from the YPLCalibrationsTable");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("Impossible to access the SQLite database");
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// performs calculations on the given YPLCalibration and updates the YPLCalibration of given ID in the database
+        /// </summary>
+        public bool Update(Guid guid, YPLCalibration updatedYplCalibration)
+        {
+            bool success = true;
+            if (guid != null && !guid.Equals(Guid.Empty) && updatedYplCalibration != null && !updatedYplCalibration.ID.Equals(Guid.Empty) &&
+                updatedYplCalibration.RheogramInput != null && updatedYplCalibration.YPLModelKelessidis != null && updatedYplCalibration.YPLModelMullineux != null)
+            {
+                // first apply calculations
+                if (!updatedYplCalibration.CalculateYPLModelMullineux() || !updatedYplCalibration.CalculateYPLModelKelessidis())
+                {
+                    logger_.LogWarning("Impossible to calculate outputs for the given YPLCalibration");
+                    return false;
+                }
+
+                // then update to database
+                if (connection_ != null)
+                {
+                    lock (lock_)
+                    {
+                        using SQLiteTransaction transaction = connection_.BeginTransaction();
+                        // first update the relevant fields in YPLCalibrationsTable (other fields never change)
                         try
                         {
-                            using (var reader = command.ExecuteReader())
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"UPDATE YPLCalibrationsTable SET " +
+                                "Name = '" + updatedYplCalibration.Name + "', " +
+                                "Description = '" + updatedYplCalibration.Description + "', " +
+                                "RheogramInputID = '" + updatedYplCalibration.RheogramInput.ID.ToString() + "', " +
+                                "TimeStamp = '" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "' " +
+                                "WHERE ID = '" + guid.ToString() + "'";
+                            int count = command.ExecuteNonQuery();
+                            if (count != 1)
                             {
-                                if (reader.Read() && !reader.IsDBNull(0))
-                                {
-                                    guid = reader.GetGuid(0);
-                                }
+                                logger_.LogWarning("Impossible to update the YPLCalibration");
+                                success = false;
                             }
                         }
-                        catch (SQLiteException e)
+                        catch (SQLiteException ex)
                         {
+                            logger_.LogError(ex, "Impossible to update the YPLCalibration");
                             success = false;
-                            Console.WriteLine("Impossible to retrieve old records from YPLCalibrationsTable");
                         }
 
+                        // then update Mullineux YPLModelOutput (which may have changed after calculation) in YPLModelOutputsTable 
                         if (success)
                         {
-                            Remove(guid);
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCalibration.YPLModelMullineux);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCalibration.YPLModelMullineux.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCalibration.YPLModelMullineux.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                success = false;
+                            }
+                        }
+
+                        // then update Kelessidis YPLModelOutput (which may have changed after calculation) in YPLModelOutputsTable 
+                        if (success)
+                        {
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCalibration.YPLModelKelessidis);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCalibration.YPLModelKelessidis.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCalibration.YPLModelKelessidis.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                success = false;
+                            }
+                        }
+                        // Finalizing
+                        if (success)
+                        {
                             transaction.Commit();
+                            logger_.LogInformation("Updated the given YPLCalibration successfully");
+                            return true;
                         }
                         else
                         {
@@ -581,120 +742,83 @@ namespace YPLCalibrationFromRheometer.Service
                         }
                     }
                 }
-            }
-            return success;
-        }
-
-        public bool Update(Guid guid, YPLCalibration updatedCalculation)
-        {
-            bool success = true;
-            if (guid != null && !guid.Equals(Guid.Empty) && updatedCalculation != null && !updatedCalculation.ID.Equals(Guid.Empty) &&
-                updatedCalculation.RheogramInput != null && updatedCalculation.YPLModelKelessidis != null && updatedCalculation.YPLModelMullineux != null)
-            {
-                if (SQLConnectionManager.Instance.Connection != null)
+                else
                 {
-                    lock (lock_)
-                    {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
-                        {
-                            // first update the relevant fields in YPLCalibrationsTable (other fields never change)
-                            try
-                            {
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"UPDATE YPLCalibrationsTable SET " +
-                                    "Name = '" + updatedCalculation.Name + "', " +
-                                    "Description = '" + updatedCalculation.Description + "', " +
-                                    "RheogramInputID = '" + updatedCalculation.RheogramInput.ID.ToString() + "', " +
-                                    "TimeStamp = '" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "' " +
-                                    "WHERE ID = '" + guid.ToString() + "'";
-                                int count = command.ExecuteNonQuery();
-                                success = count == 1;
-                            }
-                            catch (SQLiteException e)
-                            {
-                                success = false;
-                                Console.WriteLine("Impossible to update YPLCalibrationsTable");
-                            }
-
-                            // then update Mullineux YPLModelOutput (which may have changed after calculation) in YPLModelOutputsTable 
-                            if (success)
-                            {
-                                try
-                                {
-                                    string json = JsonConvert.SerializeObject(updatedCalculation.YPLModelMullineux);
-                                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                    command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
-                                        "Name = '" + updatedCalculation.YPLModelMullineux.Name + "', " +
-                                        "YPLModel = '" + json + "' " +
-                                        "WHERE ID = '" + updatedCalculation.YPLModelMullineux.ID.ToString() + "'";
-                                    int count = command.ExecuteNonQuery();
-                                    success = count == 1;
-                                }
-                                catch (SQLiteException e)
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-
-                            // then update Kelessidis YPLModelOutput (which may have changed after calculation) in YPLModelOutputsTable 
-                            if (success)
-                            {
-                                try
-                                {
-                                    string json = JsonConvert.SerializeObject(updatedCalculation.YPLModelKelessidis);
-                                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                    command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
-                                        "Name = '" + updatedCalculation.YPLModelKelessidis.Name + "', " +
-                                        "YPLModel = '" + json + "' " +
-                                        "WHERE ID = '" + updatedCalculation.YPLModelKelessidis.ID.ToString() + "'";
-                                    int count = command.ExecuteNonQuery();
-                                    success = count == 1;
-                                }
-                                catch (SQLiteException e)
-                                {
-                                    transaction.Rollback();
-                                }
-                            }
-
-                            if (success)
-                            {
-                                transaction.Commit();
-                            }
-                            else
-                            {
-                                transaction.Rollback();
-                            }
-                        }
-                    }
+                    logger_.LogWarning("Impossible to access the SQLite database");
                 }
             }
-            return success;
+            else
+            {
+                logger_.LogWarning("The YPLCalibration ID or the ID of some of its attributes are null or empty");
+            }
+            return false;
         }
 
         /// <summary>
-        /// update a YPLCalibration of the given parentId with the given Rheogram as RheogramInput, let the remaining parameters the same and perform the calculation
+        /// updates all YPLCalibrations referencing the Rheogram of given ID
         /// </summary>
-        public bool Update(Guid parentId, Rheogram baseData1)
+        public bool UpdateReferences(Guid guid, Rheogram updatedRheogram)
         {
-            bool success = false;
-
-            if (baseData1 != null && !baseData1.ID.Equals(Guid.Empty))
+            if (guid != null && !guid.Equals(Guid.Empty) && updatedRheogram != null)
             {
-                YPLCalibration calculationData = Get(parentId);
-                if (calculationData != null)
+                if (connection_ != null)
                 {
-                    calculationData.RheogramInput = baseData1;
+                    // select all YPLCalibrations referencing the Rheogram identified by the given ID from YPLCalibrationsTable 
+                    List<Guid> parentIds = new List<Guid>();
+                    var command2 = connection_.CreateCommand();
+                    command2.CommandText = @"SELECT YPLCalibrationsTable.ID " +
+                        "FROM YPLCalibrationsTable, RheogramInputsTable " +
+                        "WHERE YPLCalibrationsTable.RheogramInputID = RheogramInputsTable.ID " +
+                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
+                    try
+                    {
+                        using SQLiteDataReader reader = command2.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Guid parentId = reader.GetGuid(0);
+                            if (parentId != null && !parentId.Equals(Guid.Empty))
+                                parentIds.Add(parentId);
+                        }
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to access to the YPLCalibration referencing the Rheogram of given ID from YPLCalibrationsTable");
+                        return false;
+                    }
 
-                    calculationData.CalculateYPLModelMullineux();
-
-                    calculationData.CalculateYPLModelKelessidis();
-
-                    if (Update(parentId, calculationData))
-                        success = true;
+                    // then update all of them
+                    foreach (Guid parentId in parentIds)
+                    {
+                        YPLCalibration yplCalibration = Get(parentId);
+                        if (yplCalibration != null)
+                        {
+                            yplCalibration.RheogramInput = updatedRheogram;
+                            if (!Update(parentId, yplCalibration))
+                            {
+                                logger_.LogWarning("Impossible to delete one of the YPLCalibrations referencing the Rheogram of given ID");
+                                return false;
+                            }
+                        }
+                        else
+                        {
+                            logger_.LogWarning("Impossible to get one of the YPLCalibrations referencing the Rheogram of given ID");
+                            return false;
+                        }
+                    }
+                    // Finalizing
+                    logger_.LogWarning("Updated YPLCalibrations referencing the Rheogram of given ID successfully");
+                    return true;
+                }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
                 }
             }
-
-            return success;
+            else
+            {
+                logger_.LogWarning("Impossible to update the YPLCalibrations referencing the Rheogram which is null or badly identified");
+            }
+            return false;
         }
     }
 }

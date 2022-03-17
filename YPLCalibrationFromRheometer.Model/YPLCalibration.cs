@@ -97,8 +97,10 @@ namespace YPLCalibrationFromRheometer.Model
         /// <returns></returns>
         public object Clone()
         {
-            YPLCalibration copy = new YPLCalibration(this);
-            copy.ID = ID;
+            YPLCalibration copy = new YPLCalibration(this)
+            {
+                ID = ID
+            };
             return copy;
         }
 
