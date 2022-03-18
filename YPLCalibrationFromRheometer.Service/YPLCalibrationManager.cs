@@ -43,6 +43,10 @@ namespace YPLCalibrationFromRheometer.Service
                         logger_.LogError(ex, "Impossible to count records in the YPLCalibrationsTable");
                     }
                 }
+                else
+                {
+                    logger_.LogWarning("Impossible to access the SQLite database");
+                }
                 return count;
             }
         }
@@ -80,6 +84,7 @@ namespace YPLCalibrationFromRheometer.Service
             }
             else
             {
+                logger_.LogWarning("Impossible to access the SQLite database");
                 return false;
             }
         }
@@ -128,6 +133,10 @@ namespace YPLCalibrationFromRheometer.Service
                     logger_.LogError(ex, "Impossible to get IDs from YPLCalibrationsTable");
                 }
             }
+            else
+            {
+                logger_.LogWarning("Impossible to access the SQLite database");
+            }
             return ids;
         }
 
@@ -173,7 +182,7 @@ namespace YPLCalibrationFromRheometer.Service
                         return null;
                     }
 
-                    // then retrieve its RheogramInput with the RheogramsManager
+                    // then retrieve its RheogramInput with the RheogramManager
                     Rheogram rheogram = rheogramManager_.Get(inputID);
                     if (rheogram != null)
                     {
@@ -241,20 +250,18 @@ namespace YPLCalibrationFromRheometer.Service
                     else
                     {
                         logger_.LogWarning("No RheogramInput associated to the YPLCalibration of given ID");
-                        return null;
                     }
                 }
                 else
                 {
                     logger_.LogWarning("Impossible to access the SQLite database");
-                    return null;
                 }
             }
             else
             {
                 logger_.LogWarning("The given YPLCalibration ID is null or empty");
-                return null;
             }
+            return null;
         }
 
         /// <summary>
@@ -376,14 +383,13 @@ namespace YPLCalibrationFromRheometer.Service
                 else
                 {
                     logger_.LogWarning("Impossible to access the SQLite database");
-                    return false;
                 }
             }
             else
             {
                 logger_.LogWarning("The YPLCalibration ID or the ID of some of its attributes are null or empty");
-                return false;
             }
+            return false;
         }
 
         /// <summary>
@@ -596,7 +602,6 @@ namespace YPLCalibrationFromRheometer.Service
         /// </summary>
         public bool Remove(DateTime old)
         {
-            Guid guid;
             if (connection_ != null)
             {
                 var command = connection_.CreateCommand();
@@ -604,23 +609,18 @@ namespace YPLCalibrationFromRheometer.Service
                 try
                 {
                     using SQLiteDataReader reader = command.ExecuteReader();
-                    if (reader.Read() && !reader.IsDBNull(0))
+                    while (reader.Read())
                     {
-                        guid = reader.GetGuid(0);
+                        Guid guid = reader.GetGuid(0);
                         if (Remove(guid))
                         {
-                            logger_.LogInformation("Some old YPLCalibrations have been cleaned from the YPLCalibrationsTable successfully");
+                            logger_.LogInformation("An old YPLCalibration has been cleaned from the YPLCalibrationsTable successfully");
                             return true;
                         }
                         else
                         {
-                            logger_.LogWarning("Impossible to clean old YPLCalibrations from the YPLCalibrationsTable");
+                            logger_.LogWarning("Impossible to clean an old YPLCalibration from the YPLCalibrationsTable");
                         }
-                    }
-                    else
-                    {
-                        logger_.LogInformation("No old YPLCalibrations have been found in the YPLCalibrationsTable");
-                        return true;
                     }
                 }
                 catch (SQLiteException ex)

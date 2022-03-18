@@ -1,7 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
-
-namespace YPLCalibrationFromRheometer.WebApp.Client
+﻿namespace YPLCalibrationFromRheometer.WebApp.Client
 {
     public class Configuration
     {

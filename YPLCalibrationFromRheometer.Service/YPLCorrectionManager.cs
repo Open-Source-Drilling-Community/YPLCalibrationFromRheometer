@@ -526,23 +526,18 @@ namespace YPLCalibrationFromRheometer.Service
                 try
                 {
                     using SQLiteDataReader reader = command.ExecuteReader();
-                    if (reader.Read() && !reader.IsDBNull(0))
+                    while (reader.Read())
                     {
                         guid = reader.GetGuid(0);
                         if (Remove(guid))
                         {
-                            logger_.LogInformation("Some old YPLCorrections have been cleaned from the YPLCorrectionsTable successfully");
+                            logger_.LogInformation("An old YPLCorrection has been cleaned from the YPLCorrectionsTable successfully");
                             return true;
                         }
                         else
                         {
-                            logger_.LogWarning("Impossible to clean old YPLCorrections from the YPLCorrectionsTable");
+                            logger_.LogWarning("Impossible to clean an old YPLCorrection from the YPLCorrectionsTable");
                         }
-                    }
-                    else
-                    {
-                        logger_.LogInformation("No old YPLCorrections have been found in the YPLCorrectionsTable");
-                        return true;
                     }
                 }
                 catch (SQLiteException ex)

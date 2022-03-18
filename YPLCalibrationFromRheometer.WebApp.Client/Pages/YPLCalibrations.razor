@@ -607,17 +607,18 @@ else
 
     private async void DeleteRheometerMeasurement(int rowIdx)
     {
-        rowIndex = rowIdx;
-        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null)
+        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
+            !yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.Equals(Guid.Empty))
         {
             int iterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count;
             if (iterData1Count > 0)
             {
+                rowIndex = rowIdx;
                 // remove the RheometerMeasurement to be deleted
                 RheometerMeasurement rheometerMeasurement = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx);
                 if (rheometerMeasurement != null)
                 {
-                    if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Remove(rheometerMeasurement) && !yplCalibrationID.Equals(Guid.Empty))
+                    if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Remove(rheometerMeasurement))
                     {
                         // finally update the Rheogram (all dependent YPLCorrections will be updated by the RheogramsController)
                         StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
@@ -634,7 +635,7 @@ else
                     }
                     else
                     {
-                        logger.LogWarning("Impossible to remove the current RheometerMeasurement or the current YPLCorrection ID is empty");
+                        logger.LogWarning("Impossible to remove the current RheometerMeasurement");
                     }
                 }
                 else
@@ -642,41 +643,60 @@ else
                     logger.LogWarning("Impossible to retrieve the selected RheometerMeasurement");
                 }
             }
+            else
+            {
+                logger.LogWarning("No RheometerMeasurement to retrieve");
+            }
+        }
+        else
+        {
+            logger.LogWarning("The current YPLCalibration is null or some of its attributes are null or badly identified");
         }
     }
 
     private async void UpdateRheometerMeasurement(int rowIdx)
     {
-        rowIndex = rowIdx;
-        int iterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count;
-
-        if (yplCalibrationList[yplCalibrationIdx] != null && !yplCalibrationID.Equals(Guid.Empty) && iterData1Count > 0)
+        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
+            !yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.Equals(Guid.Empty))
         {
-            // collect values from UI
-            if (updatedShearRate.HasValue)
+            int iterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count;
+            if (iterData1Count > 0)
             {
-                yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearRate = (double)updatedShearRate;
-                yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearStress = (double)updatedShearStress;
-            }
+                rowIndex = rowIdx;
+                // collect values from UI
+                if (updatedShearRate.HasValue)
+                {
+                    yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearRate = (double)updatedShearRate;
+                    yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearStress = (double)updatedShearStress;
+                }
 
-            // then refresh the UI
-            updatedShearRate = null;
-            updatedShearStress = null;
-            IsHidInputAdd = false;
-            rowIndex = -1;
+                // then refresh the UI
+                updatedShearRate = null;
+                updatedShearStress = null;
+                IsHidInputAdd = false;
+                rowIndex = -1;
 
-            // finally update the Rheogram (all dependent YPLCorrections will be updated by the RheogramsController)
-            StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Rheograms/" + yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.ToString(), content);
-            if (a.IsSuccessStatusCode)
-            {
-                await OnInitializedAsync();
-                await InvokeAsync(() => { StateHasChanged(); });
+                // finally update the Rheogram (all dependent YPLCorrections will be updated by the RheogramsController)
+                StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
+                var a = await httpClient.PutAsync("Rheograms/" + yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.ToString(), content);
+                if (a.IsSuccessStatusCode)
+                {
+                    await OnInitializedAsync();
+                    await InvokeAsync(() => { StateHasChanged(); });
+                }
+                else
+                {
+                    logger.LogWarning("Impossible to update the current YPLCalibration");
+                }
             }
             else
             {
-                logger.LogWarning("Impossible to update the current YPLCalibration");
+                logger.LogWarning("No RheometerMeasurement to retrieve");
             }
+        }
+        else
+        {
+            logger.LogWarning("The current YPLCalibration is null or some of its attributes are null or badly identified");
         }
     }
 
@@ -692,24 +712,25 @@ else
 
     private async void AddRheometerMeasurement()
     {
-        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null && !yplCalibrationID.Equals(Guid.Empty))
+        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
+            !yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.Equals(Guid.Empty))
         {
-            RheometerMeasurement addedIterData1 = new RheometerMeasurement(); // attribute must be set separately because non-empty constructors cannot be passed through the ModelClientShared json conversion mechanism
+            RheometerMeasurement addedTplIterData1 = new RheometerMeasurement(); // attribute must be set separately because non-empty constructors cannot be passed through the ModelClientShared json conversion mechanism
             if (addedShearRate.HasValue)
             {
-                addedIterData1.ShearRate = (double)addedShearRate; // else unchanged
-                addedIterData1.ShearStress = (double)addedShearStress; // else unchanged
+                addedTplIterData1.ShearRate = (double)addedShearRate; // else unchanged
+                addedTplIterData1.ShearStress = (double)addedShearStress; // else unchanged
             }
 
-            yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Add(addedIterData1);
+            yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Add(addedTplIterData1);
 
             // update the UI
             addedShearRate = null;
             addedShearStress = null;
 
-            // then update the YPLCalibration with an updated RheogramInput value (! uses a specific PutAsync() overload)
+            // finally update the RheogramInput (all dependent YPLCalibrations will be updated by the RheogramsController)
             StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Values/" + yplCalibrationID.ToString(), content);
+            var a = await httpClient.PutAsync("Rheograms/" + yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.ToString(), content);
             if (a.IsSuccessStatusCode)
             {
                 await OnInitializedAsync();
@@ -719,6 +740,10 @@ else
             {
                 logger.LogWarning("Impossible to update the current YPLCalibration");
             }
+        }
+        else
+        {
+            logger.LogWarning("The current YPLCalibration is null or some of its attributes are null or badly identified");
         }
     }
 
@@ -738,6 +763,4 @@ else
     {
         IsHidCalcPanel = !IsHidCalcPanel;
     }
-    }
-
-
+}

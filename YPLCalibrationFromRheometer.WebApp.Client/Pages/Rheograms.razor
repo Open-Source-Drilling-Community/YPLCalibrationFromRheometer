@@ -2,7 +2,13 @@
 @using System.Text
 @using YPLCalibrationFromRheometer.ModelClientShared
 @using Newtonsoft.Json
+@using Plotly.Blazor
+@using Plotly.Blazor.LayoutLib
+@using Plotly.Blazor.Traces.ScatterLib
 @using System.Diagnostics
+@using Blazor_Layout = Plotly.Blazor.Layout
+@using Title = Plotly.Blazor.LayoutLib.Title
+@using YAxis = Plotly.Blazor.LayoutLib.YAxis
 @using Microsoft.Extensions.Logging
 @inject ILogger<Rheograms> logger
 
@@ -195,6 +201,9 @@ else
                     </tfoot>
                 </table>
             </div>
+            <div>
+                <PlotlyChart style="height: 60vh; min-height: 350px" @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+            </div>
         </div>
     }
 }
@@ -230,6 +239,29 @@ else
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
     private int rowIndex = -1; // the index of the row selected in the Input panel
+
+
+    // scatter plot with plotly (https://plotly-blazor.azurewebsites.net/)
+
+    private PlotlyChart chart;
+    private Config config = new()
+        {
+            Responsive = true
+        };
+
+    private IList<ITrace> data = new List<ITrace>();
+
+    private Layout layout = new()
+        {
+            Title = new Title { Text = "Flow curve" },
+            YAxis = new List<YAxis>
+        {
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Shear stress (Pa)" }
+            }
+        }
+        };
 
     protected override async Task OnInitializedAsync()
     {
@@ -325,6 +357,7 @@ else
             IsHidSubPanel = false;
 
             await OnInitializedAsync();
+            await PlotFlowCurve();
             await InvokeAsync(() => { StateHasChanged(); });
         }
     }
@@ -356,7 +389,7 @@ else
             rheogramList[idx].Description = updatedRheogramDescr;
             rheogramList[idx].ShearStressStandardDeviation = (double)updatedRheogramStdStress;
 
-            // PUT Rheogram into the RheogramInputsTable (update of all YPLCalibrations which reference this Rheogram is performed)
+            //PUT Rheogram into the RheogramInputsTable (YPLCalibrations referencing this Rheogram are updated at the Manager level)
             StringContent content = new StringContent(rheogramList[idx].GetJson(), Encoding.UTF8, "application/json");
             var a = await httpClient.PutAsync("Rheograms/" + rheogramList[idx].ID, content);
             if (a.IsSuccessStatusCode)
@@ -373,7 +406,7 @@ else
             }
             else
             {
-                logger.LogWarning("Impossible to update the current Rheograms");
+                logger.LogWarning("Impossible to update the current Rheogram");
             }
         }
     }
@@ -446,7 +479,7 @@ else
                 if (iterData1 != null)
                 {
                     // then update the database
-                    if (rheogramList[rheogramIdx].RheometerMeasurementList.Remove(iterData1) && !rheogramID.Equals(Guid.Empty))
+                    if (!rheogramID.Equals(Guid.Empty) && rheogramList[rheogramIdx].RheometerMeasurementList.Remove(iterData1))
                     {
                         StringContent content = new StringContent(rheogramList[rheogramIdx].GetJson(), Encoding.UTF8, "application/json");
                         var a = await httpClient.PutAsync("Rheograms/" + rheogramID.ToString(), content);
@@ -462,7 +495,7 @@ else
                     }
                     else
                     {
-                        logger.LogWarning("Impossible to remove the current RheometerMeasurement or the current Rheogram ID is empty");
+                        logger.LogWarning("Impossible to remove the selected RheometerMeasurement or the current Rheogram ID is empty");
                     }
                 }
                 else
@@ -545,7 +578,7 @@ else
             }
             else
             {
-                logger.LogWarning("Impossible to update the current Rheogram");
+                logger.LogWarning("Impossible to add the current Rheogram");
             }
         }
     }
@@ -566,4 +599,27 @@ else
     {
         IsHidCalcPanel = !IsHidCalcPanel;
     }
+
+    private async Task PlotFlowCurve()
+    {
+        if (rheogramIdx >= 0)
+        {
+            List<object> shearRates = new();
+            List<object> shearStresses = new();
+            for (int i = 0; i < rheogramList[rheogramIdx].RheometerMeasurementList.Count; ++i)
+            {
+                shearRates.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearRate);
+                shearStresses.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearStress);
+            }
+            if (shearRates.Any())
+            {
+                await chart.AddTrace(new Scatter
+                    {
+                        Mode = ModeFlag.Markers,
+                        X = shearRates,
+                        Y = shearStresses
+                    });
+            }
+        }
     }
+}

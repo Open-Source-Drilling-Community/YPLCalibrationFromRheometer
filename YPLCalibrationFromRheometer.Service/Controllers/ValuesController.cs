@@ -56,7 +56,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
                         logger_.LogError(ex, "Impossible to post the given YPLCalibration");
                     }
                 }
-                // else do nothing because the Post method is not supposed to work on existing on existing YPLCorrections
+                // else do nothing because the Post method is not supposed to work on existing on existing YPLCalibrations
             }
         }
 

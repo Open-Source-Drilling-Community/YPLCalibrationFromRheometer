@@ -64,10 +64,6 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
                     yplCalibrationManager_.UpdateReferences(id, value);
                     yplCorrectionManager_.UpdateReferences(id, value);
                 }
-                else
-                {
-                    rheogramManager_.Add(value);
-                }
             }
         }
 
