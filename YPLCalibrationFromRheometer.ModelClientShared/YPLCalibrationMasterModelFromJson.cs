@@ -128,8 +128,14 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
         [Newtonsoft.Json.JsonProperty("RheogramInput", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Rheogram RheogramInput { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("RheogramFullyCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Rheogram RheogramFullyCorrected { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("RheogramShearRateCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Rheogram RheogramShearRateCorrected { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("RheogramShearStressCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public Rheogram RheogramShearStressCorrected { get; set; }
     
     
     }

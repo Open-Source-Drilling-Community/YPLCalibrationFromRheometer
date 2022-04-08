@@ -32,6 +32,7 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
             PlotFigure7();
             PlotFigure8();
             PlotFigure9();
+            PlotFigure10();
             PlotIntegral8();
             PlotIntegral9();
         }
@@ -493,6 +494,104 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
             for (int i = 0; i < nbOfPoints; i++)
             {
                 sr[i] = minShearRate + i * (maxShearRate - minShearRate) / (nbOfPoints - 1);
+                ss[i] = model.Eval(sr[i]);
+            }
+        }
+
+        private void PlotFigure10()
+        {
+            System.Diagnostics.Debug.WriteLine("\nFigure 10: WBM");
+            // R1B1
+            double r1 = .017245;
+            double r2 = 0.018415;
+            // RPM
+            double Omega = 100 * RPM_TO_RADIAN_PER_SEC;
+            // YPLModel
+            Model.YPLModel yplModel = new YPLModel
+            {
+                Tau0 = 10.0,
+                K = 2.0,
+                N = 0.5
+            };
+            // PLModel
+            Model.YPLModel plModel = new YPLModel
+            {
+                Tau0 = .0,
+                K = 2.0,
+                N = 0.5
+            };
+            // NewtonianModel
+            Model.YPLModel nModel = new YPLModel
+            {
+                Tau0 = .0,
+                K = 2.0,
+                N = 1.0
+            };
+            PlotFigure10(r1, r2, Omega, yplModel, plModel, nModel);
+        }
+
+        private void PlotFigure10(double r1, double r2, double Omega, YPLModel yplModel, YPLModel plModel, YPLModel nModel)
+        {
+            int nbOfPoints = 500;
+            var myModel = new PlotModel() { Title = $"Rheological variables for different rheomodels (WBM)" };
+            double[] omegYPL;
+            double[] srYPL;
+            double[] ssYPL;
+            double[] omegPL;
+            double[] srPL;
+            double[] ssPL;
+            double[] omegN;
+            double[] srN;
+            double[] ssN;
+            OxyColor[] colors = { OxyColors.DarkBlue, OxyColors.Green, OxyColors.Maroon };
+            GenerateFigure10(r1, r2, Omega, yplModel, out omegYPL, out srYPL, out ssYPL, nbOfPoints);
+            GenerateFigure10(r1, r2, Omega, plModel, out omegPL, out srPL, out ssPL, nbOfPoints);
+            GenerateFigure10(r1, r2, Omega, nModel, out omegN, out srN, out ssN, nbOfPoints);
+            var scYPL = new LineSeries() {Title = $"tau_{YPLModel.ModelType.YPL}", Color = colors[0]};
+            var scPL = new LineSeries() { Title = $"tau_{YPLModel.ModelType.PL}", Color = colors[1] };
+            var scN = new LineSeries() { Title = $"tau_{YPLModel.ModelType.N}", Color = colors[2] };
+            for (int i = 0; i < nbOfPoints; i++)
+            {
+                scYPL.Points.Add(new DataPoint(r1 + (double)i / (srYPL.Length - 1) * (r2 - r1), srYPL[i]));
+                scPL.Points.Add(new DataPoint(r1 + (double)i / (srPL.Length - 1) * (r2 - r1), srPL[i]));
+                scN.Points.Add(new DataPoint(r1 + (double)i / (srN.Length - 1) * (r2 - r1), srN[i]));
+            }
+            myModel.Series.Add(scYPL);
+            myModel.Series.Add(scPL);
+            myModel.Series.Add(scN);
+
+            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis() {
+                Position = OxyPlot.Axes.AxisPosition.Left,
+                Title = "Shear rate (1/s)"
+            });
+            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis() {
+                Position = OxyPlot.Axes.AxisPosition.Bottom,
+                Minimum = 0,
+                Title = "Radius (m)"
+            });
+
+            myModel.Legends.Add(new OxyPlot.Legends.Legend()
+            {
+                LegendPosition = OxyPlot.Legends.LegendPosition.LeftTop
+            });
+
+            plotViewAdd1.Model = myModel;
+
+        }
+
+        private static void GenerateFigure10(double r1, double r2, double Omega, YPLModel model,
+            out double[] omega, out double[] sr, out double[] ss, int nbOfPoints = 500)
+        {
+            double[] r = new double[nbOfPoints];
+            for (int i = 0; i < nbOfPoints; i++)
+                r[i] = r1 + (double)i / (nbOfPoints - 1) * (r2 - r1);
+            omega = new double[nbOfPoints];
+            ss = new double[nbOfPoints];
+            bool isFullySheared;
+            YPLCorrection.GetShearRate(r, r1, r2, model.K, model.N, model.Tau0, Omega, out isFullySheared, out sr);
+
+            for (int i = 0; i < nbOfPoints; i++)
+            {
                 ss[i] = model.Eval(sr[i]);
             }
         }

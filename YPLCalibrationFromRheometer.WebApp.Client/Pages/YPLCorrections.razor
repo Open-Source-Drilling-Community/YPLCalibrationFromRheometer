@@ -131,7 +131,9 @@ else
     @if (yplCorrectionIdx >= 0)
     {
         ICollection<RheometerMeasurement> inputList = yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList;
-        ICollection<RheometerMeasurement> outputList = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList;
+        ICollection<RheometerMeasurement> fullyCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList;
+        ICollection<RheometerMeasurement> shearRateCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList;
+        ICollection<RheometerMeasurement> shearStressCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList;
         <div hidden="@IsHidSubPanel">
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Input Rheogram</h2></button>
@@ -142,7 +144,7 @@ else
                             <tr>
                                 <td>
                                     <select @bind="@rheogramID">
-                                        @foreach (Rheogram baseData1 in rheogramList)
+                                        @foreach (Rheogram baseData1 in inputRheogramList)
                                         {
                                             <option value="@baseData1.ID">@baseData1.Name</option>
                                         }
@@ -231,6 +233,45 @@ else
                 </div>
             </div>
             <div>
+                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Fully corrected Rheogram</h2></button>
+                <table class="table" hidden="@IsHidCalcPanel">
+                    <thead>
+                        <tr>
+                            <td>ShearRate (1/s)</td>
+                            <td>ShearStress (Pa)</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (fullyCorrectedList.Count > 0)
+                        {
+                            @for (int j = 0; j < fullyCorrectedList.Count; j++)
+                            {
+                                var rheometerMeasurement = fullyCorrectedList.ElementAt(j);
+                                @if (rheometerMeasurement != null)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="label">@(rheometerMeasurement.ShearRate)</span>
+                                        </td>
+                                        <td>
+                                            <span class="label">@(rheometerMeasurement.ShearStress)</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <tr>Something went wrong with the input or the calculation</tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+            <div>
                 <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearRate corrected Rheogram</h2></button>
                 <table class="table" hidden="@IsHidCalcPanel">
                     <thead>
@@ -241,11 +282,50 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @if (outputList.Count > 0)
+                        @if (shearRateCorrectedList.Count > 0)
                         {
-                            @for (int j = 0; j < outputList.Count; j++)
+                            @for (int j = 0; j < shearRateCorrectedList.Count; j++)
                             {
-                                var rheometerMeasurement = outputList.ElementAt(j);
+                                var rheometerMeasurement = shearRateCorrectedList.ElementAt(j);
+                                @if (rheometerMeasurement != null)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="label">@(rheometerMeasurement.ShearRate)</span>
+                                        </td>
+                                        <td>
+                                            <span class="label">@(rheometerMeasurement.ShearStress)</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <tr>Something went wrong with the input or the calculation</tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
+            <div>
+                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearStress corrected Rheogram</h2></button>
+                <table class="table" hidden="@IsHidCalcPanel">
+                    <thead>
+                        <tr>
+                            <td>ShearRate (1/s)</td>
+                            <td>ShearStress (Pa)</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (shearStressCorrectedList.Count > 0)
+                        {
+                            @for (int j = 0; j < shearStressCorrectedList.Count; j++)
+                            {
+                                var rheometerMeasurement = shearStressCorrectedList.ElementAt(j);
                                 @if (rheometerMeasurement != null)
                                 {
                                     <tr>
@@ -290,7 +370,7 @@ else
 
     // model data objects
     private List<YPLCorrection> yplCorrectionList;
-    private List<Rheogram> rheogramList;
+    private List<Rheogram> inputRheogramList;
 
     // UI binding variables
     private string addedYplCorrectionName = null;
@@ -321,7 +401,7 @@ else
             SetHttpClient(host);
             yplCorrectionList = await LoadYPLCorrections();
             if (yplCorrectionList != null)
-                rheogramList = await LoadRheograms();
+                inputRheogramList = await LoadRheograms();
         }
         catch (Exception ex)
         {
@@ -407,7 +487,7 @@ else
                 {
                     ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
                 }
-                rheogramList = new List<Rheogram>();
+                inputRheogramList = new List<Rheogram>();
                 Rheogram baseData1 = null;
                 for (int i = 0; i < ids.Length; i++)
                 {
@@ -420,11 +500,11 @@ else
                             baseData1 = JsonConvert.DeserializeObject<Rheogram>(str);
                             if (baseData1 == null)
                                 throw new NullReferenceException("Impossible to deserialize baseData1 string:" + str);
-                            rheogramList.Add(baseData1);
+                            inputRheogramList.Add(baseData1);
                         }
                     }
                 }
-                if (rheogramList.Count != ids.Length)
+                if (inputRheogramList.Count != ids.Length)
                     throw new Exception("Inconsistent count of Rheogram-loaded IDs and loaded Rheograms.");
                 success = true;
             }
@@ -439,9 +519,9 @@ else
         }
         if (success)
         {
-            rheogramList.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
+            inputRheogramList.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
             logger.LogInformation("Loaded Rheograms successfully");
-            return rheogramList;
+            return inputRheogramList;
         }
         else
         {
@@ -530,7 +610,7 @@ else
 
     private async void Add()
     {
-        if (!string.IsNullOrEmpty(addedYplCorrectionName) && rheogramList != null && rheogramList.Count > 0)
+        if (!string.IsNullOrEmpty(addedYplCorrectionName) && inputRheogramList != null && inputRheogramList.Count > 0)
         {
             YPLCorrection addedYplCorrection = new YPLCorrection();
             addedYplCorrection.ID = Guid.NewGuid();
@@ -538,10 +618,16 @@ else
             addedYplCorrection.R1 = addedYplCorrectionR1;
             addedYplCorrection.R2 = addedYplCorrectionR2;
             addedYplCorrection.Description = addedYplCorrectionDescr;
-            addedYplCorrection.RheogramInput = rheogramList[0]; // by default, the first available Rheogram is used as input
+            addedYplCorrection.RheogramInput = inputRheogramList[0]; // by default, the first available Rheogram is used as input
+            addedYplCorrection.RheogramFullyCorrected = new Rheogram();
+            addedYplCorrection.RheogramFullyCorrected.ID = Guid.NewGuid();
+            addedYplCorrection.RheogramFullyCorrected.Name = addedYplCorrection.Name + "-calculated-fullyCorrected";
             addedYplCorrection.RheogramShearRateCorrected = new Rheogram();
             addedYplCorrection.RheogramShearRateCorrected.ID = Guid.NewGuid();
             addedYplCorrection.RheogramShearRateCorrected.Name = addedYplCorrection.Name + "-calculated-shearRateCorrected";
+            addedYplCorrection.RheogramShearStressCorrected = new Rheogram();
+            addedYplCorrection.RheogramShearStressCorrected.ID = Guid.NewGuid();
+            addedYplCorrection.RheogramShearStressCorrected.Name = addedYplCorrection.Name + "-calculated-shearStressCorrected";
 
             // POST the YPLCorrection (note that it adds RheogramInput to the input database, triggers the CalculateOutputRheogram() method and adds the corresponding output to the output database)
             StringContent content = new StringContent(addedYplCorrection.GetJson(), Encoding.UTF8, "application/json");

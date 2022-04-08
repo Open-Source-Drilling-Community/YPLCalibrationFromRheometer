@@ -43,20 +43,19 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         {
             if (value != null && value.RheogramInput != null && !value.RheogramInput.ID.Equals(Guid.Empty))
             {
-                // POST the YPLCalibration into YPLCalibrationsTable (no need to PUT its RheogramInput since by construction, the webapp creates YPLCalibration's from already existing Rheogram's)
                 YPLCalibration yplCalibration = yplCalibrationManager_.Get(value.ID);
                 if (yplCalibration == null)
                 {
-                    try
-                    {
-                        yplCalibrationManager_.Add(value);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger_.LogError(ex, "Impossible to post the given YPLCalibration");
-                    }
+                    yplCalibrationManager_.Add(value);
                 }
-                // else do nothing because the Post method is not supposed to work on existing on existing YPLCalibrations
+                else
+                {
+                    logger_.LogWarning("The given YPLCalibration already exists and will not be updated");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The given YPLCalibration is null or its ID is null or empty");
             }
         }
 
@@ -64,21 +63,21 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPut("{id}")]
         public void Put(Guid id, [FromBody] YPLCalibration value)
         {
-            if (value != null)
+            if (value != null && value.ID != null && !value.ID.Equals(Guid.Empty))
             {
-                try
+                YPLCalibration yplCalibration = yplCalibrationManager_.Get(id);
+                if (yplCalibration != null)
                 {
-                    YPLCalibration yplCalibration = yplCalibrationManager_.Get(id);
-                    if (yplCalibration != null)
-                    {
-                        yplCalibrationManager_.Update(id, value);
-                    }
-                    // else do nothing because the Put method should only be called on existing YPLCalibrations
+                    yplCalibrationManager_.Update(id, value);
                 }
-                catch (Exception ex)
+                else
                 {
-                    logger_.LogError(ex, "Impossible to put the given YPLCalibration");
+                    logger_.LogWarning("The given YPLCalibration cannot be retrieved from the database");
                 }
+            }
+            else
+            {
+                logger_.LogWarning("The given YPLCalibration is null or its ID is null or empty");
             }
         }
 
@@ -86,7 +85,14 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpDelete("{id}")]
         public void Delete(Guid id)
         {
-            yplCalibrationManager_.Remove(id);
+            if (id != null && !id.Equals(Guid.Empty))
+            {
+                yplCalibrationManager_.Remove(id);
+            }
+            else
+            {
+                logger_.LogWarning("The given YPLCalibration ID is null or empty");
+            }
         }
     }
 }

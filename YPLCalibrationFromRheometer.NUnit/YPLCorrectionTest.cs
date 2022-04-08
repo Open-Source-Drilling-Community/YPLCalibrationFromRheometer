@@ -50,7 +50,7 @@ namespace Tests
             for (int i = 0; i < newtonianShearRates.Length; ++i)
                 yplCorrection.RheogramInput.RheometerMeasurementList.Add(new RheometerMeasurement(newtonianShearRates[i], shearStresses[i]));
 
-            yplCorrection.CalculateRheogramShearRateCorrected();
+            yplCorrection.CalculateShearRateCorrected();
 
             for (int i = 0; i < newtonianShearRates.Length; ++i)
             {
@@ -89,7 +89,7 @@ namespace Tests
             for (int i = 0; i < newtonianShearRates.Length; ++i)
                 calculationData.RheogramInput.RheometerMeasurementList.Add(new RheometerMeasurement(newtonianShearRates[i], shearStresses[i]));
 
-            calculationData.CalculateRheogramShearRateCorrected();
+            calculationData.CalculateShearRateCorrected();
 
             for (int i = 0; i < newtonianShearRates.Length; ++i)
             {
@@ -128,7 +128,7 @@ namespace Tests
             for (int i = 0; i < newtonianShearRates.Length; ++i)
                 calculationData.RheogramInput.RheometerMeasurementList.Add(new RheometerMeasurement(newtonianShearRates[i], shearStresses[i]));
 
-            calculationData.CalculateRheogramShearRateCorrected();
+            calculationData.CalculateShearRateCorrected();
 
             for (int i = 0; i < newtonianShearRates.Length; ++i)
             {

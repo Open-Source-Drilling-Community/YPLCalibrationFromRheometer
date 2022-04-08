@@ -27,6 +27,14 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     if (dest.RheogramInput.ID.Equals(Guid.Empty))
                         dest.RheogramInput.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
+                if (RheogramFullyCorrected != null)
+                {
+                    if (dest.RheogramFullyCorrected == null)
+                        dest.RheogramFullyCorrected = new Rheogram();
+                    RheogramFullyCorrected.Copy(dest.RheogramFullyCorrected);
+                    if (dest.RheogramFullyCorrected.ID.Equals(Guid.Empty))
+                        dest.RheogramFullyCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                }
                 if (RheogramShearRateCorrected != null)
                 {
                     if (dest.RheogramShearRateCorrected == null)
@@ -34,6 +42,14 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     RheogramShearRateCorrected.Copy(dest.RheogramShearRateCorrected);
                     if (dest.RheogramShearRateCorrected.ID.Equals(Guid.Empty))
                         dest.RheogramShearRateCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                }
+                if (RheogramShearStressCorrected != null)
+                {
+                    if (dest.RheogramShearStressCorrected == null)
+                        dest.RheogramShearStressCorrected = new Rheogram();
+                    RheogramShearStressCorrected.Copy(dest.RheogramShearStressCorrected);
+                    if (dest.RheogramShearStressCorrected.ID.Equals(Guid.Empty))
+                        dest.RheogramShearStressCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
                 return true;
             }

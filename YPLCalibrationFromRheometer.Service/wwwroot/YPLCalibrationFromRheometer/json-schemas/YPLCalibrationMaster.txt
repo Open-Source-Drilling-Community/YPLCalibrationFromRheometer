@@ -226,7 +226,27 @@
             }
           ]
         },
+        "RheogramFullyCorrected": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        },
         "RheogramShearRateCorrected": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        },
+        "RheogramShearStressCorrected": {
           "oneOf": [
             {
               "type": "null"

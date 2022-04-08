@@ -121,7 +121,9 @@ namespace YPLCalibrationFromRheometer.Service
                     "R1 double precision, " +
                     "R2 double precision, " +
                     "RheogramInputID text, " +
+                    "RheogramFullyCorrectedID text," +
                     "RheogramShearRateCorrectedID text," +
+                    "RheogramShearStressCorrectedID text," +
                     "TimeStamp" +
                    ")";
                 try

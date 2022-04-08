@@ -11,12 +11,14 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
     [ApiController]
     public class RheogramsController : ControllerBase
     {
+        private readonly ILogger logger_;
         private readonly RheogramManager rheogramManager_;
         private readonly YPLCalibrationManager yplCalibrationManager_;
         private readonly YPLCorrectionManager yplCorrectionManager_;
 
         public RheogramsController(ILoggerFactory loggerFactory)
         {
+            logger_ = loggerFactory.CreateLogger<RheogramsController>();
             rheogramManager_ = new RheogramManager(loggerFactory);
             yplCalibrationManager_ = new YPLCalibrationManager(loggerFactory, rheogramManager_);
             yplCorrectionManager_ = new YPLCorrectionManager(loggerFactory, rheogramManager_);
@@ -41,13 +43,21 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPost]
         public void Post([FromBody] Rheogram value)
         {
-            if (value != null)
+            if (value != null && value.ID != null && !value.ID.Equals(Guid.Empty))
             {
                 Rheogram baseData1 = rheogramManager_.Get(value.ID);
                 if (baseData1 == null)
                 {
                     rheogramManager_.Add(value);
                 }
+                else
+                {
+                    logger_.LogWarning("The given Rheogram already exists and will not be updated");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The given Rheogram is null or its ID is null or empty");
             }
         }
 
@@ -55,7 +65,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPut("{id}")]
         public void Put(Guid id, [FromBody] Rheogram value)
         {
-            if (value != null)
+            if (value != null && value.ID != null && !value.ID.Equals(Guid.Empty))
             {
                 Rheogram baseData1 = rheogramManager_.Get(id);
                 if (baseData1 != null)
@@ -64,6 +74,14 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
                     yplCalibrationManager_.UpdateReferences(id, value);
                     yplCorrectionManager_.UpdateReferences(id, value);
                 }
+                else
+                {
+                    logger_.LogWarning("The given Rheogram cannot be retrieved from the database");
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The given Rheogram is null or its ID is null or empty");
             }
         }
 
@@ -71,9 +89,18 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpDelete("{id}")]
         public void Delete(Guid id)
         {
-            rheogramManager_.Remove(id);
-            yplCalibrationManager_.RemoveReferences(id);
-            yplCorrectionManager_.RemoveReferences(id);
+            if (id != null && !id.Equals(Guid.Empty))
+            {
+                if (rheogramManager_.Remove(id))
+                {
+                    if (yplCalibrationManager_.RemoveReferences(id))
+                        yplCorrectionManager_.RemoveReferences(id);
+                }
+            }
+            else
+            {
+                logger_.LogWarning("The given Rheogram ID is null or empty");
+            }
         }
     }
 }
