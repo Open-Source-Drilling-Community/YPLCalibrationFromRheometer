@@ -1,0 +1,66 @@
+﻿<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+
+@code {
+    [Parameter]
+    public List<object> XValues { get; set; }
+
+    [Parameter]
+    public List<object> YValues { get; set; }
+
+    [Parameter]
+    public string XAxisTitle { get; set; }
+
+    [Parameter]
+    public string YAxisTitle { get; set; }
+
+    private PlotlyChart chart;
+    private Config config = new Config() { Responsive = true };
+    private Layout layout = new()
+    {
+        XAxis = new List<XAxis>
+{
+            new()
+            {
+                Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "" }
+            }
+        },
+        YAxis = new List<YAxis>
+        {
+            new YAxis
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" }
+            },
+            new YAxis
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" },
+                Overlaying = "y",
+                Side = Plotly.Blazor.LayoutLib.YAxisLib.SideEnum.Right
+            }
+        },
+        Height = 500,
+        Width = 1200
+    };
+
+    // Using of the interface IList is important for the event callback!
+    private IList<ITrace> data = new List<ITrace>();
+
+    public async Task Plot()
+    {
+        if (layout != null && XAxisTitle != null && YAxisTitle != null)
+        {
+            layout.XAxis.ElementAt(0).Title.Text = XAxisTitle;
+            layout.YAxis.ElementAt(0).Title.Text = YAxisTitle;
+            await chart.Relayout();
+        }
+        if (XValues != null && XValues.Any() && YValues != null && YValues.Any())
+        {
+            await chart.DeleteTrace(0);
+            await chart.AddTrace(new Scatter
+            {
+                Mode = ModeFlag.Markers,
+                X = XValues,
+                Y = YValues
+            });
+        }
+    }
+}

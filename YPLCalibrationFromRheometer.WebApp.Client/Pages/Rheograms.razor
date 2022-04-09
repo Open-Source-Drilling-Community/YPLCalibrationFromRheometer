@@ -1,15 +1,4 @@
 ﻿@page "/Rheograms"
-@using System.Text
-@using YPLCalibrationFromRheometer.ModelClientShared
-@using Newtonsoft.Json
-@using Plotly.Blazor
-@using Plotly.Blazor.LayoutLib
-@using Plotly.Blazor.Traces.ScatterLib
-@using System.Diagnostics
-@using Blazor_Layout = Plotly.Blazor.Layout
-@using Title = Plotly.Blazor.LayoutLib.Title
-@using YAxis = Plotly.Blazor.LayoutLib.YAxis
-@using Microsoft.Extensions.Logging
 @inject ILogger<Rheograms> logger
 
 <h1>Rheograms</h1>
@@ -202,7 +191,9 @@ else
                 </table>
             </div>
             <div>
-                <PlotlyChart style="height: 60vh; min-height: 350px" @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+                <table class="table" hidden="@IsHidInputPanel">
+                    <ScatterPlot XValues="@shearRates" YValues="@shearStresses" XAxisTitle="Shear rate (1/s)" YAxisTitle="Shear stress (Pa)" @ref="flowCurvePlot"></ScatterPlot>
+                </table>
             </div>
         </div>
     }
@@ -236,32 +227,14 @@ else
     private double? updatedShearRate = null;
     private double? updatedShearStress = null;
 
+    // objects used for visualization
+    ScatterPlot flowCurvePlot = new ScatterPlot();
+    List<object> shearRates = new();
+    List<object> shearStresses = new();
+
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
     private int rowIndex = -1; // the index of the row selected in the Input panel
-
-
-    // scatter plot with plotly (https://plotly-blazor.azurewebsites.net/)
-
-    private PlotlyChart chart;
-    private Config config = new()
-        {
-            Responsive = true
-        };
-
-    private IList<ITrace> data = new List<ITrace>();
-
-    private Layout layout = new()
-        {
-            Title = new Title { Text = "Flow curve" },
-            YAxis = new List<YAxis>
-        {
-            new()
-            {
-                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "Shear stress (Pa)" }
-            }
-        }
-        };
 
     protected override async Task OnInitializedAsync()
     {
@@ -271,6 +244,8 @@ else
             logger.LogInformation("Trying to load Rheograms from client: " + host);
             SetHttpClient(host);
             rheogramList = await LoadRheograms();
+            if (rheogramIdx >= 0)
+                PlotFlowCurve(rheogramIdx);
         }
         catch (Exception ex)
         {
@@ -357,7 +332,6 @@ else
             IsHidSubPanel = false;
 
             await OnInitializedAsync();
-            await PlotFlowCurve();
             await InvokeAsync(() => { StateHasChanged(); });
         }
     }
@@ -600,26 +574,17 @@ else
         IsHidCalcPanel = !IsHidCalcPanel;
     }
 
-    private async Task PlotFlowCurve()
+    private async void PlotFlowCurve(int idx)
     {
-        if (rheogramIdx >= 0)
+
+        // update scatter plot
+        shearRates.Clear();
+        shearStresses.Clear();
+        for (int i = 0; i < rheogramList[idx].RheometerMeasurementList.Count; ++i)
         {
-            List<object> shearRates = new();
-            List<object> shearStresses = new();
-            for (int i = 0; i < rheogramList[rheogramIdx].RheometerMeasurementList.Count; ++i)
-            {
-                shearRates.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearRate);
-                shearStresses.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearStress);
-            }
-            if (shearRates.Any())
-            {
-                await chart.AddTrace(new Scatter
-                    {
-                        Mode = ModeFlag.Markers,
-                        X = shearRates,
-                        Y = shearStresses
-                    });
-            }
+            shearRates.Add(rheogramList[idx].RheometerMeasurementList.ElementAt(i).ShearRate);
+            shearStresses.Add(rheogramList[idx].RheometerMeasurementList.ElementAt(i).ShearStress);
         }
+        await flowCurvePlot.Plot();
     }
 }
