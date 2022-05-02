@@ -229,8 +229,8 @@ else
 
     // objects used for visualization
     ScatterPlot flowCurvePlot = new ScatterPlot();
-    List<object> shearRates = new();
-    List<object> shearStresses = new();
+    List<object> shearRates = new List<object>();
+    List<object> shearStresses = new List<object>();
 
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
@@ -245,7 +245,7 @@ else
             SetHttpClient(host);
             rheogramList = await LoadRheograms();
             if (rheogramIdx >= 0)
-                PlotFlowCurve(rheogramIdx);
+                PlotFlowCurve();
         }
         catch (Exception ex)
         {
@@ -574,16 +574,15 @@ else
         IsHidCalcPanel = !IsHidCalcPanel;
     }
 
-    private async void PlotFlowCurve(int idx)
+    private async void PlotFlowCurve()
     {
-
         // update scatter plot
         shearRates.Clear();
         shearStresses.Clear();
-        for (int i = 0; i < rheogramList[idx].RheometerMeasurementList.Count; ++i)
+        for (int i = 0; i < rheogramList[rheogramIdx].RheometerMeasurementList.Count; ++i)
         {
-            shearRates.Add(rheogramList[idx].RheometerMeasurementList.ElementAt(i).ShearRate);
-            shearStresses.Add(rheogramList[idx].RheometerMeasurementList.ElementAt(i).ShearStress);
+            shearRates.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearRate);
+            shearStresses.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearStress);
         }
         await flowCurvePlot.Plot();
     }
