@@ -17,8 +17,8 @@ namespace YPLCalibrationFromRheometer.Test
 
         static async void Test(string[] args)
         {
-            //string host = "https://app.DigiWells.no/";
-            string host = "https://localhost:5001/";
+            string host = "https://app.DigiWells.no/";
+            //string host = "https://localhost:5001/";
             if (args != null && args.Length >= 1)
             {
                 host = args[0];

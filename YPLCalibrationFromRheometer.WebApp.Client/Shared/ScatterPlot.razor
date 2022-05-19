@@ -15,17 +15,17 @@
 
     private PlotlyChart chart;
     private Config config = new Config() { Responsive = true };
-    private Layout layout = new()
+    private Layout layout = new Layout
     {
         XAxis = new List<XAxis>
 {
-            new()
+            new XAxis
             {
                 Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "" }
             }
         },
         YAxis = new List<YAxis>
-        {
+    {
             new YAxis
             {
                 Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" }

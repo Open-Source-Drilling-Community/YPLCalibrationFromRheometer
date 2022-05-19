@@ -6,7 +6,6 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
 
 WORKDIR /src
-
 COPY ["YPLCalibrationFromRheometer.WebApp.Client/YPLCalibrationFromRheometer.WebApp.Client.csproj", "YPLCalibrationFromRheometer.WebApp.Client/"]
 COPY ./nuget.config .
 RUN dotnet restore "YPLCalibrationFromRheometer.WebApp.Client/YPLCalibrationFromRheometer.WebApp.Client.csproj"
