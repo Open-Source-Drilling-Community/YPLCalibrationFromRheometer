@@ -1,0 +1,10 @@
+﻿apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: yplcalibrationfromrheometer-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Mi

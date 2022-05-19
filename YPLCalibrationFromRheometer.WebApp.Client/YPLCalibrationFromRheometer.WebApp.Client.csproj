@@ -17,4 +17,8 @@
 		<ProjectReference Include="..\YPLCalibrationFromRheometer.ModelClientShared\YPLCalibrationFromRheometer.ModelClientShared.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="charts\" />
+	</ItemGroup>
+
 </Project>
