@@ -32,9 +32,10 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
             PlotFigure7();
             PlotFigure8();
             PlotFigure9();
-            PlotFigure10();
             PlotIntegral8();
             PlotIntegral9();
+            PlotAdd1();
+            PlotAdd2();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -498,9 +499,72 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
             }
         }
 
-        private void PlotFigure10()
+        private void PlotAdd1()
         {
-            System.Diagnostics.Debug.WriteLine("\nFigure 10: WBM");
+            // R1B1
+            double[] r1 = { 0.017245, 0.015987, 0.012276 };
+            double[] r2 = { 0.018415, 0.018415, 0.018415 };
+
+            int nbOfPoints = 5000;
+            var myModel = new PlotModel() { Title = $"Fit functions for different Fann35 configurations" };
+            double[] phi = new double[nbOfPoints];
+            double[] biot = new double[nbOfPoints];
+            double biotMin = 0.01;
+            double biotMax = 1000;
+            double k = 1;
+            double omega = 1;
+            double[] n = { 1, 0.5, 0.2 };
+            string s = null;
+            OxyColor[] colors = { OxyColors.DarkBlue, OxyColors.Green, OxyColors.Maroon };
+            for (int i = 0; i < 3; ++i)
+            {
+                if (i == 0) s = "R1B1";
+                if (i == 1) s = "R1B5";
+                if (i == 2) s = "R1B2";
+                var scatter1 = new LineSeries() { Title = $"{s} - n={n[0]}", Color = colors[i], LineStyle = LineStyle.Solid };
+                var scatter2 = new LineSeries() { Title = $"{s} - n={n[1]}", Color = colors[i], LineStyle = LineStyle.Dash };
+                var scatter3 = new LineSeries() { Title = $"{s} - n={n[2]}", Color = colors[i], LineStyle = LineStyle.Dot};
+                for (int j = 0; j < nbOfPoints; j++)
+                {
+                    biot[j] = biotMin + (biotMax - biotMin) * j / (nbOfPoints - 1);
+                    phi[j] = YPLCorrection.GetShearStressCorrectionFactor(r1[i], r2[i], k, n[0], biot[j], omega);
+                    scatter1.Points.Add(new DataPoint(biot[j], phi[j]));
+                    phi[j] = YPLCorrection.GetShearStressCorrectionFactor(r1[i], r2[i], k, n[1], biot[j], omega);
+                    scatter2.Points.Add(new DataPoint(biot[j], phi[j]));
+                    phi[j] = YPLCorrection.GetShearStressCorrectionFactor(r1[i], r2[i], k, n[2], biot[j], omega);
+                    scatter3.Points.Add(new DataPoint(biot[j], phi[j]));
+                }
+                myModel.Series.Add(scatter1);
+                myModel.Series.Add(scatter2);
+                myModel.Series.Add(scatter3);
+            }
+
+            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Left,
+                Minimum = 0.05,
+                Maximum = 0.3,
+                Title = "Correction factor"
+            });
+            myModel.Axes.Add(new OxyPlot.Axes.LogarithmicAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Bottom,
+                Title = "Biot number (tau_y/k/omega^n)",
+                Minimum = 0.01,
+                Maximum = 1000
+            });
+
+            myModel.Legends.Add(new OxyPlot.Legends.Legend()
+            {
+                LegendPosition = OxyPlot.Legends.LegendPosition.RightBottom
+            });
+
+            plotViewAdd1.Model = myModel;
+
+        }
+
+        private void PlotAdd2()
+        {
             // R1B1
             double r1 = .017245;
             double r2 = 0.018415;
@@ -527,27 +591,22 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
                 K = 2.0,
                 N = 1.0
             };
-            PlotFigure10(r1, r2, Omega, yplModel, plModel, nModel);
+            PlotAdd2(r1, r2, Omega, yplModel, plModel, nModel);
         }
 
-        private void PlotFigure10(double r1, double r2, double Omega, YPLModel yplModel, YPLModel plModel, YPLModel nModel)
+        private void PlotAdd2(double r1, double r2, double Omega, YPLModel yplModel, YPLModel plModel, YPLModel nModel)
         {
+            //Generate results
             int nbOfPoints = 500;
-            var myModel = new PlotModel() { Title = $"Rheological variables for different rheomodels (WBM)" };
-            double[] omegYPL;
-            double[] srYPL;
-            double[] ssYPL;
-            double[] omegPL;
-            double[] srPL;
-            double[] ssPL;
-            double[] omegN;
-            double[] srN;
-            double[] ssN;
+            GenerateAdd2(r1, r2, Omega, yplModel, out double[] srYPL, out double[] ssYPL, nbOfPoints);
+            GenerateAdd2(r1, r2, Omega, plModel, out double[] srPL, out double[] ssPL, nbOfPoints);
+            GenerateAdd2(r1, r2, Omega, nModel, out double[] srN, out double[] ssN, nbOfPoints);
+
+            //Generate shear rate subplot
             OxyColor[] colors = { OxyColors.DarkBlue, OxyColors.Green, OxyColors.Maroon };
-            GenerateFigure10(r1, r2, Omega, yplModel, out omegYPL, out srYPL, out ssYPL, nbOfPoints);
-            GenerateFigure10(r1, r2, Omega, plModel, out omegPL, out srPL, out ssPL, nbOfPoints);
-            GenerateFigure10(r1, r2, Omega, nModel, out omegN, out srN, out ssN, nbOfPoints);
-            var scYPL = new LineSeries() {Title = $"tau_{YPLModel.ModelType.YPL}", Color = colors[0]};
+            var srModel = new PlotModel() { Title = $"Rheological variables for different rheomodels (WBM)" };
+
+            var scYPL = new LineSeries() { Title = $"tau_{YPLModel.ModelType.YPL}", Color = colors[0] };
             var scPL = new LineSeries() { Title = $"tau_{YPLModel.ModelType.PL}", Color = colors[1] };
             var scN = new LineSeries() { Title = $"tau_{YPLModel.ModelType.N}", Color = colors[2] };
             for (int i = 0; i < nbOfPoints; i++)
@@ -556,39 +615,73 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
                 scPL.Points.Add(new DataPoint(r1 + (double)i / (srPL.Length - 1) * (r2 - r1), srPL[i]));
                 scN.Points.Add(new DataPoint(r1 + (double)i / (srN.Length - 1) * (r2 - r1), srN[i]));
             }
-            myModel.Series.Add(scYPL);
-            myModel.Series.Add(scPL);
-            myModel.Series.Add(scN);
+            srModel.Series.Add(scYPL);
+            srModel.Series.Add(scPL);
+            srModel.Series.Add(scN);
 
-            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis() {
+            srModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
                 Position = OxyPlot.Axes.AxisPosition.Left,
+                Minimum = 0,
                 Title = "Shear rate (1/s)"
             });
-            myModel.Axes.Add(new OxyPlot.Axes.LinearAxis() {
+            srModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
                 Position = OxyPlot.Axes.AxisPosition.Bottom,
-                Minimum = 0,
                 Title = "Radius (m)"
             });
 
-            myModel.Legends.Add(new OxyPlot.Legends.Legend()
+            srModel.Legends.Add(new OxyPlot.Legends.Legend()
             {
                 LegendPosition = OxyPlot.Legends.LegendPosition.LeftTop
             });
 
-            plotViewAdd1.Model = myModel;
+            plotViewAdd21.Model = srModel;
 
+            //Generate shear stress subplot
+            var ssModel = new PlotModel();
+
+            scYPL = new LineSeries() { Title = $"tau_{YPLModel.ModelType.YPL}", Color = colors[0] };
+            scPL = new LineSeries() { Title = $"tau_{YPLModel.ModelType.PL}", Color = colors[1] };
+            scN = new LineSeries() { Title = $"tau_{YPLModel.ModelType.N}", Color = colors[2] };
+            for (int i = 0; i < nbOfPoints; i++)
+            {
+                scYPL.Points.Add(new DataPoint(r1 + (double)i / (ssYPL.Length - 1) * (r2 - r1), ssYPL[i]));
+                scPL.Points.Add(new DataPoint(r1 + (double)i / (ssPL.Length - 1) * (r2 - r1), ssPL[i]));
+                scN.Points.Add(new DataPoint(r1 + (double)i / (ssN.Length - 1) * (r2 - r1), ssN[i]));
+            }
+            ssModel.Series.Add(scYPL);
+            ssModel.Series.Add(scPL);
+            ssModel.Series.Add(scN);
+
+            ssModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Left,
+                Minimum = 0,
+                Title = "Shear stress (Pa)"
+            });
+            ssModel.Axes.Add(new OxyPlot.Axes.LinearAxis()
+            {
+                Position = OxyPlot.Axes.AxisPosition.Bottom,
+                Title = "Radius (m)"
+            });
+
+            ssModel.Legends.Add(new OxyPlot.Legends.Legend()
+            {
+                LegendPosition = OxyPlot.Legends.LegendPosition.LeftTop
+            });
+
+            plotViewAdd22.Model = ssModel;
         }
 
-        private static void GenerateFigure10(double r1, double r2, double Omega, YPLModel model,
-            out double[] omega, out double[] sr, out double[] ss, int nbOfPoints = 500)
+        private static void GenerateAdd2(double r1, double r2, double Omega, YPLModel model,
+            out double[] sr, out double[] ss, int nbOfPoints = 500)
         {
             double[] r = new double[nbOfPoints];
             for (int i = 0; i < nbOfPoints; i++)
                 r[i] = r1 + (double)i / (nbOfPoints - 1) * (r2 - r1);
-            omega = new double[nbOfPoints];
             ss = new double[nbOfPoints];
-            bool isFullySheared;
-            YPLCorrection.GetShearRate(r, r1, r2, model.K, model.N, model.Tau0, Omega, out isFullySheared, out sr);
+            YPLCorrection.GetShearRate(r, r1, r2, model.K, model.N, model.Tau0, Omega, out _, out sr);
 
             for (int i = 0; i < nbOfPoints; i++)
             {

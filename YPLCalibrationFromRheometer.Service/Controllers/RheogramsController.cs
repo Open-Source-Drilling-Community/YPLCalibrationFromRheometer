@@ -91,10 +91,10 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         {
             if (id != null && !id.Equals(Guid.Empty))
             {
-                if (rheogramManager_.Remove(id))
+                if (yplCalibrationManager_.RemoveReferences(id))
                 {
-                    if (yplCalibrationManager_.RemoveReferences(id))
-                        yplCorrectionManager_.RemoveReferences(id);
+                    if (yplCorrectionManager_.RemoveReferences(id))
+                        rheogramManager_.Remove(id);
                 }
             }
             else

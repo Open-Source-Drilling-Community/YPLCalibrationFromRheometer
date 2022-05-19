@@ -153,7 +153,7 @@ namespace YPLCalibrationFromRheometer.Service
                         }
                         else
                         {
-                            logger_.LogInformation("No Rheogram in the database");
+                            logger_.LogInformation("No such rheogram in the database");
                             return null;
                         }
                     }
