@@ -181,3 +181,7 @@ app {
         display: block;
     }
 }
+
+input[type="file"] {
+    display: none;
+}

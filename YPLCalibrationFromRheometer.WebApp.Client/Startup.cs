@@ -54,6 +54,8 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
                 endpoints.MapBlazorHub();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
         }
     }
 }

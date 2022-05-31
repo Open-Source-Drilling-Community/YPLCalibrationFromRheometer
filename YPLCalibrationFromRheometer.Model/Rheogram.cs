@@ -99,8 +99,10 @@ namespace YPLCalibrationFromRheometer.Model
         /// <returns></returns>
         public object Clone()
         {
-            Rheogram copy = new Rheogram(this);
-            copy.ID = ID;
+            Rheogram copy = new Rheogram(this)
+            {
+                ID = ID
+            };
             return copy;
         }
 

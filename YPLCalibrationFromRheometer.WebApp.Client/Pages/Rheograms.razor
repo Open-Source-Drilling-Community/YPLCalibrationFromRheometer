@@ -34,13 +34,13 @@
                 {
                     <tr>
                         <td>
-                            <input class="text" type="text" size="50" @bind="@updatedRheogramName" />
+                            <input class="text" type="text" size="30" @bind="@updatedRheogramName" />
                         </td>
                         <td>
-                            <input class="text" type="text" size="50" @bind="@updatedRheogramDescr" />
+                            <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
                         </td>
                         <td>
-                            <input class="text" type="text" size="10" @bind="@updatedRheogramStdStress" />
+                            <input class="text" type="text" size="7" @bind="@updatedRheogramStdStress" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Update</button>
@@ -95,16 +95,41 @@ else
             <tfoot>
                 <tr>
                     <td>
-                        <input class="text" type="text" size="50" @bind="@addedRheogramName" />
+                        <input class="text" type="text" size="30" @bind="@addedRheogramName" />
                     </td>
                     <td>
-                        <input class="text" type="text" size="50" @bind="@addedRheogramDescr" />
+                        <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
                     </td>
                     <td>
-                        <input class="text" type="text" size="10" @bind="@addedRheogramStdStress" />
+                        <input class="text" type="text" size="7" @bind="@addedRheogramStdStress" />
                     </td>
                     <td align="right">
                         <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="text" type="text" size="30" @bind="@loadedFileName" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="30" @bind="@loadedFileDescr" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="7" @bind="@loadedFileStdStress" />
+                    </td>
+                    <td align="right">
+                        @if (isLoading)
+                        {
+                            <span class="label">Uploading...</span>
+                        }
+                        else
+                        {
+                            <label class="btn btn-primary">
+                                <InputFile OnChange="@Load" multiple />
+                                Load
+                            </label>
+                        }
                         <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
                     </td>
                 </tr>
@@ -138,10 +163,10 @@ else
                                     {
                                         <tr>
                                             <td>
-                                                <input class="text" type="text" size="10" @bind="@updatedShearRate" />
+                                                <input class="text" type="text" size="7" @bind="@updatedShearRate" />
                                             </td>
                                             <td>
-                                                <input class="text" type="text" size="10" @bind="@updatedShearStress" />
+                                                <input class="text" type="text" size="7" @bind="@updatedShearStress" />
                                             </td>
                                             <td align="right">
                                                 @if (local_j > -1)
@@ -177,10 +202,10 @@ else
                     <tfoot hidden="@IsHidInputAdd">
                         <tr>
                             <td>
-                                <input class="text" type="text" size="10" @bind="@addedShearRate" />
+                                <input class="text" type="text" size="7" @bind="@addedShearRate" />
                             </td>
                             <td>
-                                <input class="text" type="text" size="10" @bind="@addedShearStress" />
+                                <input class="text" type="text" size="7" @bind="@addedShearStress" />
                             </td>
                             <td align="right">
                                 <button class="btn btn-primary" @onclick="@(() => AddRheometerMeasurement())">Add</button>
@@ -200,8 +225,10 @@ else
 }
 
 @code {
-    // default values
+        // default values
     private const double Rheogram_StdShearStress = .01; // this value is the same as in Model.Rheogram (could maybe be shared through ModelClientShared)
+    private string[] SRLabels = { "shearrate", "shear rate" };
+    private string[] SSLabels = { "shearstress", "shear stress" };
 
     // http client
     private HttpClient httpClient;
@@ -221,11 +248,17 @@ else
     private double? addedRheogramStdStress = Rheogram_StdShearStress;
     private double? addedShearRate = null;
     private double? addedShearStress = null;
+
     private string updatedRheogramName = null;
     private string updatedRheogramDescr = null;
     private double? updatedRheogramStdStress = Rheogram_StdShearStress;
     private double? updatedShearRate = null;
     private double? updatedShearStress = null;
+
+    private string loadedFileName = null;
+    private string loadedFileDescr = null;
+    private double? loadedFileStdStress = Rheogram_StdShearStress;
+    private bool isLoading;
 
     // objects used for visualization
     ScatterPlot flowCurvePlot = new ScatterPlot();
@@ -235,6 +268,8 @@ else
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
     private int rowIndex = -1; // the index of the row selected in the Input panel
+
+    private readonly object lock_ = new object();
 
     protected override async Task OnInitializedAsync()
     {
@@ -424,12 +459,167 @@ else
         }
     }
 
+    private async void Load(InputFileChangeEventArgs e)
+    {
+        if (loadedFileStdStress != null && loadedFileStdStress > 0.0)
+        {
+            isLoading = true;
+            DataTableCollection dts = null;
+
+            //Uploading files from client navigator
+            foreach (var file in e.GetMultipleFiles())
+            {
+                try
+                {
+                    string tempPath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                    await using (FileStream fs = new(tempPath, FileMode.Create))
+                    {
+                        await file.OpenReadStream().CopyToAsync(fs);
+                    }
+
+                    using (var fs = File.OpenRead(tempPath))
+                    using (var reader = ExcelReaderFactory.CreateReader(fs))
+                    {
+                        var result = reader.AsDataSet();
+                        dts = result.Tables;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Impossible to read from file");
+                }
+            }
+
+            if (dts != null)
+            {
+                //Loop on tables of uploaded file
+                foreach (DataTable table in dts)
+                {
+                    List<List<RheometerMeasurement>> rheoLists = new List<List<RheometerMeasurement>>();
+                    if (ParseDataTable(table, rheoLists))
+                    {
+                        for (int i = 0; i < rheoLists.Count; ++i)
+                        {
+                            Rheogram loadedRheogram = new Rheogram();
+                            loadedRheogram.ID = Guid.NewGuid();
+                            loadedRheogram.Name = String.IsNullOrEmpty(loadedFileName) ? $"{table.TableName}-{i + 1}" : loadedFileName + $"-{table.TableName}-{i + 1}";
+                            loadedRheogram.Description = loadedFileDescr;
+                            loadedRheogram.ShearStressStandardDeviation = (double)loadedFileStdStress;
+                            loadedRheogram.RheometerMeasurementList = rheoLists.ElementAt(i);
+                            // POST the Rheogram
+                            StringContent content = new StringContent(loadedRheogram.GetJson(), Encoding.UTF8, "application/json");
+                            var a = await httpClient.PostAsync("Rheograms/", content);
+                            if (a.IsSuccessStatusCode)
+                            {
+                                await OnInitializedAsync();
+                                await InvokeAsync(() => { StateHasChanged(); });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        logger.LogInformation($"No parseable data in table {table.TableName}");
+                    }
+                }
+            }
+            else
+            {
+                logger.LogError("Impossible to parse loaded file");
+            }
+
+            // initializes the UI
+            loadedFileName = null;
+            loadedFileDescr = null;
+            loadedFileStdStress = Rheogram_StdShearStress;
+            isLoading = false;
+            await OnInitializedAsync();
+            await InvokeAsync(() => { StateHasChanged(); });
+
+
+        }
+    }
+
+    private bool ParseDataTable(DataTable table, List<List<RheometerMeasurement>> rheoLists)
+    {
+        //a valid rheogram must consist of a set of:
+        //    - 2 columns (shear rate and shear stress)
+        //    - with at least 1 header row (containing the strings "shear rate" and "shear stress")
+        //    - and at max 2 header rows (second: containing units strings, in any case assumed to be expressed in SI)
+        //    - and 3 double type data rows
+        List<int[]> startIndices = new List<int[]>();
+        int minMeasCount = 3;
+        //first, parse for starting indices within the table that met the first two above conditions
+        for (int i = 0; i < table.Rows.Count - (minMeasCount + 1); ++i)
+        {
+            for (int j = 0; j < table.Columns.Count - 1; ++j)
+            {
+                if (MatchesLabel(table.Rows[i][j], SRLabels) && MatchesLabel(table.Rows[i][j + 1], SSLabels))
+                    startIndices.Add(new int[] { i, j });
+            }
+        }
+
+        //then, iterate over the different rheograms contained within the current table
+        for (int k = 0; k < startIndices.Count; ++k)
+        {
+            //for each of them, find the indices where numeric values start, depending on whether there is a unit header or not
+            List<RheometerMeasurement> rheoList = new List<RheometerMeasurement>();
+            int i0 = startIndices.ElementAt(k)[0];
+            int j0 = startIndices.ElementAt(k)[1];
+            double sr, ss;
+            if (double.TryParse(table.Rows[i0 + 1][j0].ToString(), out sr) && double.TryParse(table.Rows[i0 + 1][j0 + 1].ToString(), out ss))
+            {
+                logger.LogInformation($"No unit header for record starting at row,col {i0},{j0} in table {table.TableName}. SI units assumed");
+                i0 += 1;
+            }
+            else if (double.TryParse(table.Rows[i0 + 2][j0].ToString(), out sr) && double.TryParse(table.Rows[i0 + 2][j0 + 1].ToString(), out ss))
+            {
+                logger.LogInformation($"A unit header has been found for record starting at row,col {i0},{j0} in table {table.TableName}. Still, SI units assumed");
+                i0 += 2;
+            }
+            else
+            {
+                logger.LogInformation($"Badly formed record in table {table.TableName} starting at row,col {i0},{j0}");
+                continue;
+            }
+            //finally, store rheometer measurements for the current rheogram
+            int i = 0;
+            while (i < table.Rows.Count - i0 &&
+                double.TryParse(table.Rows[i0 + i][j0].ToString(), out sr) &&
+                double.TryParse(table.Rows[i0 + i][j0 + 1].ToString(), out ss))
+            {
+                RheometerMeasurement meas = new RheometerMeasurement();
+                meas.ShearRate = sr;
+                meas.ShearStress = ss;
+                rheoList.Add(meas);
+                i++;
+            }
+            logger.LogInformation($"     record's count is {i}");
+            if (i >= minMeasCount)
+                rheoLists.Add(rheoList); //meeting the last above condition
+        }
+        return rheoLists.Count > 0;
+    }
+
+    private bool MatchesLabel(object value, string[] labels)
+    {
+        string str = value.ToString().ToLower();
+        foreach (string lbl in labels)
+        {
+            if (str.Contains(lbl))
+                return true;
+        }
+        return false;
+    }
+
     private void Cancel()
     {
         // empty UI edit box
         addedRheogramName = null;
         addedRheogramDescr = null;
         addedRheogramStdStress = Rheogram_StdShearStress;
+        loadedFileName = null;
+        loadedFileDescr = null;
+        loadedFileStdStress = Rheogram_StdShearStress;
     }
 
     private void EditRheometerMeasurement(int rowIdx)
