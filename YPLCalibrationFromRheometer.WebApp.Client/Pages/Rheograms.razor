@@ -119,18 +119,15 @@ else
                         <input class="text" type="text" size="7" @bind="@loadedFileStdStress" />
                     </td>
                     <td align="right">
+                        @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
+                        <label class="btn btn-primary">
+                            <InputFile OnChange="@Load" multiple />
+                            Load
+                        </label>
                         @if (isLoading)
                         {
-                            <span class="label">Uploading...</span>
+                            <p>Uploading... @string.Format("{0:P0}", progressPercent)</p>
                         }
-                        else
-                        {
-                            <label class="btn btn-primary">
-                                <InputFile OnChange="@Load" multiple />
-                                Load
-                            </label>
-                        }
-                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
                     </td>
                 </tr>
             </tfoot>
@@ -225,7 +222,7 @@ else
 }
 
 @code {
-        // default values
+    // default values
     private const double Rheogram_StdShearStress = .01; // this value is the same as in Model.Rheogram (could maybe be shared through ModelClientShared)
     private string[] SRLabels = { "shearrate", "shear rate" };
     private string[] SSLabels = { "shearstress", "shear stress" };
@@ -258,7 +255,9 @@ else
     private string loadedFileName = null;
     private string loadedFileDescr = null;
     private double? loadedFileStdStress = Rheogram_StdShearStress;
+
     private bool isLoading;
+    private decimal progressPercent;
 
     // objects used for visualization
     ScatterPlot flowCurvePlot = new ScatterPlot();
@@ -464,6 +463,7 @@ else
         if (loadedFileStdStress != null && loadedFileStdStress > 0.0)
         {
             isLoading = true;
+            progressPercent = 0;
             DataTableCollection dts = null;
 
             //Uploading files from client navigator
@@ -472,13 +472,30 @@ else
                 try
                 {
                     string tempPath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-                    await using (FileStream fs = new(tempPath, FileMode.Create))
+
+                    //await using (FileStream fs = new(tempPath, FileMode.Create))
+                    //{
+                    //    await file.OpenReadStream().CopyToAsync(fs);
+                    //}
+
+                    await using FileStream writeStream = new(tempPath, FileMode.Create);
+                    using var readStream = file.OpenReadStream();
+                    var bytesRead = 0;
+                    var totalRead = 0;
+                    var buffer = new byte[1024 * 10];
+
+                    while ((bytesRead = await readStream.ReadAsync(buffer)) != 0)
                     {
-                        await file.OpenReadStream().CopyToAsync(fs);
+                        totalRead += bytesRead;
+
+                        await writeStream.WriteAsync(buffer, 0, bytesRead);
+
+                        progressPercent = Decimal.Divide(totalRead, file.Size);
+
+                        StateHasChanged();
                     }
 
-                    using (var fs = File.OpenRead(tempPath))
-                    using (var reader = ExcelReaderFactory.CreateReader(fs))
+                    using (var reader = ExcelReaderFactory.CreateReader(writeStream))
                     {
                         var result = reader.AsDataSet();
                         dts = result.Tables;
@@ -532,10 +549,9 @@ else
             loadedFileDescr = null;
             loadedFileStdStress = Rheogram_StdShearStress;
             isLoading = false;
-            await OnInitializedAsync();
-            await InvokeAsync(() => { StateHasChanged(); });
-
-
+            //await OnInitializedAsync();
+            //await InvokeAsync(() => { StateHasChanged(); });
+            StateHasChanged();
         }
     }
 
