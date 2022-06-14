@@ -75,6 +75,16 @@
               "$ref": "#/definitions/YPLModel"
             }
           ]
+        },
+        "YPLModelLevenbergMarquardt": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
+            }
+          ]
         }
       }
     },

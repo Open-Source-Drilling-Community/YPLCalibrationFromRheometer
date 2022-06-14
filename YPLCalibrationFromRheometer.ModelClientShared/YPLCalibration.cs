@@ -6,7 +6,7 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
     public partial class YPLCalibration
     {
         /// <summary>
-        /// this method is the exact copy of YPLCalibrationFromRheometer.Model.YPLCalibration.Copy(YPLCalibration dest)
+        /// copy everything except the ID
         /// </summary>
         /// <param name="dest"></param>
         /// <returns></returns>
@@ -33,13 +33,13 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     if (dest.YPLModelKelessidis.ID.Equals(Guid.Empty))
                         dest.YPLModelKelessidis.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
-                if (YPLModelMullineux != null)
+                if (YPLModelLevenbergMarquardt != null)
                 {
-                    if (dest.YPLModelMullineux == null)
-                        dest.YPLModelMullineux = new YPLModel();
-                    YPLModelMullineux.Copy(dest.YPLModelMullineux);
-                    if (dest.YPLModelMullineux.ID.Equals(Guid.Empty))
-                        dest.YPLModelMullineux.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                    if (dest.YPLModelLevenbergMarquardt == null)
+                        dest.YPLModelLevenbergMarquardt = new YPLModel();
+                    YPLModelLevenbergMarquardt.Copy(dest.YPLModelLevenbergMarquardt);
+                    if (dest.YPLModelLevenbergMarquardt.ID.Equals(Guid.Empty))
+                        dest.YPLModelLevenbergMarquardt.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
                 return true;
             }

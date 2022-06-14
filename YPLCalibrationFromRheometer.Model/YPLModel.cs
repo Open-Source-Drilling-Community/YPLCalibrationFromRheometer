@@ -81,7 +81,7 @@ namespace YPLCalibrationFromRheometer.Model
             {
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.Tau0 = Tau0; 
+                dest.Tau0 = Tau0;
                 dest.K = K;
                 dest.N = N;
                 dest.Chi2 = Chi2;
@@ -118,10 +118,23 @@ namespace YPLCalibrationFromRheometer.Model
         }
 
         /// <summary>
+        /// evaluation of the shear stress as a function of the shear rate and external parameters
+        /// </summary>
+        /// <param name="shearRate">a shear rate value</param>
+        /// <param name="p">an array of YPL model parameters (tau0, K, n)</param>
+        /// <returns></returns>
+        public double ShearStressFromParameters(double shearRate, params double[] p)
+        {
+            return p[0] + p[1] * System.Math.Pow(shearRate, p[2]);
+        }
+
+        #region Kelessidis method
+        /// <summary>
         /// Fit the YPL rheological behavior to the rheogram data using the method from Zamora/Kelessidis
         /// (see https://doi.org/10.1016/j.petrol.2006.06.004)
         /// </summary>
-        /// <param name="rheogram"></param>
+        /// <param name="rheogram">the input rheogram used for the YPL model calibration</param>
+        /// <param name="model">the type of YPL model to be calibrated (N, PL or YPL)</param>
         /// <returns>the chi-square after fitting</returns>
         public void FitToKelessidis(Rheogram rheogram, ModelType model = ModelType.YPL)
         {
@@ -184,7 +197,7 @@ namespace YPLCalibrationFromRheometer.Model
 
                     double eps = 1e-6;
                     int count = 0;
-                    double derivateChi2a = FP(tau0, logGammas, logTaus, gammas, taus, sigs, out _, out _, out _);
+                    double derivateChi2a = FKelessidis(tau0, logGammas, logTaus, gammas, taus, sigs, out _, out _, out _);
                     double K_;
                     double n_;
                     double chi2_;
@@ -195,14 +208,14 @@ namespace YPLCalibrationFromRheometer.Model
                         {
                             tau0b = 1e-3;
                         }
-                        double derivateChi2b = FP(tau0b, logGammas, logTaus, gammas, taus, sigs, out _, out _, out _);
+                        double derivateChi2b = FKelessidis(tau0b, logGammas, logTaus, gammas, taus, sigs, out _, out _, out _);
                         double differential = (derivateChi2b - derivateChi2a) / (tau0b - tau0);
                         tau0 -= derivateChi2a / differential;
                         if (tau0 > minShearStress)
                         {
                             tau0 = 0.99 * minShearStress;
                         }
-                        derivateChi2a = FP(tau0, logGammas, logTaus, gammas, taus, sigs, out K_, out n_, out chi2_);
+                        derivateChi2a = FKelessidis(tau0, logGammas, logTaus, gammas, taus, sigs, out K_, out n_, out chi2_);
                     } while (System.Math.Abs(derivateChi2a) > eps && count++ < 50);
                     if (!Numeric.IsUndefined(tau0) && !Numeric.IsUndefined(K_) && !Numeric.IsUndefined(n_) && !Numeric.IsUndefined(chi2_))
                     {
@@ -215,96 +228,7 @@ namespace YPLCalibrationFromRheometer.Model
             }
         }
 
-        /// <summary>
-        /// Fit the YPL rheological behavior to the rheogram using the method from Mullineux
-        /// (see https://doi.org/10.1016/j.apm.2007.09.010)
-        /// </summary>
-        /// <param name="rheogram"></param>
-        /// <returns>The chi-square after fitting</returns>
-        public void FitToMullineux(Rheogram rheogram, ModelType model = ModelType.YPL)
-        {
-            Chi2 = -1;
-            if (rheogram != null && rheogram.RheometerMeasurementList != null && rheogram.RheometerMeasurementList.Count >= 3)
-            {
-                List<RheometerMeasurement> rheoMeasList = rheogram.RheometerMeasurementList;
-                int rheoMeasCount = rheoMeasList.Count;
-
-                // determine N
-                // first attempt with a Newton-Raphson method
-                double eps = 1e-5;
-                int count = 0;
-                double n0 = 1.0;
-                double fn0 = F(rheoMeasList, n0);
-                do
-                {
-                    double dn = n0 / 1000.0;
-                    double fn1 = F(rheoMeasList, n0 + dn);
-                    double slope = (fn1 - fn0) / dn;
-                    if (!Numeric.EQ(slope, 0, 1e-9))
-                    {
-                        n0 -= fn0 / slope;
-                        fn0 = F(rheoMeasList, n0);
-                    }
-                }
-                while (System.Math.Abs(fn0) > eps && count++ < 50);
-                if (System.Math.Abs(fn0) > eps)
-                {
-                    // if the Newton-Raphson method has failed, we try with a bisection method between 0.01 and 1.0
-                    n0 = 0.01;
-                    fn0 = F(rheoMeasList, n0);
-                    double n1 = 1.0;
-                    if (fn0 * F(rheoMeasList, n1) < 0)
-                    {
-                        count = 0;
-                        do
-                        {
-                            double nx = (n0 + n1) / 2.0;
-                            double fnx = F(rheoMeasList, nx);
-                            if (fn0 * fnx < 0)
-                            {
-                                n1 = nx;
-                            }
-                            else
-                            {
-                                n0 = nx;
-                                fn0 = fnx;
-                            }
-                        } while (System.Math.Abs(fn0) > eps && count++ < 50);
-                    }
-                }
-                if (Numeric.EQ(System.Math.Abs(fn0), 0.0, eps))
-                {
-                    // when N is found we just fit tau0 and K using a linear regression
-                    double sig = rheogram.ShearStressStandardDeviation;
-                    if (sig <= 0)
-                    {
-                        sig = 0.01;
-                    }
-                    double tau0, k;
-                    double[] taus = new double[rheoMeasCount];
-                    List<Pair<double, double>> xs_and_taus = new List<Pair<double, double>>(); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
-                    double[] gammas = new double[rheoMeasCount];
-                    double[] sigs = new double[rheoMeasCount];
-                    for (int i = 0; i < rheoMeasCount; i++)
-                    {
-                        taus[i] = rheoMeasList[i].ShearStress;
-                        xs_and_taus.Add(new Pair<double, double>(System.Math.Pow(rheoMeasList[i].ShearRate, n0), taus[i]));
-                        gammas[i] = rheoMeasList[i].ShearRate;
-                        sigs[i] = sig;
-                    }
-                    Pair<double, double> tau0_and_k = DataModelling.LinearRegression(xs_and_taus);
-                    tau0 = tau0_and_k.Left;
-                    k = tau0_and_k.Right;
-
-                    Tau0 = (model == ModelType.N || model == ModelType.PL) ? 0 : tau0;
-                    K = k;
-                    N = (model == ModelType.N) ? 1 : n0;
-                    Chi2 = Statistics.ChiSquare(gammas, taus, sigs, this);
-                }
-            }
-        }
-
-        private double FP(double tau0, List<double> logGammas, List<double> logTaus, double[] gammas, double[] taus, double[] sigs, out double K_, out double n_, out double chi2_)
+        private double FKelessidis(double tau0, List<double> logGammas, List<double> logTaus, double[] gammas, double[] taus, double[] sigs, out double K_, out double n_, out double chi2_)
         {
             List<Pair<double, double>> logGammas_and_logTaus = new List<Pair<double, double>>();
             for (int i = 0; i < taus.Length; i++)
@@ -365,8 +289,100 @@ namespace YPLCalibrationFromRheometer.Model
             N = nBackUp;
             return derivative;
         }
+        #endregion
 
-        private double F(List<RheometerMeasurement> samples, double n)
+        #region Mullineux method
+        /// <summary>
+        /// Fit the YPL rheological behavior to the rheogram using the method from Mullineux
+        /// (see https://doi.org/10.1016/j.apm.2007.09.010)
+        /// </summary>
+        /// <param name="rheogram">the input rheogram used for the YPL model calibration</param>
+        /// <param name="model">the type of YPL model to be calibrated (N, PL or YPL)</param>
+        /// <returns>The chi-square after fitting</returns>
+        public void FitToMullineux(Rheogram rheogram, ModelType model = ModelType.YPL)
+        {
+            Chi2 = -1;
+            if (rheogram != null && rheogram.RheometerMeasurementList != null && rheogram.RheometerMeasurementList.Count >= 3)
+            {
+                List<RheometerMeasurement> rheoMeasList = rheogram.RheometerMeasurementList;
+                int rheoMeasCount = rheoMeasList.Count;
+
+                // determine N
+                // first attempt with a Newton-Raphson method
+                double eps = 1e-5;
+                int count = 0;
+                double n0 = 1.0;
+                double fn0 = FMullineux(rheoMeasList, n0);
+                do
+                {
+                    double dn = n0 / 1000.0;
+                    double fn1 = FMullineux(rheoMeasList, n0 + dn);
+                    double slope = (fn1 - fn0) / dn;
+                    if (!Numeric.EQ(slope, 0, 1e-9))
+                    {
+                        n0 -= fn0 / slope;
+                        fn0 = FMullineux(rheoMeasList, n0);
+                    }
+                }
+                while (System.Math.Abs(fn0) > eps && count++ < 50);
+                if (System.Math.Abs(fn0) > eps)
+                {
+                    // if the Newton-Raphson method has failed, we try with a bisection method between 0.01 and 1.0
+                    n0 = 0.01;
+                    fn0 = FMullineux(rheoMeasList, n0);
+                    double n1 = 1.0;
+                    if (fn0 * FMullineux(rheoMeasList, n1) < 0)
+                    {
+                        count = 0;
+                        do
+                        {
+                            double nx = (n0 + n1) / 2.0;
+                            double fnx = FMullineux(rheoMeasList, nx);
+                            if (fn0 * fnx < 0)
+                            {
+                                n1 = nx;
+                            }
+                            else
+                            {
+                                n0 = nx;
+                                fn0 = fnx;
+                            }
+                        } while (System.Math.Abs(fn0) > eps && count++ < 50);
+                    }
+                }
+                if (Numeric.EQ(System.Math.Abs(fn0), 0.0, eps))
+                {
+                    // when N is found we just fit tau0 and K using a linear regression
+                    double sig = rheogram.ShearStressStandardDeviation;
+                    if (sig <= 0)
+                    {
+                        sig = 0.01;
+                    }
+                    double tau0, k;
+                    double[] taus = new double[rheoMeasCount];
+                    List<Pair<double, double>> xs_and_taus = new List<Pair<double, double>>(); // TODO: complicated data management: simpler would be to add signatures with arrays in Statistics and DataModelling
+                    double[] gammas = new double[rheoMeasCount];
+                    double[] sigs = new double[rheoMeasCount];
+                    for (int i = 0; i < rheoMeasCount; i++)
+                    {
+                        taus[i] = rheoMeasList[i].ShearStress;
+                        xs_and_taus.Add(new Pair<double, double>(System.Math.Pow(rheoMeasList[i].ShearRate, n0), taus[i]));
+                        gammas[i] = rheoMeasList[i].ShearRate;
+                        sigs[i] = sig;
+                    }
+                    Pair<double, double> tau0_and_k = DataModelling.LinearRegression(xs_and_taus);
+                    tau0 = tau0_and_k.Left;
+                    k = tau0_and_k.Right;
+
+                    Tau0 = (model == ModelType.N || model == ModelType.PL) ? 0 : tau0;
+                    K = k;
+                    N = (model == ModelType.N) ? 1 : n0;
+                    Chi2 = Statistics.ChiSquare(gammas, taus, sigs, this);
+                }
+            }
+        }
+
+        private double FMullineux(List<RheometerMeasurement> samples, double n)
         {
             if (samples != null)
             {
@@ -415,5 +431,57 @@ namespace YPLCalibrationFromRheometer.Model
                 return Numeric.UNDEF_DOUBLE;
             }
         }
+        #endregion
+
+        #region Levenberg-Marquardt algorithm
+        /// <summary>
+        /// Fit the YPL rheological behavior to the rheogram data using the Levenberg-Marquardt algorithm
+        /// (see https://people.duke.edu/~hpgavin/ce281/lm.pdf)
+        /// </summary>
+        /// <param name="rheogram">the input rheogram used for the YPL model calibration</param>
+        /// <param name="model">the type of YPL model to be calibrated (N, PL or YPL)</param>
+        /// <returns>the chi-square after fitting</returns>
+        public void FitToLevenbergMarquardt(Rheogram rheogram, ModelType model = ModelType.YPL)
+        {
+            Tau0 = 1;
+            K = 1;
+            N = 1;
+
+            double chisq;
+            List<RheometerMeasurement> rheoMeasList = rheogram.RheometerMeasurementList;
+            int rheoMeasCount = rheoMeasList.Count;
+
+            double[] gammas = new double[rheoMeasCount];
+            double[] taus = new double[rheoMeasCount];
+            double[] sigs = new double[rheoMeasCount];
+            bool[] ia = new bool[rheoMeasCount];
+            for (int i = 0; i < rheoMeasCount; i++)
+            {
+                gammas[i] = rheoMeasList[i].ShearRate;
+                taus[i] = rheoMeasList[i].ShearStress;
+                sigs[i] = rheogram.ShearStressStandardDeviation;
+                ia[i] = true;
+            }
+            double[] p = new double[3]; //output Tau0, K, n
+            p[0] = Tau0; //Tau0
+            p[1] = K; //K
+            p[2] = N; //n
+
+            DataModelling.UnaryFunctionDelegate func = new DataModelling.UnaryFunctionDelegate(ShearStressFromParameters);
+            DataModelling.NonLinearFitting(gammas, taus, sigs, p, ia, func, out chisq, 10.0, 5000);
+            if (Numeric.IsDefined(chisq))
+            {
+                Tau0 = p[0];
+                K = p[1];
+                N = p[2];
+                double[] tausEstimated = new double[taus.Length];
+                for (int i = 0; i < taus.Length; i++)
+                {
+                    tausEstimated[i] = ShearStressFromParameters(gammas[i], p);
+                }
+                Chi2 = Statistics.ChiSquare(tausEstimated, taus, sigs);
+            }
+        }
+        #endregion
     }
 }

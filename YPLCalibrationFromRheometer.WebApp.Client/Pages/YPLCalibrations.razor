@@ -273,6 +273,42 @@ else
                     </tfoot>
                 </table>
             </div>
+            <div>
+                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Levenberg-Marquradt</h2></button>
+                <table class="table" hidden="@IsHidCalcPanel">
+                    <thead>
+                        <tr>
+                            <td>Tau0 (Pa)</td>
+                            <td>K (Pa.s^n)</td>
+                            <td>n (1)</td>
+                            <td>Chi2 (1)</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt != null)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.Tau0)</span>
+                                </td>
+                                <td>
+                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.K)</span>
+                                </td>
+                                <td>
+                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.N)</span>
+                                </td>
+                                <td>
+                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.Chi2)</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     }
 }
@@ -533,6 +569,9 @@ else
             addedYplCalibration.YPLModelMullineux = new YPLModel();
             addedYplCalibration.YPLModelMullineux.ID = Guid.NewGuid();
             addedYplCalibration.YPLModelMullineux.Name = addedYplCalibration.Name + "-calculated-Mullineux";
+            addedYplCalibration.YPLModelLevenbergMarquardt = new YPLModel();
+            addedYplCalibration.YPLModelLevenbergMarquardt.ID = Guid.NewGuid();
+            addedYplCalibration.YPLModelLevenbergMarquardt.Name = addedYplCalibration.Name + "-calculated-Levenberg";
 
             // POST the YPLCalibration (note that it adds RheogramInput to the input database, triggers the CalculateOutputRheogram() method and adds the corresponding output to the output database)
             StringContent content = new StringContent(addedYplCalibration.GetJson(), Encoding.UTF8, "application/json");

@@ -36,6 +36,11 @@ namespace YPLCalibrationFromRheometer.Model
         public YPLModel YPLModelMullineux { get; set; }
 
         /// <summary>
+        /// the YPLModel calculated with the Levenberg-Marquardt algortihm
+        /// </summary>
+        public YPLModel YPLModelLevenbergMarquardt { get; set; }
+
+        /// <summary>
         /// default constructor
         /// </summary>
         public YPLCalibration() : base()
@@ -82,6 +87,14 @@ namespace YPLCalibrationFromRheometer.Model
                     YPLModelKelessidis.Copy(dest.YPLModelKelessidis);
                     if (dest.YPLModelKelessidis.ID.Equals(Guid.Empty))
                         dest.YPLModelKelessidis.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                }
+                if (YPLModelLevenbergMarquardt != null)
+                {
+                    if (dest.YPLModelLevenbergMarquardt == null)
+                        dest.YPLModelLevenbergMarquardt = new YPLModel();
+                    YPLModelLevenbergMarquardt.Copy(dest.YPLModelLevenbergMarquardt);
+                    if (dest.YPLModelLevenbergMarquardt.ID.Equals(Guid.Empty))
+                        dest.YPLModelLevenbergMarquardt.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
                 return true;
             }
@@ -155,6 +168,38 @@ namespace YPLCalibrationFromRheometer.Model
                     if (YPLModelMullineux.Name == null)
                         YPLModelMullineux.Name = RheogramInput.Name + "-calculated-Mullineux";
                     YPLModelMullineux.FitToMullineux(RheogramInput);
+                }
+                else
+                {
+                    success = false;
+                }
+            }
+            else
+            {
+                success = false;
+            }
+            return success;
+        }
+
+        /// <summary>
+        ///  calculates the output YPLModel with Levenberg-Marquardt algorithm
+        /// </summary>
+        /// <returns></returns>
+        public bool CalculateYPLLevenbergMarquardt()
+        {
+            bool success = true;
+            if (RheogramInput != null)
+            {
+                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                if (inputDataList != null && inputDataList.Count > 0)
+                {
+                    if (YPLModelLevenbergMarquardt == null)
+                        YPLModelLevenbergMarquardt = new YPLModel(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
+                    if (YPLModelLevenbergMarquardt.ID.Equals(Guid.Empty))
+                        YPLModelLevenbergMarquardt.ID = Guid.NewGuid();
+                    if (YPLModelLevenbergMarquardt.Name == null)
+                        YPLModelLevenbergMarquardt.Name = RheogramInput.Name + "-calculated-Levenberg";
+                    YPLModelLevenbergMarquardt.FitToLevenbergMarquardt(RheogramInput);
                 }
                 else
                 {

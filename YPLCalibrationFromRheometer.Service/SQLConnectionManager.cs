@@ -49,6 +49,7 @@ namespace YPLCalibrationFromRheometer.Service
                     "RheogramInputID text, " +
                     "YPLModelMullineuxID text," +
                     "YPLModelKelessidisID text," +
+                    "YPLModelLevenbergID text," +
                     "TimeStamp" +
                    ")";
                 try

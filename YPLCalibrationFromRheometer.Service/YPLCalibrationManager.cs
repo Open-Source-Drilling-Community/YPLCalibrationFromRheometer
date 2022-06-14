@@ -150,10 +150,11 @@ namespace YPLCalibrationFromRheometer.Service
                     Guid inputID = Guid.Empty;
                     Guid yplModelKelessidisID = Guid.Empty;
                     Guid yplModelMullineuxID = Guid.Empty;
+                    Guid yplModelLevenbergID = Guid.Empty;
 
                     // first retrieve the YPLCalibration itself
                     var command = connection_.CreateCommand();
-                    command.CommandText = @"SELECT Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID FROM YPLCalibrationsTable " +
+                    command.CommandText = @"SELECT Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID, YPLModelLevenbergID FROM YPLCalibrationsTable " +
                         "WHERE ID = '" + guid.ToString() + "'";
                     try
                     {
@@ -169,6 +170,7 @@ namespace YPLCalibrationFromRheometer.Service
                             inputID = reader.GetGuid(2);
                             yplModelMullineuxID = reader.GetGuid(3);
                             yplModelKelessidisID = reader.GetGuid(4);
+                            yplModelLevenbergID = reader.GetGuid(5);
                         }
                         else
                         {
@@ -243,6 +245,34 @@ namespace YPLCalibrationFromRheometer.Service
                             logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
                             return null;
                         }
+
+                        // then retrieve its Levenberg YPLModelOutput directly from YPLModelOutputsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"SELECT Name, YPLModel " +
+                            "FROM YPLModelOutputsTable WHERE ID = '" + yplModelLevenbergID.ToString() + "'";
+                        try
+                        {
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
+                            {
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel baseData2 = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (baseData2 == null || !baseData2.ID.Equals(yplModelLevenbergID) || !baseData2.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCalibration.YPLModelLevenbergMarquardt = baseData2;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
+                        }
                         // Finalizing
                         logger_.LogInformation("Returning the YPLCalibration of given ID");
                         return yplCalibration;
@@ -274,7 +304,7 @@ namespace YPLCalibrationFromRheometer.Service
                 !yplCalibration.RheogramInput.ID.Equals(Guid.Empty) && !yplCalibration.YPLModelKelessidis.ID.Equals(Guid.Empty) && !yplCalibration.YPLModelMullineux.ID.Equals(Guid.Empty))
             {
                 // first apply calculations
-                if (!yplCalibration.CalculateYPLModelMullineux() || !yplCalibration.CalculateYPLModelKelessidis())
+                if (!yplCalibration.CalculateYPLModelMullineux() || !yplCalibration.CalculateYPLModelKelessidis() || !yplCalibration.CalculateYPLLevenbergMarquardt())
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCalibration");
                     return false;
@@ -292,13 +322,14 @@ namespace YPLCalibrationFromRheometer.Service
                             // first add the YPLCalibration to the YPLCalibrationsTable
                             var command = connection_.CreateCommand();
                             command.CommandText = @"INSERT INTO YPLCalibrationsTable " +
-                                "(ID, Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID, TimeStamp) VALUES (" +
+                                "(ID, Name, Description, RheogramInputID, YPLModelMullineuxID, YPLModelKelessidisID, YPLModelLevenbergID, TimeStamp) VALUES (" +
                                 "'" + yplCalibration.ID.ToString() + "', " +
                                 "'" + yplCalibration.Name + "', " +
                                 "'" + yplCalibration.Description + "', " +
                                 "'" + yplCalibration.RheogramInput.ID.ToString() + "', " +
                                 "'" + yplCalibration.YPLModelMullineux.ID.ToString() + "', " +
                                 "'" + yplCalibration.YPLModelKelessidis.ID.ToString() + "', " +
+                                "'" + yplCalibration.YPLModelLevenbergMarquardt.ID.ToString() + "', " +
                                 "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" +
                                 ")";
                             int count = command.ExecuteNonQuery();
@@ -353,6 +384,33 @@ namespace YPLCalibrationFromRheometer.Service
                                     {
                                         logger_.LogWarning("Impossible to get the YPLModel");
                                         success = false;
+                                    }
+                                    if (success)
+                                    {
+                                        // then add Levenberg YPLModelOutput to the YPLModelOutputsTable
+                                        yplModel = yplCalibration.YPLModelLevenbergMarquardt;
+                                        if (yplModel != null)
+                                        {
+                                            string json = JsonConvert.SerializeObject(yplModel);
+                                            command = connection_.CreateCommand();
+                                            command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                                "VALUES (" +
+                                                "'" + yplModel.ID.ToString() + "', " +
+                                                "'" + yplModel.Name + "', " +
+                                                "'" + json + "'" +
+                                                ")";
+                                            count = command.ExecuteNonQuery();
+                                            if (count != 1)
+                                            {
+                                                logger_.LogWarning("Impossible to insert the calculated Levenberg-Marquardt YPLModel into the YPLModelOutputsTable");
+                                                success = false;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            logger_.LogWarning("Impossible to get the YPLModel");
+                                            success = false;
+                                        }
                                     }
                                 }
                             }
@@ -417,6 +475,11 @@ namespace YPLCalibrationFromRheometer.Service
                 {
                     ID = Guid.NewGuid(),
                     Name = yplCalibration.Name + "-calculated-Mullineux"
+                };
+                yplCalibration.YPLModelLevenbergMarquardt = new YPLModel
+                {
+                    ID = Guid.NewGuid(),
+                    Name = yplCalibration.Name + "-calculated-Levenberg"
                 };
 
                 if (Add(yplCalibration))
@@ -508,6 +571,26 @@ namespace YPLCalibrationFromRheometer.Service
                                 catch (SQLiteException ex)
                                 {
                                     logger_.LogError(ex, "Impossible to delete the calculated Kelessidis YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
+                            if (success)
+                            {
+                                // then delete Levenberg YPLModelOutput from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCalibration.YPLModelLevenbergMarquardt.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the calculated Levenberg YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the calculated Levenberg YPLModel from the YPLModelOutputsTable");
                                     success = false;
                                 }
                             }
@@ -645,7 +728,7 @@ namespace YPLCalibrationFromRheometer.Service
                 updatedYplCalibration.RheogramInput != null && updatedYplCalibration.YPLModelKelessidis != null && updatedYplCalibration.YPLModelMullineux != null)
             {
                 // first apply calculations
-                if (!updatedYplCalibration.CalculateYPLModelMullineux() || !updatedYplCalibration.CalculateYPLModelKelessidis())
+                if (!updatedYplCalibration.CalculateYPLModelMullineux() || !updatedYplCalibration.CalculateYPLModelKelessidis() || !updatedYplCalibration.CalculateYPLLevenbergMarquardt())
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCalibration");
                     return false;
@@ -716,6 +799,30 @@ namespace YPLCalibrationFromRheometer.Service
                                     "Name = '" + updatedYplCalibration.YPLModelKelessidis.Name + "', " +
                                     "YPLModel = '" + json + "' " +
                                     "WHERE ID = '" + updatedYplCalibration.YPLModelKelessidis.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                success = false;
+                            }
+                        }
+                        // then update Levenberg YPLModelOutput (which may have changed after calculation) in YPLModelOutputsTable 
+                        if (success)
+                        {
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCalibration.YPLModelLevenbergMarquardt);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCalibration.YPLModelLevenbergMarquardt.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCalibration.YPLModelLevenbergMarquardt.ID.ToString() + "'";
                                 int count = command.ExecuteNonQuery();
                                 if (count != 1)
                                 {

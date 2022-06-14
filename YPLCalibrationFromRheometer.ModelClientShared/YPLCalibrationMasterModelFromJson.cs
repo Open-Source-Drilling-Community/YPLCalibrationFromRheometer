@@ -29,6 +29,9 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
         [Newtonsoft.Json.JsonProperty("YPLModelMullineux", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public YPLModel YPLModelMullineux { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("YPLModelLevenbergMarquardt", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLModel YPLModelLevenbergMarquardt { get; set; }
+    
     
     }
     
