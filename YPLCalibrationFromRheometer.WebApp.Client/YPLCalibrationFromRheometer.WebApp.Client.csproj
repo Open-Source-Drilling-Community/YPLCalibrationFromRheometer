@@ -17,6 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\General.Std\NORCE.General.Std.csproj" />
 		<ProjectReference Include="..\YPLCalibrationFromRheometer.ModelClientShared\YPLCalibrationFromRheometer.ModelClientShared.csproj" />
 	</ItemGroup>
 

@@ -8,16 +8,9 @@
     }
   },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchUrl": "YPLCalibrationFromRheometer/webapp/Values",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "YPLCalibrationFromRheometer.WebApp.Client": {
       "commandName": "Project",
-      "launchUrl": "YPLCalibrationFromRheometer/webapp/Values",
+      "launchUrl": "YPLCalibrationFromRheometer/webapp/Rheograms",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -27,9 +20,16 @@
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/YPLCalibrationFromRheometer/webapp/Values",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/YPLCalibrationFromRheometer/webapp/Rheograms",
       "publishAllPorts": true,
       "useSSL": true
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchUrl": "YPLCalibrationFromRheometer/webapp/Rheograms",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   }
 }

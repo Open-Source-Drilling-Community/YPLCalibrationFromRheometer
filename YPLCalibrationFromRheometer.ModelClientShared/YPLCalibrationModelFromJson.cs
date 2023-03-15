@@ -144,13 +144,13 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
-    public partial class YPLCalibrationMaster 
+    public partial class TupleOfYPLCalibrationAndYPLCorrection 
     {
-        [Newtonsoft.Json.JsonProperty("YPLCalibration", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public YPLCalibration YPLCalibration { get; set; }
+        [Newtonsoft.Json.JsonProperty("Item1", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLCalibration Item1 { get; set; }
     
-        [Newtonsoft.Json.JsonProperty("YPLCorrection", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public YPLCorrection YPLCorrection { get; set; }
+        [Newtonsoft.Json.JsonProperty("Item2", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLCorrection Item2 { get; set; }
     
     
     }

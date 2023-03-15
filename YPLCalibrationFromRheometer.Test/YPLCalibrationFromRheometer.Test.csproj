@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<RootNamespace>YPLCalibrationFromRheometer.Test</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -12,9 +13,5 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\YPLCalibrationFromRheometer.ModelClientShared\YPLCalibrationFromRheometer.ModelClientShared.csproj" />
 	</ItemGroup>
-
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-		<Exec Command="dotnet run --project $(SolutionDir)\YPLCalibrationFromRheometer.JsonSD\YPLCalibrationFromRheometer.JsonSD.csproj&#xD;&#xA;dotnet run --project $(SolutionDir)\YPLCalibrationFromRheometer.JsonCL\YPLCalibrationFromRheometer.JsonCL.csproj&#xD;&#xA;" />
-	</Target>
 
 </Project>

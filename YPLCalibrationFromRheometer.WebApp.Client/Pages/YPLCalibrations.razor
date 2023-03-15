@@ -1,9 +1,5 @@
-﻿@page "/Values"
-@using System.Text
-@using YPLCalibrationFromRheometer.ModelClientShared
-@using Newtonsoft.Json
-@using Microsoft.Extensions.Logging
-@inject ILogger<YPLCorrections> logger
+﻿@page "/YPLCalibrations"
+@inject ILogger<YPLCalibrations> logger
 
 <h1>YPLCalibrations</h1>
 <div hidden="@IsHidSubPanel">
@@ -375,7 +371,7 @@ else
         bool success = false;
         try
         {
-            var a = await httpClient.GetAsync("Values");
+            var a = await httpClient.GetAsync("YPLCalibrations");
             if (a.IsSuccessStatusCode)
             {
                 Guid[] ids = null;
@@ -386,7 +382,7 @@ else
                 YPLCalibration calculationData = null;
                 for (int i = 0; i < ids.Length; i++)
                 {
-                    a = await httpClient.GetAsync("Values/" + ids[i].ToString());
+                    a = await httpClient.GetAsync("YPLCalibrations/" + ids[i].ToString());
                     if (a.IsSuccessStatusCode && a.Content != null)
                     {
                         str = await a.Content.ReadAsStringAsync();
@@ -501,7 +497,7 @@ else
         if (yplCalibrationList != null && idx >= 0 && idx < yplCalibrationList.Count && yplCalibrationList[idx] != null && !yplCalibrationList[idx].ID.Equals(System.Guid.Empty))
         {
             // delete YPLCalibration from database (output children are implicitly deleted from their database)
-            var a = await httpClient.DeleteAsync("Values/" + yplCalibrationList[idx].ID);
+            var a = await httpClient.DeleteAsync("YPLCalibrations/" + yplCalibrationList[idx].ID);
             if (a.IsSuccessStatusCode)
             {
                 await OnInitializedAsync();
@@ -523,7 +519,7 @@ else
 
             // PUT YPLCalibration into the YPLCalibrationsTable (calculation is performed and output children database is also updated)
             StringContent content = new StringContent(yplCalibrationList[idx].GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Values/" + yplCalibrationList[idx].ID, content);
+            var a = await httpClient.PutAsync("YPLCalibrations/" + yplCalibrationList[idx].ID, content);
             if (a.IsSuccessStatusCode)
             {
                 updatedYplCalibrationName = null;
@@ -575,7 +571,7 @@ else
 
             // POST the YPLCalibration (note that it adds RheogramInput to the input database, triggers the CalculateOutputRheogram() method and adds the corresponding output to the output database)
             StringContent content = new StringContent(addedYplCalibration.GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PostAsync("Values", content);
+            var a = await httpClient.PostAsync("YPLCalibrations", content);
             if (a.IsSuccessStatusCode)
             {
                 addedYplCalibrationName = null;
@@ -617,7 +613,7 @@ else
 
                     // then PUT the YPLCalibration with an updated RheogramInput value
                     StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].GetJson(), Encoding.UTF8, "application/json");
-                    a = await httpClient.PutAsync("Values/" + yplCalibrationID.ToString(), content);
+                    a = await httpClient.PutAsync("YPLCalibrations/" + yplCalibrationID.ToString(), content);
                     if (a.IsSuccessStatusCode)
                     {
                         await OnInitializedAsync();

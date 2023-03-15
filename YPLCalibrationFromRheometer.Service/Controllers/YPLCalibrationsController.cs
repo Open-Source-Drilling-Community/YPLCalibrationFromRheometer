@@ -9,20 +9,20 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
     [Produces("application/json")]
     [Route("[controller]")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class YPLCalibrationsController : ControllerBase
     {
         private readonly ILogger logger_;
         private readonly YPLCalibrationManager yplCalibrationManager_;
 
-        public ValuesController(ILoggerFactory loggerFactory)
+        public YPLCalibrationsController(ILoggerFactory loggerFactory)
         {
-            logger_ = loggerFactory.CreateLogger<ValuesController>();
+            logger_ = loggerFactory.CreateLogger<YPLCalibrationsController>();
             yplCalibrationManager_ = new YPLCalibrationManager(
                 loggerFactory,
                 new RheogramManager(loggerFactory));
         }
 
-        // GET api/Values
+        // GET api/YPLCalibrations
         [HttpGet]
         public IEnumerable<Guid> Get()
         {
@@ -30,14 +30,14 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
             return ids;
         }
 
-        // GET api/Values/f29b357f-8b76-4abe-ad84-4ccd5ccef77e
+        // GET api/YPLCalibrations/f29b357f-8b76-4abe-ad84-4ccd5ccef77e
         [HttpGet("{id}")]
         public YPLCalibration Get(Guid id)
         {
             return yplCalibrationManager_.Get(id);
         }
 
-        // POST api/Values
+        // POST api/YPLCalibrations
         [HttpPost]
         public void Post([FromBody] YPLCalibration value)
         {
@@ -59,7 +59,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
             }
         }
 
-        // PUT api/Values/f29b357f-8b76-4abe-ad84-4ccd5ccef77e
+        // PUT api/YPLCalibrations/f29b357f-8b76-4abe-ad84-4ccd5ccef77e
         [HttpPut("{id}")]
         public void Put(Guid id, [FromBody] YPLCalibration value)
         {
@@ -81,7 +81,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
             }
         }
 
-        // DELETE api/Values/f29b357f-8b76-4abe-ad84-4ccd5ccef77e
+        // DELETE api/YPLCalibrations/f29b357f-8b76-4abe-ad84-4ccd5ccef77e
         [HttpDelete("{id}")]
         public void Delete(Guid id)
         {

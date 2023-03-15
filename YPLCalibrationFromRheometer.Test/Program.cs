@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using YPLCalibrationFromRheometer.ModelClientShared;
 
@@ -13,26 +14,26 @@ namespace YPLCalibrationFromRheometer.Test
         static void Main(string[] args)
         {
             Test(args);
+            Thread.Sleep(10);
         }
 
         static async void Test(string[] args)
         {
-            string host = "https://app.DigiWells.no/";
-            //string host = "https://localhost:5001/";
+            Console.Write("YPLCalibrationFromRheometer Tests");
+            //string host = "https://app.DigiWells.no/";
+            string host = "http://localhost:5002/";
             if (args != null && args.Length >= 1)
             {
                 host = args[0];
             }
-            HttpClient httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/")
-            };
+            HttpClient httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             #region test1: read rheogram IDs
             List<Guid> initialRheogramIDs;
-            var a = httpClient.GetAsync("Rheograms/");
+            var a = httpClient.GetAsync("Rheograms");
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
@@ -45,7 +46,7 @@ namespace YPLCalibrationFromRheometer.Test
                         Console.WriteLine("Test #1: read rheograms IDs: success. IDs: ");
                         for (int i = 0; i < initialRheogramIDs.Count; i++)
                         {
-                            Console.WriteLine($"{i+1}) {initialRheogramIDs[i]}");
+                            Console.WriteLine($"{i + 1}) {initialRheogramIDs[i]}");
                         }
                         Console.WriteLine();
                     }
@@ -64,7 +65,7 @@ namespace YPLCalibrationFromRheometer.Test
                 Console.WriteLine("Test #1: read rheograms IDs: failure a");
             }
             #endregion
-            
+
             #region test2: post a new rheogram
             Rheogram addedRheogram = new Rheogram
             {
@@ -99,7 +100,7 @@ namespace YPLCalibrationFromRheometer.Test
                 Console.WriteLine("Test #2: post of rheogram: failure a");
             }
             #endregion
-            
+
             #region test3: check that the new ID is present
             List<Guid> newRheogramIDs;
             a = httpClient.GetAsync("Rheograms");
@@ -134,11 +135,12 @@ namespace YPLCalibrationFromRheometer.Test
                 Console.WriteLine("Test #3: check if new ID is present: failure a");
             }
             #endregion
-            
+
             #region test4: post a new YPLCalibration based on the new rheogram
+            Guid addedYPLCalibrationID = Guid.NewGuid();
             YPLCalibration addedYplCalibration = new YPLCalibration
             {
-                ID = Guid.NewGuid(),
+                ID = addedYPLCalibrationID,
                 Name = "New yplCalibration",
                 Description = "Test yplCalibration",
                 RheogramInput = addedRheogram
@@ -153,8 +155,13 @@ namespace YPLCalibrationFromRheometer.Test
                 ID = Guid.NewGuid(),
                 Name = addedYplCalibration.Name + "-calculated-Mullineux"
             };
+            addedYplCalibration.YPLModelLevenbergMarquardt = new YPLModel
+            {
+                ID = Guid.NewGuid(),
+                Name = addedYplCalibration.Name + "-calculated-LevenbergMarquardt"
+            };
             content = new StringContent(addedYplCalibration.GetJson(), Encoding.UTF8, "application/json");
-            a = httpClient.PostAsync("Values", content);
+            a = httpClient.PostAsync("YPLCalibrations", content);
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
@@ -165,16 +172,17 @@ namespace YPLCalibrationFromRheometer.Test
                 Console.WriteLine("Test #4: post of YPLCalibration: failure");
             }
             #endregion
-            
+
             #region test5: read the YPLCalibration for the new ID 
-            a = httpClient.GetAsync("Values/" + addedYplCalibration.ID.ToString());
+            YPLCalibration yplCalibration = null;
+            a = httpClient.GetAsync("YPLCalibrations/" + addedYplCalibration.ID.ToString());
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
                 string str = await a.Result.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(str))
                 {
-                    YPLCalibration yplCalibration = JsonConvert.DeserializeObject<YPLCalibration>(str);
+                    yplCalibration = JsonConvert.DeserializeObject<YPLCalibration>(str);
                     if (yplCalibration != null && yplCalibration.YPLModelMullineux != null && yplCalibration.YPLModelKelessidis != null)
                     {
                         Console.WriteLine("Test #5: read the input rheogram for the new YPLCalibration ID");
@@ -184,10 +192,12 @@ namespace YPLCalibrationFromRheometer.Test
                             Console.WriteLine("\t" + measurement.ShearRate.ToString() + "\t" + measurement.ShearStress.ToString());
                         }
                         Console.WriteLine();
-                        Console.WriteLine("Test #5: read the Kellessidis calibration pararmeters for the new YPLCalibration ID.");
-                        Console.WriteLine("\tTau0 = " + yplCalibration.YPLModelKelessidis.Tau0 + " Pa, K = " + yplCalibration.YPLModelKelessidis.K + " Pa.s, n = " + yplCalibration.YPLModelKelessidis.N + ", chi2 = " + yplCalibration.YPLModelKelessidis.Chi2);
-                        Console.WriteLine("Test #5: read the Mullineux calibration parameters for the new YPLCalibration ID.");
-                        Console.WriteLine("\tTau0 = " + yplCalibration.YPLModelMullineux.Tau0 + " Pa, K = " + yplCalibration.YPLModelMullineux.K + " Pa.s, n = " + yplCalibration.YPLModelMullineux.N + ", chi2 = " + yplCalibration.YPLModelMullineux.Chi2);
+                        Console.WriteLine("\tRead the Kellessidis calibration pararmeters for the new YPLCalibration ID.");
+                        Console.WriteLine("\t\tTau0 = " + yplCalibration.YPLModelKelessidis.Tau0 + " Pa, K = " + yplCalibration.YPLModelKelessidis.K + " Pa.s, n = " + yplCalibration.YPLModelKelessidis.N + ", chi2 = " + yplCalibration.YPLModelKelessidis.Chi2);
+                        Console.WriteLine("\tRead the Mullineux calibration parameters for the new YPLCalibration ID.");
+                        Console.WriteLine("\t\tTau0 = " + yplCalibration.YPLModelMullineux.Tau0 + " Pa, K = " + yplCalibration.YPLModelMullineux.K + " Pa.s, n = " + yplCalibration.YPLModelMullineux.N + ", chi2 = " + yplCalibration.YPLModelMullineux.Chi2);
+                        Console.WriteLine("\tRead the Levenberg-Marquardt calibration parameters for the new YPLCalibration ID.");
+                        Console.WriteLine("\t\tTau0 = " + yplCalibration.YPLModelLevenbergMarquardt.Tau0 + " Pa, K = " + yplCalibration.YPLModelLevenbergMarquardt.K + " Pa.s, n = " + yplCalibration.YPLModelLevenbergMarquardt.N + ", chi2 = " + yplCalibration.YPLModelLevenbergMarquardt.Chi2);
                     }
                     else
                     {
@@ -204,8 +214,95 @@ namespace YPLCalibrationFromRheometer.Test
                 Console.WriteLine("Test #5: failure a");
             }
             #endregion
-            
-            #region test6: put (update) the rheogram
+
+            #region test6: post a new YPLCorrection based on the new rheogram
+            Guid addedYPLCorrectionID = Guid.NewGuid();
+            YPLCorrection addedYplCorrection = new YPLCorrection
+            {
+                ID = addedYPLCorrectionID,
+                Name = "New yplCorrection",
+                Description = "Test yplCorrection",
+                RheogramInput = addedRheogram,
+                R1 = 0.017245,
+                R2 = 0.018415,
+                RheogramFullyCorrected = new Rheogram
+                {
+                    ID = Guid.NewGuid(),
+                    Name = "New fully corrected rheogram",
+                    Description = "Rheogram test",
+                    ShearStressStandardDeviation = 0.01,
+                    RheometerMeasurementList = new List<RheometerMeasurement>()
+                },
+                RheogramShearRateCorrected = new Rheogram
+                {
+                    ID = Guid.NewGuid(),
+                    Name = "New shear rate corrected rheogram",
+                    Description = "Rheogram test",
+                    ShearStressStandardDeviation = 0.01,
+                    RheometerMeasurementList = new List<RheometerMeasurement>()
+                },
+                RheogramShearStressCorrected = new Rheogram
+                {
+                    ID = Guid.NewGuid(),
+                    Name = "New shear stress corrected rheogram",
+                    Description = "Rheogram test",
+                    ShearStressStandardDeviation = 0.01,
+                    RheometerMeasurementList = new List<RheometerMeasurement>()
+                }
+            };
+            content = new StringContent(addedYplCorrection.GetJson(), Encoding.UTF8, "application/json");
+            a = httpClient.PostAsync("YPLCorrections", content);
+            a.Wait();
+            if (a.Result.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Test #6: post of YPLCorrection: success");
+            }
+            else
+            {
+                Console.WriteLine("Test #6: post of YPLCorrection: failure");
+            }
+            #endregion
+
+            #region test7: read the YPLCorrection for the new ID
+            List<RheometerMeasurement> inputRheoMeasurements;
+            List<RheometerMeasurement> correctedRheoMeasurements = new List<RheometerMeasurement>();
+            a = httpClient.GetAsync("YPLCorrections/" + addedYPLCorrectionID.ToString());
+            a.Wait();
+            if (a.Result.IsSuccessStatusCode)
+            {
+                string str = await a.Result.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    YPLCorrection yplCorrection = JsonConvert.DeserializeObject<YPLCorrection>(str);
+                    if (yplCorrection != null && yplCorrection.RheogramFullyCorrected != null && yplCorrection.RheogramShearRateCorrected != null && yplCorrection.RheogramShearStressCorrected != null)
+                    {
+                        Console.WriteLine("\tRead the input and corrected rheogram for the new YPLCorrection ID");
+                        Console.WriteLine("\tshear rate (1/s)\tshear stress (Pa) \t\tcorrected shear rate (1/s)\tcorrected shear stress (Pa)");
+                        inputRheoMeasurements = (List<RheometerMeasurement>)yplCorrection.RheogramInput.RheometerMeasurementList;
+                        correctedRheoMeasurements = (List<RheometerMeasurement>)yplCorrection.RheogramFullyCorrected.RheometerMeasurementList;
+                        for (int i = 0; i < inputRheoMeasurements.Count; ++i)
+                        {
+                            Console.WriteLine("\t" + inputRheoMeasurements[i].ShearRate.ToString() + "\t" + inputRheoMeasurements[i].ShearStress.ToString() +
+                                            "\t\t" + correctedRheoMeasurements[i].ShearRate.ToString() + "\t" + correctedRheoMeasurements[i].ShearStress.ToString());
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Test #7: failure c");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Test #7: failure b");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Test #7: failure a");
+            }
+            #endregion
+
+            #region test8: put (update) the rheogram
             tau0 = 3.0;
             K = 0.75;
             n = 0.50;
@@ -224,126 +321,162 @@ namespace YPLCalibrationFromRheometer.Test
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
-                Console.WriteLine("Test #6: update of rheogram: success");
+                Console.WriteLine("Test #8: update of rheogram: success");
             }
             else
             {
-                Console.WriteLine("Test #6: update of rheogram: failure");
+                Console.WriteLine("Test #8: update of rheogram: failure");
             }
             #endregion
 
-            #region test7: read YPLCalibration IDs
-            List<Guid> initialYPLCalibrationIDs;
-            a = httpClient.GetAsync("Values/");
+            #region test9: verify that the added YPLCalibration and added YPLCorrection referencing the updated rheogram have been updated
+            // YPLCalibrations
+            a = httpClient.GetAsync("YPLCalibrations/" + addedYPLCalibrationID.ToString());
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
                 string str = await a.Result.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(str))
                 {
-                    initialYPLCalibrationIDs = JsonConvert.DeserializeObject<List<Guid>>(str);
-                    if (initialYPLCalibrationIDs != null)
+                    YPLCalibration updatedYplCalibration = JsonConvert.DeserializeObject<YPLCalibration>(str);
+                    if (updatedYplCalibration != null)
                     {
-                        Console.WriteLine("Test #7: read YPLCalibration IDs: success. IDs: ");
-                        for (int i = 0; i < initialYPLCalibrationIDs.Count; i++)
-                        {
-                            Console.WriteLine($"{i + 1}) {initialYPLCalibrationIDs[i]}");
-                        }
+                        Console.WriteLine("\tReading the updated YPLCalibration: success");
                         Console.WriteLine();
+                        Console.WriteLine("\t\tMullineux calibration parameters for the original YPLCalibration");
+                        Console.WriteLine("\t\t\tTau0 = " + yplCalibration.YPLModelMullineux.Tau0 + " Pa, K = " + yplCalibration.YPLModelMullineux.K + " Pa.s, n = " + yplCalibration.YPLModelMullineux.N + ", chi2 = " + yplCalibration.YPLModelMullineux.Chi2);
+                        Console.WriteLine("\t\tMullineux calibration parameters for the updated YPLCalibration");
+                        Console.WriteLine("\t\t\tTau0 = " + updatedYplCalibration.YPLModelMullineux.Tau0 + " Pa, K = " + updatedYplCalibration.YPLModelMullineux.K + " Pa.s, n = " + updatedYplCalibration.YPLModelMullineux.N + ", chi2 = " + updatedYplCalibration.YPLModelMullineux.Chi2);
                     }
                     else
                     {
-                        Console.Write("Test #7: read YPLCalibration IDs: success. but no IDs");
+                        Console.Write("Test #9: check YPLCalibration updated after Rheogram update: failure no retrieved YPLCalibration");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Test #7: read YPLCalibration IDs: failure b");
+                    Console.WriteLine("Test #9: check YPLCalibration updated after Rheogram update: failure b");
                 }
             }
             else
             {
-                Console.WriteLine("Test #1: read YPLCalibration IDs: failure a");
+                Console.WriteLine("Test #9: check YPLCalibration updated after Rheogram update: failure a");
             }
-            #endregion
 
-            #region test8: put (update) the YPLCalibration
-            addedYplCalibration.Name = "Updated name and rheogram";
-            addedYplCalibration.RheogramInput = addedRheogram;
-            content = new StringContent(addedYplCalibration.GetJson(), Encoding.UTF8, "application/json");
-            a = httpClient.PutAsync("Values/" + addedYplCalibration.ID.ToString(), content);
-            a.Wait();
-            if (a.Result.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Test #8: update of YPLCalibration: success");
-            }
-            else
-            {
-                Console.WriteLine("Test #8: update of YPLCalibration: failure");
-            }
-            #endregion
-            
-            #region test9: read the updated YPLCalibration
-            a = httpClient.GetAsync("Values/" + addedYplCalibration.ID.ToString());
+            // YPLCorrections
+            List<RheometerMeasurement> updatedRheoMeasurements;
+            a = httpClient.GetAsync("YPLCorrections/" + addedYPLCorrectionID.ToString());
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
                 string str = await a.Result.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(str))
                 {
-                    YPLCalibration yplCalibration = JsonConvert.DeserializeObject<YPLCalibration>(str);
+                    YPLCorrection updatedYplCorrection = JsonConvert.DeserializeObject<YPLCorrection>(str);
+                    if (updatedYplCorrection != null)
+                    {
+                        Console.WriteLine("\tRead the corrected rheogram before and after update of the input rheogram for the previously added YPLCorrection");
+                        Console.WriteLine("\tshear rate (1/s)\tshear stress (Pa) \t\tupdated shear rate (1/s)\tupdated shear stress (Pa)");
+                        updatedRheoMeasurements = (List<RheometerMeasurement>)updatedYplCorrection.RheogramFullyCorrected.RheometerMeasurementList;
+                        for (int i = 0; i < updatedRheoMeasurements.Count; ++i)
+                        {
+                            Console.WriteLine("\t" + correctedRheoMeasurements[i].ShearRate.ToString() + "\t" + correctedRheoMeasurements[i].ShearStress.ToString() +
+                                            "\t\t" + updatedRheoMeasurements[i].ShearRate.ToString() + "\t" + updatedRheoMeasurements[i].ShearStress.ToString());
+                        }
+                    }
+                    else
+                    {
+                        Console.Write("Test #9: read YPLCorrection IDs: success. but no IDs");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Test #9: read YPLCorrection IDs: failure b");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Test #1: read YPLCorrection IDs: failure a");
+            }
+            #endregion
+
+            #region test10: put (update) the YPLCalibration
+            addedYplCalibration.Name = "Updated name and rheogram";
+            addedYplCalibration.RheogramInput = addedRheogram;
+            content = new StringContent(addedYplCalibration.GetJson(), Encoding.UTF8, "application/json");
+            a = httpClient.PutAsync("YPLCalibrations/" + addedYplCalibration.ID.ToString(), content);
+            a.Wait();
+            if (a.Result.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Test #10: update of YPLCalibration: success");
+            }
+            else
+            {
+                Console.WriteLine("Test #10: update of YPLCalibration: failure");
+            }
+            #endregion
+
+            #region test11: read the updated YPLCalibration
+            a = httpClient.GetAsync("YPLCalibrations/" + addedYplCalibration.ID.ToString());
+            a.Wait();
+            if (a.Result.IsSuccessStatusCode)
+            {
+                string str = await a.Result.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    yplCalibration = JsonConvert.DeserializeObject<YPLCalibration>(str);
                     if (yplCalibration != null && yplCalibration.Name.Equals("Updated name and rheogram"))
                     {
-                        Console.WriteLine("Test #9: reading the updated YPLCalibration: success");
+                        Console.WriteLine("Test #11: reading the updated YPLCalibration: success");
                         if (yplCalibration != null && yplCalibration.YPLModelMullineux != null && yplCalibration.YPLModelKelessidis != null)
                         {
-                            Console.WriteLine("Test #9: read the input rheogram for the updated YPLCalibration ID");
+                            Console.WriteLine("Test #11: read the input rheogram for the updated YPLCalibration ID");
                             Console.WriteLine("\tshear rate (1/s)\tshear stress (Pa)");
                             foreach (RheometerMeasurement measurement in yplCalibration.RheogramInput.RheometerMeasurementList)
                             {
                                 Console.WriteLine("\t" + measurement.ShearRate.ToString() + "\t" + measurement.ShearStress.ToString());
                             }
                             Console.WriteLine();
-                            Console.WriteLine("Test #9: read the Kellessidis calibration pararmeters for the updated YPLCalibration ID.");
+                            Console.WriteLine("Test #11: read the Kellessidis calibration pararmeters for the updated YPLCalibration ID.");
                             Console.WriteLine("\tTau0 = " + yplCalibration.YPLModelKelessidis.Tau0 + " Pa, K = " + yplCalibration.YPLModelKelessidis.K + " Pa.s, n = " + yplCalibration.YPLModelKelessidis.N + ", chi2 = " + yplCalibration.YPLModelKelessidis.Chi2);
-                            Console.WriteLine("Test #9: read the Mullineux calibration parameters for the updated YPLCalibration ID.");
+                            Console.WriteLine("Test #11: read the Mullineux calibration parameters for the updated YPLCalibration ID.");
                             Console.WriteLine("\tTau0 = " + yplCalibration.YPLModelMullineux.Tau0 + " Pa, K = " + yplCalibration.YPLModelMullineux.K + " Pa.s, n = " + yplCalibration.YPLModelMullineux.N + ", chi2 = " + yplCalibration.YPLModelMullineux.Chi2);
                         }
                         else
                         {
-                            Console.WriteLine("Test #9: failure c");
+                            Console.WriteLine("Test #11: failure c");
                         }
                     }
                     else
                     {
-                        Console.WriteLine("Test #9: reading the updated YPLCalibration: failure");
+                        Console.WriteLine("Test #11: reading the updated YPLCalibration: failure");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Test #9: read the default calibration for the new ID: failure b");
+                    Console.WriteLine("Test #11: read the default calibration for the new ID: failure b");
                 }
             }
             else
             {
-                Console.WriteLine("Test #9: read the default calibration for the new ID: failure a");
+                Console.WriteLine("Test #11: read the default calibration for the new ID: failure a");
             }
             #endregion
-            
-            # region test10: delete the rheogram 
+
+            #region test12: delete the rheogram 
             a = httpClient.DeleteAsync("Rheograms/" + addedRheogram.ID.ToString());
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
-                Console.WriteLine("Test #10: delete of rheogram: success");
+                Console.WriteLine("Test #12: delete of rheogram: success");
             }
             else
             {
-                Console.WriteLine("Test #10: delete of rheogram: failure");
+                Console.WriteLine("Test #12: delete of rheogram: failure");
             }
             #endregion
 
-            #region test11: check that the rheogram has been deleted
+            #region test13: check that the rheogram has been deleted
             List<Guid> updatedRheogramIDs;
             a = httpClient.GetAsync("Rheograms");
             a.Wait();
@@ -355,7 +488,7 @@ namespace YPLCalibrationFromRheometer.Test
                     updatedRheogramIDs = JsonConvert.DeserializeObject<List<Guid>>(str);
                     if (updatedRheogramIDs != null && !updatedRheogramIDs.Contains(addedRheogram.ID))
                     {
-                        Console.WriteLine("Test #10: that the rheogram has been deleted: success. IDs: ");
+                        Console.WriteLine("Test #13: that the rheogram has been deleted: success. IDs: ");
                         for (int i = 0; i < updatedRheogramIDs.Count; i++)
                         {
                             Console.WriteLine($"{i + 1}) {updatedRheogramIDs[i]}");
@@ -364,23 +497,23 @@ namespace YPLCalibrationFromRheometer.Test
                     }
                     else
                     {
-                        Console.WriteLine("Test #11: that the rheogram has been deleted: failure c");
+                        Console.WriteLine("Test #13: that the rheogram has been deleted: failure c");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Test #11: that the rheogram has been deleted: failure b");
+                    Console.WriteLine("Test #13: that the rheogram has been deleted: failure b");
                 }
             }
             else
             {
-                Console.WriteLine("Test #11: that the rheogram has been deleted: failure a");
+                Console.WriteLine("Test #13: that the rheogram has been deleted: failure a");
             }
             #endregion
 
-            #region test12: check that the YPLCalibration has been deleted in the same time
+            #region test14: check that the YPLCalibration has been deleted in the same time
             List<Guid> updatedYPLCalibrationIDs;
-            a = httpClient.GetAsync("Values");
+            a = httpClient.GetAsync("YPLCalibrations");
             a.Wait();
             if (a.Result.IsSuccessStatusCode)
             {
@@ -390,7 +523,7 @@ namespace YPLCalibrationFromRheometer.Test
                     updatedYPLCalibrationIDs = JsonConvert.DeserializeObject<List<Guid>>(str);
                     if (updatedYPLCalibrationIDs != null && !updatedYPLCalibrationIDs.Contains(addedYplCalibration.ID))
                     {
-                        Console.WriteLine("Test #12: check that the YPLCalibration has been deleted in the same time: success. IDs: ");
+                        Console.WriteLine("Test #14: check that the YPLCalibration has been deleted in the same time: success. IDs: ");
                         for (int i = 0; i < updatedYPLCalibrationIDs.Count; i++)
                         {
                             Console.WriteLine($"{i + 1}) {updatedYPLCalibrationIDs[i]}");
@@ -399,17 +532,17 @@ namespace YPLCalibrationFromRheometer.Test
                     }
                     else
                     {
-                        Console.WriteLine("Test #12: check that the YPLCalibration has been deleted in the same time: failure c");
+                        Console.WriteLine("Test #14: check that the YPLCalibration has been deleted in the same time: failure c");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Test #13: check that the rheogram has been deleted: failure b");
+                    Console.WriteLine("Test #14: check that the rheogram has been deleted: failure b");
                 }
             }
             else
             {
-                Console.WriteLine("Test #13: check that the rheogram has been deleted: failure a");
+                Console.WriteLine("Test #14: check that the rheogram has been deleted: failure a");
             }
             #endregion
 

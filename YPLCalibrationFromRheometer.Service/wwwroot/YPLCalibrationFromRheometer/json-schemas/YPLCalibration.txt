@@ -1,28 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "YPLCalibrationMaster",
+  "title": "TupleOfYPLCalibrationAndYPLCorrection",
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "YPLCalibration": {
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "#/definitions/YPLCalibration"
-        }
-      ]
+    "Item1": {
+      "$ref": "#/definitions/YPLCalibration"
     },
-    "YPLCorrection": {
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "$ref": "#/definitions/YPLCorrection"
-        }
-      ]
+    "Item2": {
+      "$ref": "#/definitions/YPLCorrection"
     }
   },
   "definitions": {

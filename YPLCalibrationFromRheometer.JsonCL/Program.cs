@@ -51,12 +51,12 @@ namespace YPLCalibrationFromRheometer.JsonCL
             {
                 codeNamespace = args[1];
             }
-            JsonSchema pipeModelSchema = await JsonSchema.FromFileAsync(jsonSchemaRootDir + "YPLCalibrationMaster.txt");
+            JsonSchema pipeModelSchema = await JsonSchema.FromFileAsync(jsonSchemaRootDir + "YPLCalibration.txt");
             CSharpGeneratorSettings settings = new CSharpGeneratorSettings();
             settings.Namespace = codeNamespace;
             var pipeModelGenerator = new CSharpGenerator(pipeModelSchema, settings);
             var pipeModelFile = pipeModelGenerator.GenerateFile();
-            using (StreamWriter writer = new StreamWriter(sourceCodeDir + "YPLCalibrationMasterModelFromJson.cs"))
+            using (StreamWriter writer = new StreamWriter(sourceCodeDir + "YPLCalibrationModelFromJson.cs"))
             {
                 writer.WriteLine(pipeModelFile);
             }

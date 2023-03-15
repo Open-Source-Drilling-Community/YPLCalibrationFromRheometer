@@ -473,11 +473,6 @@ else
                 {
                     string tempPath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
-                    //await using (FileStream fs = new(tempPath, FileMode.Create))
-                    //{
-                    //    await file.OpenReadStream().CopyToAsync(fs);
-                    //}
-
                     await using FileStream writeStream = new(tempPath, FileMode.Create);
                     using var readStream = file.OpenReadStream();
                     var bytesRead = 0;
@@ -558,10 +553,11 @@ else
     private bool ParseDataTable(DataTable table, List<List<RheometerMeasurement>> rheoLists)
     {
         //a valid rheogram must consist of a set of:
-        //    - 2 columns (shear rate and shear stress)
+        //    - 2 columns (containing the labels defined in SRLabels and SSLabels)
         //    - with at least 1 header row (containing the strings "shear rate" and "shear stress")
-        //    - and at max 2 header rows (second: containing units strings, in any case assumed to be expressed in SI)
-        //    - and 3 double type data rows
+        //    - at max 2 header rows (second: containing units strings, in any case assumed to be expressed in SI)
+        //    - at least 3 double type data rows
+        //    - no more than 2 consecutive RheometerMeasurement having the same shear rate (when applying ramp down and up)
         List<int[]> startIndices = new List<int[]>();
         int minMeasCount = 3;
         //first, parse for starting indices within the table that met the first two above conditions
@@ -599,15 +595,21 @@ else
             }
             //finally, store rheometer measurements for the current rheogram
             int i = 0;
+            double srPrev = -999.25;
+            double srPrevPrev = -998.25;
+
             while (i < table.Rows.Count - i0 &&
                 double.TryParse(table.Rows[i0 + i][j0].ToString(), out sr) &&
-                double.TryParse(table.Rows[i0 + i][j0 + 1].ToString(), out ss))
+                double.TryParse(table.Rows[i0 + i][j0 + 1].ToString(), out ss) &&
+                !NORCE.General.Std.Numeric.EQ(sr, srPrev) && !NORCE.General.Std.Numeric.EQ(sr, srPrevPrev))
             {
                 RheometerMeasurement meas = new RheometerMeasurement();
                 meas.ShearRate = sr;
                 meas.ShearStress = ss;
                 rheoList.Add(meas);
                 i++;
+                srPrevPrev = srPrev;
+                srPrev = sr;
             }
             logger.LogInformation($"     record's count is {i}");
             if (i >= minMeasCount)
@@ -790,6 +792,13 @@ else
             shearRates.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearRate);
             shearStresses.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearStress);
         }
-        await flowCurvePlot.Plot();
+        try
+        {
+            await flowCurvePlot.Plot();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex.Message, "Plot has been disposed");
+        }
     }
 }

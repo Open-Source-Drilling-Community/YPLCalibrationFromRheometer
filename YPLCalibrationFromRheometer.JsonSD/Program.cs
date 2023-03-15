@@ -29,9 +29,9 @@ namespace YPLCalibrationFromRheometer.JsonSD
                 }
             } while (!found);
             rootDir += "YPLCalibrationFromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
-            var baseData1Schema = JsonSchema.FromType<YPLCalibrationMaster>();
+            var baseData1Schema = JsonSchema.FromType<Tuple<YPLCalibration, YPLCorrection>>();
             var baseData1SchemaJson = baseData1Schema.ToJson();
-            using (StreamWriter writer = new StreamWriter(rootDir + "YPLCalibrationMaster.txt"))
+            using (StreamWriter writer = new StreamWriter(rootDir + "YPLCalibration.txt"))
             {
                 writer.WriteLine(baseData1SchemaJson);
             }

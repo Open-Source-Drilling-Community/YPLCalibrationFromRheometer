@@ -777,13 +777,13 @@ namespace YPLCalibrationFromRheometer.Service
                                 int count = command.ExecuteNonQuery();
                                 if (count != 1)
                                 {
-                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                    logger_.LogWarning("Impossible to update the calculated Mullineux YPLModel associated to the given YPLCalibration");
                                     success = false;
                                 }
                             }
                             catch (SQLiteException ex)
                             {
-                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                logger_.LogError(ex, "Impossible to update the calculated Mullineux YPLModel associated to the given YPLCalibration");
                                 success = false;
                             }
                         }
@@ -802,13 +802,13 @@ namespace YPLCalibrationFromRheometer.Service
                                 int count = command.ExecuteNonQuery();
                                 if (count != 1)
                                 {
-                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                    logger_.LogWarning("Impossible to update the calculated Kelessidis YPLModel associated to the given YPLCalibration");
                                     success = false;
                                 }
                             }
                             catch (SQLiteException ex)
                             {
-                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                logger_.LogError(ex, "Impossible to update the calculated Kelessidis YPLModel associated to the given YPLCalibration");
                                 success = false;
                             }
                         }
@@ -826,13 +826,13 @@ namespace YPLCalibrationFromRheometer.Service
                                 int count = command.ExecuteNonQuery();
                                 if (count != 1)
                                 {
-                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                    logger_.LogWarning("Impossible to update the calculated Levenberg-Marquardt YPLModel associated to the given YPLCalibration");
                                     success = false;
                                 }
                             }
                             catch (SQLiteException ex)
                             {
-                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the given YPLCalibration");
+                                logger_.LogError(ex, "Impossible to update the calculated Levenberg-Marquardt YPLModel associated to the given YPLCalibration");
                                 success = false;
                             }
                         }
