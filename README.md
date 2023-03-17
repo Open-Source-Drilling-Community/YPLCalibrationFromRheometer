@@ -4,7 +4,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%230000ff&logo=GitHub)
 ![GitHub issues](https://img.shields.io/github/issues/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%23FF0000&logo=GitHub)
 ![GitHub](https://img.shields.io/github/license/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%2300FFFF)
-![Website](https://img.shields.io/website?up_color=%232db83d&up_message=OSDC.org&url=https%3A%2F%2Fopensourcedrilling.org%2F)
+![Website](https://img.shields.io/badge?up_color=%232db83d&up_message=OSDC.org&url=https%3A%2F%2Fopensourcedrilling.org%2F)
 
 Yield Power Law Model Calibration Methods
 ===
