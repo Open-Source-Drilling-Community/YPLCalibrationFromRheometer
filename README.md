@@ -10,23 +10,15 @@
 [contributors-shield]: https://img.shields.io/github/contributors/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?logo=GitHub
 [contributors-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?logo=GitHub
-
 [forks-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/network/members
-
 [stars-shield]: https://img.shields.io/github/stars/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%230000ff&logo=GitHub
 [stars-url]: https://img.shields.io/github/stars/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?style=flat-square
-
 [issues-shield]: https://img.shields.io/github/issues/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%23FF0000&logo=GitHub
 [issues-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/issues
-
 [license-shield]: https://img.shields.io/github/license/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%2300FFFF
 [license-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/blob/master/LICENSE
-
-<!--
-[website-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
-[website-url]: https://www.linkedin.com/in/iammukeshm/
-![Website](https://img.shields.io/badge/foo-bar.svg)
- -->
+[website-shield]: https://img.shields.io/badge/foo-bar-black.svg?style=flat-square
+[website-url]: https://opensourcedrilling.org/
 
 Yield Power Law Model Calibration Methods
 ===
