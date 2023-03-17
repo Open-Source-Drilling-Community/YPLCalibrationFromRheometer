@@ -70,9 +70,32 @@ The program is composed of:
 
 # Software solution layout
 
-The development is made in C#. The projects utilize .NET Standard LTS (.NET Core 3.1) and therefore are compatible with both Windows, Linux and MacOS operating systems. Visual Studio is used for the developmenent but it should be possible to build the solution from the command line for those who just have the .Net environment without Visual Studio.
+The program is packaged as a Visual Studio solution, developed in C# and based on the .NET Core 3.1 framework (compatible with Windows, Linux and MacOS).
 
-The software solutions contain:
+Visual Studio is used for the developmenent but it should be possible to build the solution from the command line for those who just have the .Net environment without Visual Studio.
+
+The solution is structure as follows:
+
+```bash
+YPLCalibrationFromRheometer/
+│
+├── Model/
+│   ├── defines the data model
+│   ├── implements calculations
+├── Service/
+│   ├── 
+├── WebApp.Client/
+│   ├── 
+├── RheometerCorrectionApp/
+│   ├── 
+├── Test
+│   ├── 
+├── NUnit
+│   ├── 
+└── ModelClientShared
+    └──  					"Explaining relations between each module"
+
+```
 
 - A model where the actual calibration and correction are made.
 - Unit tests to control that the implemented method works and that any later modifications do not break backward compatibility.
