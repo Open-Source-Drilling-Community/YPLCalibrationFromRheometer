@@ -1,0 +1,55 @@
+﻿<table class="table" hidden="@IsHidden">
+    <thead>
+        <tr>
+            <td>
+                <span>Shear-rate (</span>
+                <SpanUnitLabel QuantityName="FluidShearRate" />
+                <span>)</span>
+            </td>
+            <td>
+                <span>Shear-stress (</span>
+                <SpanUnitLabel QuantityName="FluidShearStress" />
+                <span>)</span>
+            </td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Rheogram.RheometerMeasurementList.Count > 0)
+        {
+            @for (int j = 0; j < Rheogram.RheometerMeasurementList.Count; j++)
+            {
+                var rheometerMeasurement = Rheogram.RheometerMeasurementList.ElementAt(j);
+                @if (rheometerMeasurement != null)
+                {
+                    <tr>
+                       <td>
+                           <SpanWithUnit QuantityName="FluidShearRate"
+                                         SIValue="@(rheometerMeasurement.ShearRate)" />
+                       </td>
+                       <td>
+                            <SpanWithUnit QuantityName="FluidShearStress"
+                                          SIValue="@(rheometerMeasurement.ShearStress)" />
+                       </td>
+                       <td></td>
+                    </tr>
+                }
+            }
+        }
+        else
+        {
+            <tr>Something went wrong with the input or the calculation</tr>
+        }
+    </tbody>
+    <tfoot>
+    </tfoot>
+</table>
+
+@code {
+    [Parameter]
+    public Rheogram Rheogram { get; set; }
+
+    [Parameter]
+    public bool IsHidden { get; set; }
+
+}

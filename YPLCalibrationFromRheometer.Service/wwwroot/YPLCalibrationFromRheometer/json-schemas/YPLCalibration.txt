@@ -222,6 +222,16 @@
             }
           ]
         },
+        "YPLModelBasedOnNewtonianInputs": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
+            }
+          ]
+        },
         "RheogramFullyCorrected": {
           "oneOf": [
             {
@@ -229,6 +239,16 @@
             },
             {
               "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        },
+        "YPLModelFullyCorrected": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
             }
           ]
         },
@@ -242,6 +262,16 @@
             }
           ]
         },
+        "YPLModelShearRateCorrected": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
+            }
+          ]
+        },
         "RheogramShearStressCorrected": {
           "oneOf": [
             {
@@ -249,6 +279,16 @@
             },
             {
               "$ref": "#/definitions/Rheogram"
+            }
+          ]
+        },
+        "YPLModelShearStressCorrected": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
             }
           ]
         }

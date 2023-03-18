@@ -131,14 +131,26 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
         [Newtonsoft.Json.JsonProperty("RheogramInput", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Rheogram RheogramInput { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("YPLModelBasedOnNewtonianInputs", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLModel YPLModelBasedOnNewtonianInputs { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("RheogramFullyCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Rheogram RheogramFullyCorrected { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("YPLModelFullyCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLModel YPLModelFullyCorrected { get; set; }
     
         [Newtonsoft.Json.JsonProperty("RheogramShearRateCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Rheogram RheogramShearRateCorrected { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("YPLModelShearRateCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLModel YPLModelShearRateCorrected { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("RheogramShearStressCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Rheogram RheogramShearStressCorrected { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("YPLModelShearStressCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLModel YPLModelShearStressCorrected { get; set; }
     
     
     }

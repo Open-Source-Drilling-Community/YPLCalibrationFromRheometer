@@ -19,7 +19,7 @@ namespace YPLCalibrationFromRheometer.JsonSD
             do
             {
                 DirectoryInfo info = Directory.GetParent(rootDir);
-                if (info != null && "YPLCalibrationFromRheometer".Equals(info.Name))
+                if (info != null && info.Name != null && info.Name.StartsWith("YPLCalibrationFromRheometer"))
                 {
                     found = true;
                 }
@@ -28,7 +28,7 @@ namespace YPLCalibrationFromRheometer.JsonSD
                     rootDir += "..\\";
                 }
             } while (!found);
-            rootDir += "YPLCalibrationFromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
+            rootDir += "..\\YPLCalibrationFromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
             var baseData1Schema = JsonSchema.FromType<Tuple<YPLCalibration, YPLCorrection>>();
             var baseData1SchemaJson = baseData1Schema.ToJson();
             using (StreamWriter writer = new StreamWriter(rootDir + "YPLCalibration.txt"))

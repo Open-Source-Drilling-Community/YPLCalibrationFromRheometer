@@ -1,0 +1,314 @@
+﻿@page "/DrillingUnitChoiceSets"
+@inject ILogger<DrillingUnitChoiceSets> logger
+
+@if (unitChoiceSets_ == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <h1>Management of Unit Choice Conversion Sets</h1>
+    <p>A unit choice conversion set is an association of a preferred unit choice for each physical quantity.</p>
+    <p>There are 4 prededined unit choice conversion sets:</p>
+    <li>SI: international unit system</li>
+    <li>Metric: metric-based unit system</li>
+    <li>US: US-based unit system</li>
+    <li>Imperial: UK-based unit system</li>
+    <p>It is possible to define new unit choice conversion sets.</p>
+    <h2>List of Unit Conversion Sets</h2>
+    <div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>
+                        <span class="label">Unit System Name</span>
+                    </td>
+                    <td>
+                        <span class="label">Unit System Description</span>
+                    </td>
+                    <td>
+                        <span class="label">Is Default</span>
+                    </td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < unitChoiceSets_.Count; i++)
+                {
+                    var local_i = i; // Do not use a loop variable directly in a lambda expression
+                    <tr>
+                        <td>@unitChoiceSets_[i].Name</td>
+                        <td>@unitChoiceSets_[i].Description</td>
+                        <td>@unitChoiceSets_[i].Flags["IsDefault"]</td>
+                        <td align="right">
+                            <button class="btn btn-primary" hidden="@unitChoiceSets_[local_i].Flags["IsDefault"]" @onclick="@(() => Delete(local_i))">Delete</button>
+                            <button class="btn btn-primary" @onclick="@(() => Details(local_i))">
+                                @(@unitChoiceSets_[local_i].Flags["IsDefault"] ? "Details" : "Edit")
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>
+                        <input class="label" type="text" @bind="@UnitConversionSetName" />
+                    </td>
+                    <td>
+                        <input class="label" type="text" @bind="@unitConversionSetDescription" />
+                    </td>
+                    <td></td>
+                    <td align="right">
+                        <button class="btn btn-primary" hidden="@isHiddenAdd" @onclick="Add">Add</button>
+                        <button class="btn btn-primary" @onclick="Cancel">Cancel</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <h2>Unit Conversion Set Details</h2>
+    <div>
+        <button hidden="@isHiddenUpdate" class="btn btn-primary" @onclick="@(() => Update())">Update</button>
+        <button class="btn btn-primary" @onclick="@(() => CancelDetails())">Cancel</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Quantity</td>
+                    <td>Unit Choice</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (QuantityUnitChoiceAssociation assoc in quantityUnitAssociations_)
+                {
+                    <tr>
+                        <td>
+                            <span>@assoc.Quantity.Name</span>
+                        </td>
+                        <td>
+                            <span hidden="@isHiddenEdit">@assoc.UnitChoiceName</span>
+                            <select hidden="@isHiddenUpdate" @bind="@assoc.UnitChoiceName">
+                                @foreach (OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.UnitChoice unitChoice in assoc.Quantity.UnitChoices)
+                                {
+                                    <option>@unitChoice.UnitName</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button hidden="@isHiddenUpdate" class="btn btn-primary" @onclick="@(() => Update())">Update</button>
+        <button class="btn btn-primary" @onclick="@(() => CancelDetails())">Cancel</button>
+    </div>
+}
+@code
+{
+    class QuantityUnitChoiceAssociation
+    {
+        public OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity Quantity { get; set; }
+        public string UnitChoiceName { get; set; }
+    }
+    //http client
+    private HttpClient httpClient;
+    private bool isHiddenAdd = true;
+    private string unitConversionSetName_ = null;
+    private string unitConversionSetDescription = null;
+    private List<MetaInfo> unitChoiceSets_ = null;
+    private OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.DrillingUnitChoiceSet currentDetails_ = null;
+    private List<QuantityUnitChoiceAssociation> quantityUnitAssociations_ = null;
+    private List<OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity> drillingPhysicalQuantities_ = null;
+    private bool isHiddenUpdate = true;
+    private bool isHiddenEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            unitChoiceSets_ = new List<MetaInfo>();
+            quantityUnitAssociations_ = new List<QuantityUnitChoiceAssociation>();
+            drillingPhysicalQuantities_ = new List<OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity>();
+            string host = YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL;
+            logger.LogInformation("Trying to load DrillingUnitChoiceSets from client: " + host);
+            httpClient = APIUtilsUnitConversion.SetHttpClient(host, "YPLCalibrationFromRheometer/api/");
+            unitChoiceSets_ = await APIUtilsUnitConversion.LoadDrillingUnitChoiceSets(httpClient, logger);
+            drillingPhysicalQuantities_ = await APIUtilsUnitConversion.LoadDrillingPhysicalQuantities(httpClient, logger);
+        }
+        catch (Exception ex)
+        {
+            httpClient = null;
+            logger.LogError(ex, "Impossible to load DrillingUnitChoiceSets on initialization");
+        }
+    }
+
+    private string UnitConversionSetName
+    {
+        get
+        {
+            return unitConversionSetName_;
+        }
+        set
+        {
+            unitConversionSetName_ = value;
+            PostProcessUnitConversionName();
+        }
+    }
+    private async void Details(int i)
+    {
+        if (i >= 0 && i < unitChoiceSets_.Count && drillingPhysicalQuantities_ != null)
+        {
+            currentDetails_ = await APIUtilsUnitConversion.LoadDrillingUnitChoiceSets(httpClient, logger, unitChoiceSets_[i].ID);
+            if (currentDetails_ != null && currentDetails_.Choices != null)
+            {
+                isHiddenUpdate = currentDetails_.IsDefault;
+                isHiddenEdit = !isHiddenUpdate;
+                quantityUnitAssociations_.Clear();
+                foreach (string key in currentDetails_.Choices.Keys)
+                {
+                    OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity quantity = null;
+                    foreach (OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity q in drillingPhysicalQuantities_)
+                    {
+                        if (q != null && q.ID.ToString() == key)
+                        {
+                            quantity = q;
+                            break;
+                        }
+                    }
+                    if (quantity != null)
+                    {
+                        string unitChoiceID;
+                        if (currentDetails_.Choices.TryGetValue(key, out unitChoiceID))
+                        {
+                            string unitChoiceName = null;
+                            foreach (OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.UnitChoice unitChoice in quantity.UnitChoices)
+                            {
+                                if (unitChoice != null && unitChoice.ID.ToString() == unitChoiceID)
+                                {
+                                    unitChoiceName = unitChoice.UnitName;
+                                    break;
+                                }
+                            }
+                            if (!string.IsNullOrEmpty(unitChoiceName))
+                            {
+                                quantityUnitAssociations_.Add(new QuantityUnitChoiceAssociation() { Quantity = quantity, UnitChoiceName = unitChoiceName });
+                            }
+                        }
+                    }
+                }
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+        }
+    }
+    private async void Delete(int i)
+    {
+        if (unitChoiceSets_ != null && i >= 0 && i < unitChoiceSets_.Count && !unitChoiceSets_[i].Flags["IsDefault"])
+        {
+            bool success = await APIUtilsUnitConversion.DeleteDrillingUnitConversionSet(httpClient, logger, unitChoiceSets_[i].ID);
+            if (success)
+            {
+                unitChoiceSets_ = await APIUtilsUnitConversion.LoadDrillingUnitChoiceSets(httpClient, logger);
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+        }
+    }
+    private async void Add()
+    {
+        if (!string.IsNullOrEmpty(UnitConversionSetName))
+        {
+            if (drillingPhysicalQuantities_ != null)
+            {
+                Dictionary<string, string> choices = new Dictionary<string, string>();
+                //note that only (57) drillingPhysicalQuantities are added to custom DrillingUnitChoiceSets, contrary to default UnitChoiceSet that contain both drillingPhysicalQuantities (57) and physicalQuantities (66)
+                foreach (OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity quantity in drillingPhysicalQuantities_)
+                {
+                    if (quantity != null)
+                    {
+                        Guid SIUnitID = Guid.Empty;
+                        foreach (OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.UnitChoice choice in quantity.UnitChoices)
+                        {
+                            if (choice.IsSI)
+                            {
+                                SIUnitID = choice.ID;
+                                break;
+                            }
+                        }
+                        choices.Add(quantity.ID.ToString(), SIUnitID.ToString());
+                    }
+                }
+                //a DrillingUnitChoiceSet is created based on data provided by the user (ID, Name, Description, Choices)
+                OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.DrillingUnitChoiceSet unitChoiceSet =
+                    new OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.DrillingUnitChoiceSet(Guid.NewGuid(), UnitConversionSetName, unitConversionSetDescription, choices);
+                unitChoiceSet.IsDefault = false;
+                unitChoiceSet.IsSI = false;
+                //the DrillingUnitChoiceSet must be
+                // 1) stored in the database
+                // 2) statically added to the class DrillingUnitChoiceSet to be later accessed by consumers like class DataUnitConversionSet which calls the static method DrillingUnitChoiceSet.Get()
+                // Both operations are performed in the DrillingUnitChoiceSetManager at the same time
+                bool success = await APIUtilsUnitConversion.PostDrillingUnitConversionSet(httpClient, logger, unitChoiceSet);
+                if (success)
+                {
+                    Cancel();
+                    unitChoiceSets_ = await APIUtilsUnitConversion.LoadDrillingUnitChoiceSets(httpClient, logger);
+                    await InvokeAsync(() => { StateHasChanged(); });
+                }
+            }
+        }
+    }
+    private void Cancel()
+    {
+        UnitConversionSetName = null;
+        unitConversionSetDescription = null;
+    }
+
+    private void PostProcessUnitConversionName()
+    {
+        isHiddenAdd = string.IsNullOrEmpty(unitConversionSetName_);
+    }
+
+    private async void Update()
+    {
+        if (currentDetails_ != null && !currentDetails_.IsDefault && quantityUnitAssociations_ != null)
+        {
+            if (currentDetails_.Choices == null)
+            {
+                currentDetails_.Choices = new Dictionary<string, string>();
+            }
+            currentDetails_.Choices.Clear();
+            foreach (QuantityUnitChoiceAssociation assoc in quantityUnitAssociations_)
+            {
+                Guid unitChoiceID = Guid.Empty;
+                if (assoc.Quantity.UnitChoices != null)
+                {
+                    foreach (OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.UnitChoice choice in assoc.Quantity.UnitChoices)
+                    {
+                        if (choice != null && choice.UnitName == assoc.UnitChoiceName)
+                        {
+                            unitChoiceID = choice.ID;
+                            break;
+                        }
+                    }
+                }
+                if (unitChoiceID != Guid.Empty)
+                {
+                    currentDetails_.Choices.Add(assoc.Quantity.ID.ToString(), unitChoiceID.ToString());
+                }
+            }
+            //the DrillingUnitChoiceSet must be
+            // 1) updated in the database
+            // 2) statically updated in the class DrillingUnitChoiceSet to be later accessed by consumers like class DataUnitConversionSet which calls the static method DrillingUnitChoiceSet.Get()
+            // Both operations are performed in the DrillingUnitChoiceSetManager at the same time
+            bool success = await APIUtilsUnitConversion.PutDrillingUnitConversionSet(httpClient, logger, currentDetails_);
+            unitChoiceSets_ = await APIUtilsUnitConversion.LoadDrillingUnitChoiceSets(httpClient, logger);
+            CancelDetails();
+        }
+    }
+    private async void CancelDetails()
+    {
+        currentDetails_ = null;
+        quantityUnitAssociations_.Clear();
+        isHiddenUpdate = true;
+        isHiddenEdit = false;
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+}
+
+

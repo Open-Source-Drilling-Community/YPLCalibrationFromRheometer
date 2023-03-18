@@ -1,17 +1,55 @@
-﻿<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+﻿@implements IUnitAwareComponent
+
+<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
 
 @code {
+    [CascadingParameter]
+    private UnitAndReferenceChoiceTag Parent { get; set; }
+
+    [Parameter]
+    public String XQuantityName { get; set; }
+
+    [Parameter]
+    public String YQuantityName { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public List<string> ListNames { get; set; }
+
     [Parameter]
     public List<object> XValues { get; set; }
 
     [Parameter]
+    public List<List<object>> ListXValues { get; set; }
+
+    [Parameter]
     public List<object> YValues { get; set; }
+
+    [Parameter]
+    public List<List<object>> ListYValues { get; set; }
+
+    [Parameter]
+    public bool UseMarker { get; set; }
+
+    [Parameter]
+    public List<bool> ListUseMarkers { get; set; }
 
     [Parameter]
     public string XAxisTitle { get; set; }
 
     [Parameter]
     public string YAxisTitle { get; set; }
+
+    [Parameter]
+    public bool XAxisReversed { get; set; }
+
+    [Parameter]
+    public bool YAxisReversed { get; set; }
+
+    [Parameter]
+    public decimal? AspectRatio { get; set; } = null;
 
     private PlotlyChart chart;
     private Config config = new Config() { Responsive = true };
@@ -25,36 +63,157 @@
             }
         },
         YAxis = new List<YAxis>
-    {
+{
             new YAxis
             {
-                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" }
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" },
             }
         },
         Height = 500,
-        Width = 1200
+        Width = 1000
     };
 
     // Using of the interface IList is important for the event callback!
     private IList<ITrace> data = new List<ITrace>();
 
+    protected override void OnInitialized()
+    {
+        if (Parent == null)
+            throw new ArgumentNullException(nameof(Parent), "ScatterPlot must exist within a UnitAndReferenceChoiceTag");
+        base.OnInitialized();
+        Parent.Add(this);
+    }
+
+    public void ManageUnits()
+    {
+        Plot();
+    }
+
     public async Task Plot()
     {
+        string XUnitLabel = "";
+        string YUnitLabel = "";
+        if (Parent != null)
+        {
+            XUnitLabel = Parent.GetUnitLabel(XQuantityName);
+            YUnitLabel = Parent.GetUnitLabel(YQuantityName);
+        }
+        if (XUnitLabel == null)
+        {
+            XUnitLabel = "";
+        }
+        else
+        {
+            XUnitLabel = " (" + XUnitLabel + ")";
+        }
+        if (YUnitLabel == null)
+        {
+            YUnitLabel = "";
+        }
+        else
+        {
+            YUnitLabel = " (" + YUnitLabel + ")";
+        }
         if (layout != null && XAxisTitle != null && YAxisTitle != null)
         {
-            layout.XAxis.ElementAt(0).Title.Text = XAxisTitle;
-            layout.YAxis.ElementAt(0).Title.Text = YAxisTitle;
-            await chart.Relayout();
-        }
-        if (XValues != null && XValues.Any() && YValues != null && YValues.Any())
-        {
-            await chart.DeleteTrace(0);
-            await chart.AddTrace(new Scatter
+            layout.XAxis.ElementAt(0).Title.Text = XAxisTitle + XUnitLabel;
+            layout.YAxis.ElementAt(0).Title.Text = YAxisTitle + YUnitLabel;
+            if (XAxisReversed)
             {
-                Mode = ModeFlag.Markers,
-                X = XValues,
-                Y = YValues
-            });
+                layout.XAxis.ElementAt(0).AutoRange = Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed;
+            }
+            if (YAxisReversed)
+            {
+                layout.YAxis.ElementAt(0).AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed;
+            }
+            if (AspectRatio != null && AspectRatio > 0)
+            {
+                layout.YAxis.ElementAt(0).ScaleAnchor = "x";
+                layout.YAxis.ElementAt(0).ScaleRatio = AspectRatio;
+            }
+            if (chart != null)
+            {
+                await chart.Relayout();
+            }
+        }
+        if (chart != null)
+        {
+            List<List<object>> Xs = new List<List<object>>();
+            List<List<object>> Ys = new List<List<object>>();
+            List<string> names = new List<string>();
+            List<bool> useMarkers = new List<bool>();
+            if (XValues != null && XValues.Any() && YValues != null && YValues.Any())
+            {
+                Xs.Add(XValues);
+                Ys.Add(YValues);
+                names.Add(Name);
+                useMarkers.Add(UseMarker);
+            }
+            if (ListXValues != null &&
+            ListYValues != null &&
+            ListUseMarkers != null &&
+            ListNames != null &&
+            ListXValues.Count == ListYValues.Count &&
+            ListXValues.Count == ListUseMarkers.Count &&
+            ListXValues.Count == ListNames.Count)
+            {
+                for (int i = 0; i < ListXValues.Count; i++)
+                {
+                    Xs.Add(ListXValues[i]);
+                    Ys.Add(ListYValues[i]);
+                    names.Add(ListNames[i]);
+                    useMarkers.Add(ListUseMarkers[i]);
+                }
+            }
+            await ManageTraces(Xs, Ys, names, useMarkers);
+        }
+    }
+    private async Task ManageTraces(List<List<object>> Xs, List<List<object>> Ys, List<string> names, List<bool> useMarkers)
+    {
+        if (Xs != null && Ys != null && Xs.Count == Ys.Count)
+        {
+            await chart.Clear();
+            for (int i = 0; i < Xs.Count; i++)
+            {
+                List<object> XValuesInUserUnit = new List<object>();
+                List<object> YValuesInUserUnit = new List<object>();
+                if (Parent != null)
+                {
+                    foreach (object x in Xs[i])
+                    {
+                        if (x is double?)
+                        {
+                            double? X = Parent.FromSI((double?)x, XQuantityName);
+                            if (X != null)
+                            {
+                                XValuesInUserUnit.Add((double)X);
+                            }
+                        }
+                    }
+                    foreach (object y in Ys[i])
+                    {
+                        if (y is double?)
+                        {
+                            double? Y = Parent.FromSI((double?)y, YQuantityName);
+                            if (Y != null)
+                            {
+                                YValuesInUserUnit.Add((double)Y);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    XValuesInUserUnit = Xs[i];
+                    YValuesInUserUnit = Ys[i];
+                }
+                ModeFlag flag = ModeFlag.Lines;
+                if (useMarkers[i])
+                {
+                    flag = ModeFlag.Markers;
+                }
+                await chart.AddTrace(new Scatter { Mode = flag, X = XValuesInUserUnit, Y = YValuesInUserUnit, Name = names[i] });
+            }
         }
     }
 }

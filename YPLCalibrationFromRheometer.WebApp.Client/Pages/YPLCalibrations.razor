@@ -1,6 +1,8 @@
 ﻿@page "/YPLCalibrations"
 @inject ILogger<YPLCalibrations> logger
-
+<UnitAndReferenceChoiceTag HttpHost="@YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL"
+                           HttpBasePath="YPLCalibrationFromRheometer/api/"
+                               HttpController="DrillingUnitChoiceSets">
 <h1>YPLCalibrations</h1>
 <div hidden="@IsHidSubPanel">
     <div>
@@ -123,191 +125,31 @@ else
                         <tfoot></tfoot>
                     </table>
                     <p>Warning, any change made to this Rheogram will be sent to the database and thus will affect other YPLCalibrations which refer to it</p>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <td>ShearRate (1/s)</td>
-                                <td>ShearStress (Pa)</td>
-                                <td></td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (inputIterData1Count > 0)
-                            {
-                                @for (int j = 0; j < inputIterData1Count; j++)
-                                {
-                                    var local_j = j; // defined because loop variables cannot be used directly in a lambda expression (see below)
-                                    var inputIterData1 = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(j);
-                                    @if (inputIterData1 != null)
-                                    {
-                                        @if (IsHidInputAdd && j == rowIndex)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    <input class="text" type="text" size="10" @bind="@updatedShearRate" />
-                                                </td>
-                                                <td>
-                                                    <input class="text" type="text" size="10" @bind="@updatedShearStress" />
-                                                </td>
-                                                <td align="right">
-                                                    @if (local_j > -1)
-                                                    {
-                                                        <button class="btn btn-primary" @onclick="@(() => UpdateRheometerMeasurement(local_j))">Update</button>
-                                                        <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement(local_j))">Cancel</button>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        }
-                                        else
-                                        {
-                                            <tr>
-                                                <td>
-                                                    <span class="label">@(inputIterData1.ShearRate)</span>
-                                                </td>
-                                                <td>
-                                                    <span class="label">@(inputIterData1.ShearStress)</span>
-                                                </td>
-                                                <td align="right">
-                                                    @if (!IsHidInputAdd)
-                                                    {
-                                                        <button class="btn btn-primary" @onclick="@(() => EditRheometerMeasurement(local_j))">Edit</button>
-                                                        <button class="btn btn-primary" @onclick="@(() => DeleteRheometerMeasurement(local_j))">Delete</button>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                }
-                            }
-                        </tbody>
-                        <tfoot hidden="@IsHidInputAdd">
-                            <tr>
-                                <td>
-                                    <input class="text" type="text" size="10" @bind="@addedShearRate" />
-                                </td>
-                                <td>
-                                    <input class="text" type="text" size="10" @bind="@addedShearStress" />
-                                </td>
-                                <td align="right">
-                                    <button class="btn btn-primary" @onclick="@(() => AddRheometerMeasurement())">Add</button>
-                                    <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement())">Cancel</button>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                    <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@yplCalibrationList[yplCalibrationIdx].RheogramInput" RheogramID="@rheogramID" />
+                 </div>
             </div>
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Mullineux</h2></button>
-                <table class="table" hidden="@IsHidCalcPanel">
-                    <thead>
-                        <tr>
-                            <td>Tau0 (Pa)</td>
-                            <td>K (Pa.s^n)</td>
-                            <td>n (1)</td>
-                            <td>Chi2 (1)</td>
-                            <td></td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (yplCalibrationList[yplCalibrationIdx].YPLModelMullineux != null)
-                        {
-                            <tr>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelMullineux.Tau0)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelMullineux.K)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelMullineux.N)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelMullineux.Chi2)</span>
-                                </td>
-                                <td></td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                    </tfoot>
-                </table>
+                <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelMullineux" IsHidden="@IsHidCalcPanel" />
             </div>
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Kelessidis</h2></button>
-                <table class="table" hidden="@IsHidCalcPanel">
-                    <thead>
-                        <tr>
-                            <td>Tau0 (Pa)</td>
-                            <td>K (Pa.s^n)</td>
-                            <td>n (1)</td>
-                            <td>Chi2 (1)</td>
-                            <td></td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis != null)
-                        {
-                            <tr>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis.Tau0)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis.K)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis.N)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis.Chi2)</span>
-                                </td>
-                                <td></td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                    </tfoot>
-                </table>
+                <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis" IsHidden="@IsHidCalcPanel" />
             </div>
             <div>
-                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Levenberg-Marquradt</h2></button>
-                <table class="table" hidden="@IsHidCalcPanel">
-                    <thead>
-                        <tr>
-                            <td>Tau0 (Pa)</td>
-                            <td>K (Pa.s^n)</td>
-                            <td>n (1)</td>
-                            <td>Chi2 (1)</td>
-                            <td></td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt != null)
-                        {
-                            <tr>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.Tau0)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.K)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.N)</span>
-                                </td>
-                                <td>
-                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt.Chi2)</span>
-                                </td>
-                                <td></td>
-                            </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                    </tfoot>
-                </table>
+                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Levenberg-Marquardt</h2></button>
+                <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt" IsHidden="@IsHidCalcPanel" />
+            </div>
+            <div hidden="@IsHidCalcPanel">
+                    <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
+                                 XValues="@shearRates" YValues="@shearStresses" UseMarker="true" Name="Rheogram"
+                                 ListXValues="@listShearRates" ListYValues="@listShearStresses" ListUseMarkers="@listUseMarkers" ListNames="@listNames"
+                                 XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
             </div>
         </div>
     }
 }
+</UnitAndReferenceChoiceTag>
 
 @code {
     // http client
@@ -329,16 +171,19 @@ else
     private string addedYplCalibrationDescr = null;
     private string updatedYplCalibrationName = null;
     private string updatedYplCalibrationDescr = null;
-    private double? addedShearRate = null;
-    private double? addedShearStress = null;
-    private double? updatedShearRate = null;
-    private double? updatedShearStress = null;
 
     // variables identifying user's selected objects
     private int yplCalibrationIdx = -1; // the index of the selected YPLCalibration
     private Guid yplCalibrationID = Guid.Empty;
     private Guid rheogramID = Guid.Empty;
-    private int rowIndex = -1; // the index of the row selected in the Input panel
+
+    private ScatterPlot flowCurvePlot = new ScatterPlot();
+    private List<object> shearRates = new List<object>();
+    private List<object> shearStresses = new List<object>();
+    private List<List<object>> listShearRates = new List<List<object>>();
+    private List<List<object>> listShearStresses = new List<List<object>>();
+    private List<string> listNames = new List<string>();
+    private List<bool> listUseMarkers = new List<bool>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -478,7 +323,7 @@ else
         }
     }
 
-    private void Edit(int idx)
+    private async void Edit(int idx)
     {
         if (yplCalibrationList != null && idx >= 0 && idx < yplCalibrationList.Count)
         {
@@ -547,6 +392,110 @@ else
             IsHidMainPanel = false;
             IsHidSubPanel = true;
             yplCalibrationIdx = -1;
+        }
+    }
+    private async Task PlotFlowCurve()
+    {
+        // update scatter plot
+        shearRates.Clear();
+        shearStresses.Clear();
+        double minShearRate = double.MaxValue;
+        double maxShearRate = double.MinValue;
+        if (yplCalibrationList != null &&
+            yplCalibrationIdx < yplCalibrationList.Count &&
+            yplCalibrationList[yplCalibrationIdx] != null &
+            yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
+            yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList != null)
+        {
+            for (int i = 0; i < yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count; ++i)
+            {
+                if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate < minShearRate)
+                {
+                    minShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate;
+                }
+                if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate > maxShearRate)
+                {
+                    maxShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate;
+                }
+                shearRates.Add(yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate);
+                shearStresses.Add(yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearStress);
+            }
+        }
+        listShearRates.Clear();
+        listShearStresses.Clear();
+        listNames.Clear();
+        listUseMarkers.Clear();
+        int count = 50;
+        if (yplCalibrationList != null &&
+            yplCalibrationIdx < yplCalibrationList.Count &&
+            yplCalibrationList[yplCalibrationIdx] != null &
+            yplCalibrationList[yplCalibrationIdx].YPLModelMullineux != null &&
+            minShearRate < maxShearRate)
+        {
+            List<object> srs = new List<object>();
+            List<object> sss = new List<object>();
+            double step = (maxShearRate - minShearRate) / (count-1);
+            YPLModel model = yplCalibrationList[yplCalibrationIdx].YPLModelMullineux;
+            for (int i = 0; i < count; i++)
+            {
+                double shearRate = minShearRate + i * step;
+                srs.Add(shearRate);
+                sss.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
+            }
+            listShearRates.Add(srs);
+            listShearStresses.Add(sss);
+            listNames.Add("Mullineux");
+            listUseMarkers.Add(false);
+        }
+        if (yplCalibrationList != null &&
+           yplCalibrationIdx < yplCalibrationList.Count &&
+           yplCalibrationList[yplCalibrationIdx] != null &
+           yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis != null &&
+           minShearRate < maxShearRate)
+        {
+            List<object> srs = new List<object>();
+            List<object> sss = new List<object>();
+            double step = (maxShearRate - minShearRate) / (count - 1);
+            YPLModel model = yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis;
+            for (int i = 0; i < count; i++)
+            {
+                double shearRate = minShearRate + i * step;
+                srs.Add(shearRate);
+                sss.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
+            }
+            listShearRates.Add(srs);
+            listShearStresses.Add(sss);
+            listNames.Add("Kelessidis");
+            listUseMarkers.Add(false);
+        }
+        if (yplCalibrationList != null &&
+           yplCalibrationIdx < yplCalibrationList.Count &&
+           yplCalibrationList[yplCalibrationIdx] != null &
+           yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt != null &&
+           minShearRate < maxShearRate)
+        {
+            List<object> srs = new List<object>();
+            List<object> sss = new List<object>();
+            double step = (maxShearRate - minShearRate) / (count - 1);
+            YPLModel model = yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt;
+            for (int i = 0; i < count; i++)
+            {
+                double shearRate = minShearRate + i * step;
+                srs.Add(shearRate);
+                sss.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
+            }
+            listShearRates.Add(srs);
+            listShearStresses.Add(sss);
+            listNames.Add("Levenberg-Marquardt");
+            listUseMarkers.Add(false);
+        }
+        try
+        {
+            await flowCurvePlot.Plot();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex.Message, "Plot has been disposed");
         }
     }
 
@@ -632,170 +581,15 @@ else
         }
     }
 
-    private void EditRheometerMeasurement(int rowIdx)
-    {
-        rowIndex = rowIdx;
-        IsHidInputAdd = true;
-        updatedShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearRate;
-        updatedShearStress = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearStress;
-    }
-
-    private async void DeleteRheometerMeasurement(int rowIdx)
-    {
-        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
-            !yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.Equals(Guid.Empty))
-        {
-            int iterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count;
-            if (iterData1Count > 0)
-            {
-                rowIndex = rowIdx;
-                // remove the RheometerMeasurement to be deleted
-                RheometerMeasurement rheometerMeasurement = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx);
-                if (rheometerMeasurement != null)
-                {
-                    if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Remove(rheometerMeasurement))
-                    {
-                        // finally update the Rheogram (all dependent YPLCorrections will be updated by the RheogramsController)
-                        StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
-                        var a = await httpClient.PutAsync("Rheograms/" + yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.ToString(), content);
-                        if (a.IsSuccessStatusCode)
-                        {
-                            await OnInitializedAsync();
-                            await InvokeAsync(() => { StateHasChanged(); });
-                        }
-                        else
-                        {
-                            logger.LogWarning("Impossible to update the current Rheogram");
-                        }
-                    }
-                    else
-                    {
-                        logger.LogWarning("Impossible to remove the current RheometerMeasurement");
-                    }
-                }
-                else
-                {
-                    logger.LogWarning("Impossible to retrieve the selected RheometerMeasurement");
-                }
-            }
-            else
-            {
-                logger.LogWarning("No RheometerMeasurement to retrieve");
-            }
-        }
-        else
-        {
-            logger.LogWarning("The current YPLCalibration is null or some of its attributes are null or badly identified");
-        }
-    }
-
-    private async void UpdateRheometerMeasurement(int rowIdx)
-    {
-        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
-            !yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.Equals(Guid.Empty))
-        {
-            int iterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count;
-            if (iterData1Count > 0)
-            {
-                rowIndex = rowIdx;
-                // collect values from UI
-                if (updatedShearRate.HasValue)
-                {
-                    yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearRate = (double)updatedShearRate;
-                    yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(rowIdx).ShearStress = (double)updatedShearStress;
-                }
-
-                // then refresh the UI
-                updatedShearRate = null;
-                updatedShearStress = null;
-                IsHidInputAdd = false;
-                rowIndex = -1;
-
-                // finally update the Rheogram (all dependent YPLCorrections will be updated by the RheogramsController)
-                StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
-                var a = await httpClient.PutAsync("Rheograms/" + yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.ToString(), content);
-                if (a.IsSuccessStatusCode)
-                {
-                    await OnInitializedAsync();
-                    await InvokeAsync(() => { StateHasChanged(); });
-                }
-                else
-                {
-                    logger.LogWarning("Impossible to update the current YPLCalibration");
-                }
-            }
-            else
-            {
-                logger.LogWarning("No RheometerMeasurement to retrieve");
-            }
-        }
-        else
-        {
-            logger.LogWarning("The current YPLCalibration is null or some of its attributes are null or badly identified");
-        }
-    }
-
-    private void CancelRheometerMeasurement(int rowIdx)
-    {
-        // rowIndex is just used to make the distinction with the no-argument overload
-        IsHidInputAdd = false;
-        rowIndex = -1;
-        // empty UI edit boxes
-        updatedShearRate = null;
-        updatedShearStress = null;
-    }
-
-    private async void AddRheometerMeasurement()
-    {
-        if (yplCalibrationList[yplCalibrationIdx] != null && yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
-            !yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.Equals(Guid.Empty))
-        {
-            RheometerMeasurement addedTplIterData1 = new RheometerMeasurement(); // attribute must be set separately because non-empty constructors cannot be passed through the ModelClientShared json conversion mechanism
-            if (addedShearRate.HasValue)
-            {
-                addedTplIterData1.ShearRate = (double)addedShearRate; // else unchanged
-                addedTplIterData1.ShearStress = (double)addedShearStress; // else unchanged
-            }
-
-            yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Add(addedTplIterData1);
-
-            // update the UI
-            addedShearRate = null;
-            addedShearStress = null;
-
-            // finally update the RheogramInput (all dependent YPLCalibrations will be updated by the RheogramsController)
-            StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].RheogramInput.GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Rheograms/" + yplCalibrationList[yplCalibrationIdx].RheogramInput.ID.ToString(), content);
-            if (a.IsSuccessStatusCode)
-            {
-                await OnInitializedAsync();
-                await InvokeAsync(() => { StateHasChanged(); });
-            }
-            else
-            {
-                logger.LogWarning("Impossible to update the current YPLCalibration");
-            }
-        }
-        else
-        {
-            logger.LogWarning("The current YPLCalibration is null or some of its attributes are null or badly identified");
-        }
-    }
-
-    private void CancelRheometerMeasurement()
-    {
-        // empty UI edit boxes
-        addedShearRate = null;
-        addedShearStress = null;
-    }
-
     private void HideInput()
     {
         IsHidInputPanel = !IsHidInputPanel;
     }
 
-    private void HideCalc()
+    private async Task HideCalc()
     {
         IsHidCalcPanel = !IsHidCalcPanel;
+        if (yplCalibrationIdx >= 0)
+            await PlotFlowCurve();
     }
 }

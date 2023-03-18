@@ -27,6 +27,18 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     if (dest.RheogramInput.ID.Equals(Guid.Empty))
                         dest.RheogramInput.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
+                if (YPLModelBasedOnNewtonianInputs != null)
+                {
+                    if (dest.YPLModelBasedOnNewtonianInputs == null)
+                    {
+                        dest.YPLModelBasedOnNewtonianInputs = new YPLModel();
+                    }
+                    YPLModelBasedOnNewtonianInputs.Copy(dest.YPLModelBasedOnNewtonianInputs);
+                    if (dest.YPLModelBasedOnNewtonianInputs.ID.Equals(Guid.Empty))
+                    {
+                        dest.YPLModelBasedOnNewtonianInputs.ID = Guid.NewGuid();
+                    }
+                }
                 if (RheogramFullyCorrected != null)
                 {
                     if (dest.RheogramFullyCorrected == null)
@@ -34,6 +46,18 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     RheogramFullyCorrected.Copy(dest.RheogramFullyCorrected);
                     if (dest.RheogramFullyCorrected.ID.Equals(Guid.Empty))
                         dest.RheogramFullyCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                }
+                if (YPLModelFullyCorrected != null)
+                {
+                    if (dest.YPLModelFullyCorrected == null)
+                    {
+                        dest.YPLModelFullyCorrected = new YPLModel();
+                    }
+                    YPLModelFullyCorrected.Copy(dest.YPLModelFullyCorrected);
+                    if (dest.YPLModelFullyCorrected.ID.Equals(Guid.Empty))
+                    {
+                        dest.YPLModelFullyCorrected.ID = Guid.NewGuid();
+                    }
                 }
                 if (RheogramShearRateCorrected != null)
                 {
@@ -43,6 +67,18 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     if (dest.RheogramShearRateCorrected.ID.Equals(Guid.Empty))
                         dest.RheogramShearRateCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 }
+                if (YPLModelShearRateCorrected != null)
+                {
+                    if (dest.YPLModelShearRateCorrected == null)
+                    {
+                        dest.YPLModelShearRateCorrected = new YPLModel();
+                    }
+                    YPLModelShearRateCorrected.Copy(dest.YPLModelShearRateCorrected);
+                    if (dest.YPLModelShearRateCorrected.ID.Equals(Guid.Empty))
+                    {
+                        dest.YPLModelShearRateCorrected.ID = Guid.NewGuid();
+                    }
+                }
                 if (RheogramShearStressCorrected != null)
                 {
                     if (dest.RheogramShearStressCorrected == null)
@@ -50,6 +86,18 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                     RheogramShearStressCorrected.Copy(dest.RheogramShearStressCorrected);
                     if (dest.RheogramShearStressCorrected.ID.Equals(Guid.Empty))
                         dest.RheogramShearStressCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                }
+                if (YPLModelShearStressCorrected != null)
+                {
+                    if (dest.YPLModelShearStressCorrected == null)
+                    {
+                        dest.YPLModelShearStressCorrected = new YPLModel();
+                    }
+                    YPLModelShearStressCorrected.Copy(dest.YPLModelShearStressCorrected);
+                    if (dest.YPLModelShearStressCorrected.ID.Equals(Guid.Empty))
+                    {
+                        dest.YPLModelShearStressCorrected.ID = Guid.NewGuid();
+                    }
                 }
                 return true;
             }

@@ -4,6 +4,7 @@ using System.Data.SQLite;
 using Newtonsoft.Json;
 using YPLCalibrationFromRheometer.Model;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace YPLCalibrationFromRheometer.Service
 {
@@ -142,10 +143,17 @@ namespace YPLCalibrationFromRheometer.Service
                     Guid fullyCorrectedID = Guid.Empty;
                     Guid shearRateCorrectedID = Guid.Empty;
                     Guid shearStressCorrectedID = Guid.Empty;
+                    Guid YPLModelRheogramInput = Guid.Empty;
+                    Guid YPLModelFullyCorrectedRheogram = Guid.Empty;
+                    Guid YPLModelShearRateCorrectedRheogram = Guid.Empty;
+                    Guid YPLModelShearStressCorrectedRheogram = Guid.Empty;
 
                     // first retrieve the YPLCorrection itself
                     var command = connection_.CreateCommand();
-                    command.CommandText = @"SELECT Name, Description, R1, R2, RheogramInputID, RheogramFullyCorrectedID, RheogramShearRateCorrectedID, RheogramShearStressCorrectedID FROM YPLCorrectionsTable " +
+                    command.CommandText = @"SELECT Name, Description, R1, R2, " +
+                        "RheogramInputID, RheogramFullyCorrectedID, RheogramShearRateCorrectedID, RheogramShearStressCorrectedID, " +
+                        "YPLModelRheogramInputID, YPLModelFullyCorrectedID, YPLModelShearRateCorrectedID, YPLModelShearStressCorrectedID " +
+                        "FROM YPLCorrectionsTable " +
                         "WHERE ID = '" + guid.ToString() + "'";
                     try
                     {
@@ -164,6 +172,10 @@ namespace YPLCalibrationFromRheometer.Service
                             fullyCorrectedID = reader.GetGuid(5);
                             shearRateCorrectedID = reader.GetGuid(6);
                             shearStressCorrectedID = reader.GetGuid(7);
+                            YPLModelRheogramInput = reader.GetGuid(8);
+                            YPLModelFullyCorrectedRheogram = reader.GetGuid(9);
+                            YPLModelShearRateCorrectedRheogram = reader.GetGuid(10);
+                            YPLModelShearStressCorrectedRheogram = reader.GetGuid(11);
                         }
                         else
                         {
@@ -264,6 +276,115 @@ namespace YPLCalibrationFromRheometer.Service
                             logger_.LogError(ex, "Impossible to get such Rheogram output from RheogramOutputsTable");
                             return null;
                         }
+                        // then retrieve its YPLModel for the Rheogram Input directly from YPLModelOutputsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"SELECT Name, YPLModel " +
+                            "FROM YPLModelOutputsTable WHERE ID = '" + YPLModelRheogramInput.ToString() + "'";
+                        try
+                        {
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
+                            {
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel yplModel = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (yplModel == null || !yplModel.ID.Equals(YPLModelRheogramInput) || !yplModel.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCorrection.YPLModelBasedOnNewtonianInputs = yplModel;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
+                        }
+                        // then retrieve its YPLModel for the fully corrected rheogram directly from YPLModelOutputsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"SELECT Name, YPLModel " +
+                            "FROM YPLModelOutputsTable WHERE ID = '" + YPLModelFullyCorrectedRheogram.ToString() + "'";
+                        try
+                        {
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
+                            {
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel yplModel = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (yplModel == null || !yplModel.ID.Equals(YPLModelFullyCorrectedRheogram) || !yplModel.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCorrection.YPLModelFullyCorrected = yplModel;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
+                        }
+                        // then retrieve its YPLModel for the shear-rate corrected rheogram directly from YPLModelOutputsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"SELECT Name, YPLModel " +
+                            "FROM YPLModelOutputsTable WHERE ID = '" + YPLModelShearRateCorrectedRheogram.ToString() + "'";
+                        try
+                        {
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
+                            {
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel yplModel = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (yplModel == null || !yplModel.ID.Equals(YPLModelShearRateCorrectedRheogram) || !yplModel.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCorrection.YPLModelShearRateCorrected = yplModel;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
+                        }
+                        // then retrieve its YPLModel for the shear-stress corrected rheogram directly from YPLModelOutputsTable
+                        command = connection_.CreateCommand();
+                        command.CommandText = @"SELECT Name, YPLModel " +
+                            "FROM YPLModelOutputsTable WHERE ID = '" + YPLModelShearStressCorrectedRheogram.ToString() + "'";
+                        try
+                        {
+                            using SQLiteDataReader reader = command.ExecuteReader();
+                            if (reader.Read() && !reader.IsDBNull(0))
+                            {
+                                string name = reader.GetString(0);
+                                string json = reader.GetString(1);
+                                YPLModel yplModel = JsonConvert.DeserializeObject<YPLModel>(json);
+                                if (yplModel == null || !yplModel.ID.Equals(YPLModelShearStressCorrectedRheogram) || !yplModel.Name.Equals(name))
+                                    throw (new SQLiteException("SQLite database corrupted: YPLModel has been jsonified with the wrong ID or Name."));
+                                yplCorrection.YPLModelShearStressCorrected = yplModel;
+                            }
+                            else
+                            {
+                                logger_.LogWarning("No such YPLModel associated to the Rheogram in the YPLModelOutputsTable");
+                                return null;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to get such YPLModel from YPLModelOutputsTable");
+                            return null;
+                        }
+
                         // Finalizing
                         logger_.LogInformation("Returning the YPLCorrection of given ID");
                         return yplCorrection;
@@ -293,11 +414,21 @@ namespace YPLCalibrationFromRheometer.Service
         public bool Add(YPLCorrection yplCorrection)
         {
             // every YPLCorrection added to the database should have both Rheogram input and outputs different from null and with non empty ID
-            if (yplCorrection != null && yplCorrection.RheogramInput != null && yplCorrection.RheogramFullyCorrected != null && yplCorrection.RheogramShearRateCorrected != null && yplCorrection.RheogramShearStressCorrected != null &&
-                !yplCorrection.RheogramInput.ID.Equals(Guid.Empty) && !yplCorrection.RheogramFullyCorrected.ID.Equals(Guid.Empty) && !yplCorrection.RheogramShearRateCorrected.ID.Equals(Guid.Empty) && !yplCorrection.RheogramShearStressCorrected.ID.Equals(Guid.Empty))
+            if (yplCorrection != null &&
+                yplCorrection.RheogramInput != null &&
+                yplCorrection.RheogramFullyCorrected != null &&
+                yplCorrection.RheogramShearRateCorrected != null &&
+                yplCorrection.RheogramShearStressCorrected != null &&
+                !yplCorrection.RheogramInput.ID.Equals(Guid.Empty) &&
+                !yplCorrection.RheogramFullyCorrected.ID.Equals(Guid.Empty) &&
+                !yplCorrection.RheogramShearRateCorrected.ID.Equals(Guid.Empty) &&
+                !yplCorrection.RheogramShearStressCorrected.ID.Equals(Guid.Empty))
             {
                 // first apply calculations
-                if (!yplCorrection.CalculateFullyCorrected() || !yplCorrection.CalculateShearRateCorrected() || !yplCorrection.CalculateShearStressCorrected())
+                if (!yplCorrection.CalculateInputRheogram() || 
+                    !yplCorrection.CalculateFullyCorrected() ||
+                    !yplCorrection.CalculateShearRateCorrected() ||
+                    !yplCorrection.CalculateShearStressCorrected())
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
                     return false;
@@ -315,16 +446,24 @@ namespace YPLCalibrationFromRheometer.Service
                             // first add the YPLCorrection to the YPLCorrectionsTable
                             var command = connection_.CreateCommand();
                             command.CommandText = @"INSERT INTO YPLCorrectionsTable " +
-                                "(ID, Name, Description, R1, R2, RheogramInputID, RheogramFullyCorrectedID, RheogramShearRateCorrectedID, RheogramShearStressCorrectedID,TimeStamp) VALUES (" +
+                                "(ID, Name, Description, R1, R2, "+
+                                "RheogramInputID, RheogramFullyCorrectedID, RheogramShearRateCorrectedID, RheogramShearStressCorrectedID, " +
+                                "YPLModelRheogramInputID, YPLModelFullyCorrectedID, YPLModelShearRateCorrectedID, YPLModelShearStressCorrectedID, TimeStamp) " +
+                                "VALUES "+
+                                "(" +
                                 "'" + yplCorrection.ID.ToString() + "', " +
                                 "'" + yplCorrection.Name + "', " +
                                 "'" + yplCorrection.Description + "', " +
-                                "'" + yplCorrection.R1.ToString() + "', " +
-                                "'" + yplCorrection.R2.ToString() + "', " +
+                                "" + yplCorrection.R1.ToString(CultureInfo.InvariantCulture) + ", " +
+                                "" + yplCorrection.R2.ToString(CultureInfo.InvariantCulture) + ", " +
                                 "'" + yplCorrection.RheogramInput.ID.ToString() + "', " +
                                 "'" + yplCorrection.RheogramFullyCorrected.ID.ToString() + "', " +
                                 "'" + yplCorrection.RheogramShearRateCorrected.ID.ToString() + "', " +
                                 "'" + yplCorrection.RheogramShearStressCorrected.ID.ToString() + "', " +
+                                "'" + yplCorrection.YPLModelBasedOnNewtonianInputs.ID.ToString() + "', " +
+                                "'" + yplCorrection.YPLModelFullyCorrected.ID.ToString() + "', " +
+                                "'" + yplCorrection.YPLModelShearRateCorrected.ID.ToString() + "', " +
+                                "'" + yplCorrection.YPLModelShearStressCorrected.ID.ToString() + "', " +
                                 "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" +
                                 ")";
                             int count = command.ExecuteNonQuery();
@@ -405,6 +544,114 @@ namespace YPLCalibrationFromRheometer.Service
                                     else
                                     {
                                         logger_.LogWarning("Impossible to get the Rheogram");
+                                        success = false;
+                                    }
+                                }
+                                if (success)
+                                {
+                                    // then add YPLModel  output to the RheogramOutputsTable
+                                    YPLModel model = yplCorrection.YPLModelBasedOnNewtonianInputs;
+                                    if (model != null)
+                                    {
+                                        string json = JsonConvert.SerializeObject(model);
+                                        command = connection_.CreateCommand();
+                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                            "VALUES (" +
+                                            "'" + model.ID.ToString() + "', " +
+                                            "'" + model.Name + "', " +
+                                            "'" + json + "'" +
+                                            ")";
+                                        count = command.ExecuteNonQuery();
+                                        if (count != 1)
+                                        {
+                                            logger_.LogWarning("Impossible to insert the calculated YPLModel based on the Input Rheogram into the YPLModelOutputsTable");
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        logger_.LogWarning("YPLModelBasedOnNewtonianInputs is empty");
+                                        success = false;
+                                    }
+                                }
+                                if (success)
+                                {
+                                    // then add YPLModel  output to the RheogramOutputsTable
+                                    YPLModel model = yplCorrection.YPLModelFullyCorrected;
+                                    if (model != null)
+                                    {
+                                        string json = JsonConvert.SerializeObject(model);
+                                        command = connection_.CreateCommand();
+                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                            "VALUES (" +
+                                            "'" + model.ID.ToString() + "', " +
+                                            "'" + model.Name + "', " +
+                                            "'" + json + "'" +
+                                            ")";
+                                        count = command.ExecuteNonQuery();
+                                        if (count != 1)
+                                        {
+                                            logger_.LogWarning("Impossible to insert the calculated YPLModel based on the fully corrected rheogram into the YPLModelOutputsTable");
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        logger_.LogWarning("YPLModelFullyCorrected is empty");
+                                        success = false;
+                                    }
+                                }
+                                if (success)
+                                {
+                                    // then add YPLModel  output to the RheogramOutputsTable
+                                    YPLModel model = yplCorrection.YPLModelShearRateCorrected;
+                                    if (model != null)
+                                    {
+                                        string json = JsonConvert.SerializeObject(model);
+                                        command = connection_.CreateCommand();
+                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                            "VALUES (" +
+                                            "'" + model.ID.ToString() + "', " +
+                                            "'" + model.Name + "', " +
+                                            "'" + json + "'" +
+                                            ")";
+                                        count = command.ExecuteNonQuery();
+                                        if (count != 1)
+                                        {
+                                            logger_.LogWarning("Impossible to insert the calculated YPLModel based on the shear-rate corrected rheogram into the YPLModelOutputsTable");
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        logger_.LogWarning("YPLModelShearRateCorrected is empty");
+                                        success = false;
+                                    }
+                                }
+                                if (success)
+                                {
+                                    // then add YPLModel  output to the RheogramOutputsTable
+                                    YPLModel model = yplCorrection.YPLModelShearStressCorrected;
+                                    if (model != null)
+                                    {
+                                        string json = JsonConvert.SerializeObject(model);
+                                        command = connection_.CreateCommand();
+                                        command.CommandText = @"INSERT INTO YPLModelOutputsTable (ID, Name, YPLModel) " +
+                                            "VALUES (" +
+                                            "'" + model.ID.ToString() + "', " +
+                                            "'" + model.Name + "', " +
+                                            "'" + json + "'" +
+                                            ")";
+                                        count = command.ExecuteNonQuery();
+                                        if (count != 1)
+                                        {
+                                            logger_.LogWarning("Impossible to insert the calculated YPLModel based on the shear-stress corrected rheogram into the YPLModelOutputsTable");
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        logger_.LogWarning("YPLModelShearStressCorrected is empty");
                                         success = false;
                                     }
                                 }
@@ -593,6 +840,87 @@ namespace YPLCalibrationFromRheometer.Service
                             }
                             if (success)
                             {
+                                // then delete YPLModel for the Input Rheogram from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCorrection.YPLModelBasedOnNewtonianInputs.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
+                            if (success)
+                            {
+                                // then delete YPLModel for the fully corrected Rheogram from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCorrection.YPLModelFullyCorrected.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
+                            if (success)
+                            {
+                                // then delete YPLModel for the shear-rate corrected Rheogram from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCorrection.YPLModelShearRateCorrected.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
+                            if (success)
+                            {
+                                // then delete YPLModel for the shear-stress corrected Rheogram from YPLModelOutputsTable
+                                try
+                                {
+                                    var command = connection_.CreateCommand();
+                                    command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE ID = '" + yplCorrection.YPLModelShearStressCorrected.ID.ToString() + "'";
+                                    int count = command.ExecuteNonQuery();
+                                    if (count < 0)
+                                    {
+                                        logger_.LogWarning("Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                        success = false;
+                                    }
+                                }
+                                catch (SQLiteException ex)
+                                {
+                                    logger_.LogError(ex, "Impossible to delete the YPLModel from the YPLModelOutputsTable");
+                                    success = false;
+                                }
+                            }
+
+                            if (success)
+                            {
                                 transaction.Commit();
                                 logger_.LogInformation("Removed the YPLCorrection of given ID from the YPLCorrectionsTable successfully");
                             }
@@ -629,40 +957,47 @@ namespace YPLCalibrationFromRheometer.Service
             {
                 if (connection_ != null)
                 {
-                    // first select all YPLCorrections referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
-                    List<Guid> parentIds = new List<Guid>();
-                    var command = connection_.CreateCommand();
-                    command.CommandText = @"SELECT YPLCorrectionsTable.ID " +
-                        "FROM YPLCorrectionsTable, RheogramInputsTable " +
-                        "WHERE YPLCorrectionsTable.RheogramInputID = RheogramInputsTable.ID " +
-                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
-                    try
+                    bool success = true;
+                    if (success)
                     {
-                        using SQLiteDataReader reader = command.ExecuteReader();
-                        while (reader.Read())
+                        // first delete all YPLCorrections referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
+                        try
                         {
-                            Guid parentId = reader.GetGuid(0);
-                            if (parentId != null && !parentId.Equals(Guid.Empty))
-                                parentIds.Add(parentId);
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"DELETE FROM YPLCorrectionsTable WHERE EXISTS (SELECT * FROM YPLCorrectionsTable a, RheogramInputsTable b WHERE a.RheogramInputID = b.ID AND b.ID = '" + guid.ToString() + "')";
+                            int count = command.ExecuteNonQuery();
+                            if (count < 0)
+                            {
+                                success = false;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to delete YPLCorrections referencing the Rheogram of given ID from YPLCorrectionsTable");
+                            return false;
                         }
                     }
-                    catch (SQLiteException ex)
+                    if (success)
                     {
-                        logger_.LogError(ex, "Impossible to retrieve YPLCorrections referencing the Rheogram of given ID from YPLCorrectionsTable");
-                        return false;
-                    }
-
-                    // then delete all of them through the use of the YPLCorrectionManager (which ensures their children outputs are properly deleted)
-                    foreach (Guid parentId in parentIds)
-                    {
-                        if (!Remove(parentId))
+                        // second delete all YPLModel referencing the Rheogram as their input identified by the given ID from YPLModelOutputsTable 
+                        try
                         {
-                            logger_.LogWarning("Impossible to delete one of the YPLCorrections referencing the Rheogram of given ID from YPLCorrectionsTable");
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"DELETE FROM YPLModelOutputsTable WHERE EXISTS (SELECT * FROM YPLModelOutputsTable a, RheogramInputsTable b WHERE a.RheogramInputID = b.ID AND b.ID = '" + guid.ToString() + "')";
+                            int count = command.ExecuteNonQuery();
+                            if (count < 0)
+                            {
+                                success = false;
+                            }
+                        }
+                        catch (SQLiteException ex)
+                        {
+                            logger_.LogError(ex, "Impossible to delete YPLModel referencing the Rheogram of given ID from YPLModelOutputsTable");
                             return false;
                         }
                     }
                     // Finalizing
-                    logger_.LogInformation("Removed all YPLCorrections referencing the Rheogram of given ID from the YPLCorrectionsTable successfully");
+                    logger_.LogInformation("Removed all YPLCorrections and YPLModel referencing the Rheogram of given ID successfully");
                     return true;
                 }
                 else
@@ -687,7 +1022,10 @@ namespace YPLCalibrationFromRheometer.Service
                 updatedYplCorrection.RheogramFullyCorrected != null && updatedYplCorrection.RheogramShearRateCorrected != null && updatedYplCorrection.RheogramShearStressCorrected != null)
             {
                 // first apply calculations
-                if (!updatedYplCorrection.CalculateFullyCorrected() || !updatedYplCorrection.CalculateShearRateCorrected() || !updatedYplCorrection.CalculateShearStressCorrected())
+                if (!updatedYplCorrection.CalculateInputRheogram() || 
+                    !updatedYplCorrection.CalculateFullyCorrected() || 
+                    !updatedYplCorrection.CalculateShearRateCorrected() || 
+                    !updatedYplCorrection.CalculateShearStressCorrected())
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
                     return false;
@@ -706,8 +1044,8 @@ namespace YPLCalibrationFromRheometer.Service
                             command.CommandText = @"UPDATE YPLCorrectionsTable SET " +
                                 "Name = '" + updatedYplCorrection.Name + "', " +
                                 "Description = '" + updatedYplCorrection.Description + "', " +
-                                "R1 = '" + updatedYplCorrection.R1 + "', " +
-                                "R2 = '" + updatedYplCorrection.R2 + "', " +
+                                "R1 = " + updatedYplCorrection.R1.ToString(CultureInfo.InvariantCulture) + ", " +
+                                "R2 = " + updatedYplCorrection.R2.ToString(CultureInfo.InvariantCulture) + ", " +
                                 "RheogramInputID = '" + updatedYplCorrection.RheogramInput.ID.ToString() + "', " +
                                 "TimeStamp = '" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "' " +
                                 "WHERE ID = '" + guid.ToString() + "'";
@@ -723,6 +1061,31 @@ namespace YPLCalibrationFromRheometer.Service
                             logger_.LogError(ex, "Impossible to update the YPLCorrection");
                             success = false;
                         }
+                        // then update YPLModelBasedOnNewtonianInputs (which may have changed after calculation) in YPLModelOutputsTable 
+                        if (success && updatedYplCorrection.YPLModelBasedOnNewtonianInputs != null)
+                        {
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCorrection.YPLModelBasedOnNewtonianInputs);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCorrection.YPLModelBasedOnNewtonianInputs.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCorrection.YPLModelBasedOnNewtonianInputs.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the Newton-based Inputs");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated Mullineux YPLModel associated to the given YPLCalibration");
+                                success = false;
+                            }
+                        }
+
                         // then update RheogramFullyCorrected (which may have changed after calculation) in RheogramOutputsTable 
                         if (success)
                         {
@@ -747,6 +1110,31 @@ namespace YPLCalibrationFromRheometer.Service
                                 success = false;
                             }
                         }
+                        // then update YPLModelFullyCorrected (which may have changed after calculation) in YPLModelOutputsTable 
+                        if (success && updatedYplCorrection.YPLModelFullyCorrected != null)
+                        {
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCorrection.YPLModelFullyCorrected);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCorrection.YPLModelFullyCorrected.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCorrection.YPLModelFullyCorrected.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the fully corrected rheogram");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the fully corrected rheogram");
+                                success = false;
+                            }
+                        }
+
                         // then update RheogramShearRateCorrected (which may have changed after calculation) in RheogramOutputsTable 
                         if (success)
                         {
@@ -771,6 +1159,31 @@ namespace YPLCalibrationFromRheometer.Service
                                 success = false;
                             }
                         }
+                        // then update YPLModelShearRateCorrected (which may have changed after calculation) in YPLModelOutputsTable 
+                        if (success && updatedYplCorrection.YPLModelShearRateCorrected != null)
+                        {
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCorrection.YPLModelShearRateCorrected);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCorrection.YPLModelShearRateCorrected.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCorrection.YPLModelShearRateCorrected.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the shear-rate corrected rheogram");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the shear-rate corrected rheogram");
+                                success = false;
+                            }
+                        }
+
                         // then update RheogramShearStressCorrected (which may have changed after calculation) in RheogramOutputsTable 
                         if (success)
                         {
@@ -792,6 +1205,30 @@ namespace YPLCalibrationFromRheometer.Service
                             catch (SQLiteException ex)
                             {
                                 logger_.LogError(ex, "Impossible to update the calculated Rheogram associated to the given YPLCorrection");
+                                success = false;
+                            }
+                        }
+                        // then update YPLModelShearStressCorrected (which may have changed after calculation) in YPLModelOutputsTable 
+                        if (success && updatedYplCorrection.YPLModelShearStressCorrected != null)
+                        {
+                            try
+                            {
+                                string json = JsonConvert.SerializeObject(updatedYplCorrection.YPLModelShearStressCorrected);
+                                var command = connection_.CreateCommand();
+                                command.CommandText = @"UPDATE YPLModelOutputsTable SET " +
+                                    "Name = '" + updatedYplCorrection.YPLModelShearStressCorrected.Name + "', " +
+                                    "YPLModel = '" + json + "' " +
+                                    "WHERE ID = '" + updatedYplCorrection.YPLModelShearStressCorrected.ID.ToString() + "'";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    logger_.LogWarning("Impossible to update the calculated YPLModel associated to the shear-stress corrected rheogram");
+                                    success = false;
+                                }
+                            }
+                            catch (SQLiteException ex)
+                            {
+                                logger_.LogError(ex, "Impossible to update the calculated YPLModel associated to the shear-stress corrected rheogram");
                                 success = false;
                             }
                         }

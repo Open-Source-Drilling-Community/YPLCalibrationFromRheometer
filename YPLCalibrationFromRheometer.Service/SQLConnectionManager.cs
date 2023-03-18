@@ -9,13 +9,15 @@ namespace YPLCalibrationFromRheometer.Service
     {
         private static ILogger logger_;
         private static SQLiteConnection connection_;
+        private static object lock_ = new object();
 
         public static SQLiteConnection GetConnection(ILoggerFactory loggerFactory)
         {
-            if (logger_ == null)
-                logger_ = loggerFactory.CreateLogger<SQLConnectionManager>();
-            if (connection_ == null)
-                Initialize();
+            lock (lock_)
+            {
+                if (connection_ == null)
+                    Initialize(loggerFactory);
+            }
             return connection_;
         }
 
@@ -125,8 +127,12 @@ namespace YPLCalibrationFromRheometer.Service
                     "RheogramFullyCorrectedID text," +
                     "RheogramShearRateCorrectedID text," +
                     "RheogramShearStressCorrectedID text," +
+                    "YPLModelRheogramInputID text," +
+                    "YPLModelFullyCorrectedID text," +
+                    "YPLModelShearRateCorrectedID text," +
+                    "YPLModelShearStressCorrectedID text," +
                     "TimeStamp" +
-                   ")";
+                    ")";
                 try
                 {
                     int res = command.ExecuteNonQuery();
@@ -371,10 +377,85 @@ namespace YPLCalibrationFromRheometer.Service
                 }
             }
             #endregion
+
+            ManageDrillingUnitChoiceSets();
         }
 
-        private static void Initialize()
+        private static void ManageDrillingUnitChoiceSets()
         {
+            #region DrillingUnitChoiceSetsTable
+            var command = connection_.CreateCommand();
+            command.CommandText = @"SELECT count(*) FROM DrillingUnitChoiceSetsTable";
+            long count = -1;
+            try
+            {
+                using SQLiteDataReader reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    count = reader.GetInt64(0);
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                logger_.LogWarning(ex, "DrillingUnitChoiceSetsTable does not exist and will be created");
+            }
+            if (count < 0)
+            {
+                bool success = true;
+                // table does no exist
+                command.CommandText =
+                    @"CREATE TABLE DrillingUnitChoiceSetsTable (" +
+                    "ID text primary key, " +
+                    "Name text, " +
+                    "Description text, " +
+                    "IsDefault integer, " +
+                    "Data text " +
+                   ")";
+                try
+                {
+                    int res = command.ExecuteNonQuery();
+                }
+                catch (SQLiteException ex)
+                {
+                    logger_.LogError(ex, "Impossible to create DrillingUnitChoiceSetsTable and will be dropped");
+                    success = false;
+                }
+                if (success)
+                {
+                    command.CommandText =
+                        @"CREATE UNIQUE INDEX DrillingUnitChoiceSetsTableIndex ON DrillingUnitChoiceSetsTable (ID)";
+                    try
+                    {
+                        int res = command.ExecuteNonQuery();
+                        logger_.LogInformation("DrillingUnitChoiceSetsTable has been successfully created");
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to index DrillingUnitChoiceSetsTable and will be dropped");
+                        success = false;
+                    }
+                }
+                if (!success)
+                {
+                    command.CommandText =
+                        @"DROP TABLE DrillingUnitChoiceSetsTable";
+                    try
+                    {
+                        int res = command.ExecuteNonQuery();
+                        logger_.LogWarning("DrillingUnitChoiceSetsTable has been successfully dropped");
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to drop DrillingUnitChoiceSetsTable");
+                    }
+                }
+            }
+            #endregion
+        }
+        public static void Initialize(ILoggerFactory loggerFactory)
+        {
+            if (logger_ == null)
+                logger_ = loggerFactory.CreateLogger<SQLConnectionManager>();
             string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
             if (!Directory.Exists(homeDirectory))
             {
@@ -387,7 +468,7 @@ namespace YPLCalibrationFromRheometer.Service
                     logger_.LogError(ex, "Impossible to create home directory for local storage");
                 }
             }
-            if (Directory.Exists(homeDirectory))
+            if (Directory.Exists(homeDirectory) && connection_ == null)
             {
                 string connectionString = @"URI=file:" + homeDirectory + Path.DirectorySeparatorChar + "YPLCalibrationFromRheometer.db";
                 connection_ = new SQLiteConnection(connectionString);

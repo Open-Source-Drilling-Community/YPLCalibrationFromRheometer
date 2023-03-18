@@ -191,7 +191,7 @@ namespace YPLCalibrationFromRheometer.Service
                         try
                         {
                             string json = JsonConvert.SerializeObject(rheogram);
-                            var command = connection_.CreateCommand();
+                            var command = connection_.CreateCommand(); 
                             command.CommandText = @"INSERT INTO RheogramInputsTable (ID, Name, Rheogram) " +
                                 "VALUES (" +
                                 "'" + rheogram.ID.ToString() + "', " +

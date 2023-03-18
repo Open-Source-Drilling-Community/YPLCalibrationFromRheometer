@@ -1,6 +1,9 @@
 ﻿@page "/Rheograms"
 @inject ILogger<Rheograms> logger
 
+<UnitAndReferenceChoiceTag HttpHost="@YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL"
+                           HttpBasePath="YPLCalibrationFromRheometer/api/"
+                               HttpController="DrillingUnitChoiceSets">
 <h1>Rheograms</h1>
 <p>Warning, any change made to the Rheogram's listed below may affect YPLCalibrations which refer to it</p>
 <div hidden="@IsHidSubPanel">
@@ -10,7 +13,10 @@
                 <tr>
                     <td>Name</td>
                     <td>Description</td>
-                    <td>Shear stress standard deviation (Pa)</td>
+                    <td>
+                        <span>Shear stress standard deviation</span>
+                            <SpanUnitLabel QuantityName="FluidShearStress" />
+                        </td>
                     <td></td>
                 </tr>
             </thead>
@@ -25,7 +31,8 @@
                             <span class="label">@(rheogramList[rheogramIdx].Description)</span>
                         </td>
                         <td>
-                            <span class="label">@(rheogramList[rheogramIdx].ShearStressStandardDeviation)</span>
+                                <SpanWithUnit QuantityName="FluidShearStress"
+                                          SIValue="@(rheogramList[rheogramIdx].ShearStressStandardDeviation)" />
                         </td>
                         <td></td>
                     </tr>
@@ -40,7 +47,9 @@
                             <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
                         </td>
                         <td>
-                            <input class="text" type="text" size="7" @bind="@updatedRheogramStdStress" />
+                                <InputWithUnit QuantityName="FluidShearStress"
+                                           SIValueNullable="@updatedRheogramStdStress"
+                                           SIValueNullableChanged="@((val) => ManageUpdatedRheogramStdStress(val))" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Update</button>
@@ -67,8 +76,11 @@ else
                 <tr>
                     <td>Name</td>
                     <td>Description</td>
-                    <td>Shear stress standard deviation (Pa)</td>
-                    <td></td>
+                        <td>
+                            <span>Shear stress standard deviation</span>
+                            <SpanUnitLabel QuantityName="FluidShearStress" />
+                        </td>
+                        <td></td>
                 </tr>
             </thead>
             <tbody>
@@ -83,7 +95,8 @@ else
                             <span class="label">@(rheogramList[i].Description)</span>
                         </td>
                         <td>
-                            <span class="label">@(rheogramList[i].ShearStressStandardDeviation)</span>
+                                <SpanWithUnit QuantityName="FluidShearStress"
+                                      SIValue="@(rheogramList[i].ShearStressStandardDeviation)" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
@@ -101,7 +114,9 @@ else
                         <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
                     </td>
                     <td>
-                        <input class="text" type="text" size="7" @bind="@addedRheogramStdStress" />
+                        <InputWithUnit QuantityName="FluidShearStress"
+                                       SIValueNullable="@addedRheogramStdStress" 
+                                       SIValueNullableChanged="@((val) => ManageAddedRheogramStdStress(val))" />
                     </td>
                     <td align="right">
                         <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
@@ -116,7 +131,9 @@ else
                         <input class="text" type="text" size="30" @bind="@loadedFileDescr" />
                     </td>
                     <td>
-                        <input class="text" type="text" size="7" @bind="@loadedFileStdStress" />
+                        <InputWithUnit QuantityName="FluidShearStress"
+                                       SIValueNullable="@loadedFileStdStress"
+                                       SIValueNullableChanged="@((val) => ManageAddedRheogramStdStress(val))" />
                     </td>
                     <td align="right">
                         @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
@@ -138,88 +155,18 @@ else
         int inputIterData1Count = rheogramList[rheogramIdx].RheometerMeasurementList.Count;
         <div hidden="@IsHidSubPanel">
             <div>
-                <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>RheometerMeasurements</h2></button>
-                <table class="table" hidden="@IsHidInputPanel">
-                    <thead>
-                        <tr>
-                            <td>ShearRate (1/s)</td>
-                            <td>ShearStress (Pa)</td>
-                            <td></td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (inputIterData1Count > 0)
-                        {
-                            @for (int j = 0; j < inputIterData1Count; j++)
-                            {
-                                var local_j = j; // defined because loop variables cannot be used directly in a lambda expression (see below)
-                                var inputIterData1 = rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(j);
-                                @if (inputIterData1 != null)
-                                {
-                                    @if (IsHidInputAdd && j == rowIndex)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <input class="text" type="text" size="7" @bind="@updatedShearRate" />
-                                            </td>
-                                            <td>
-                                                <input class="text" type="text" size="7" @bind="@updatedShearStress" />
-                                            </td>
-                                            <td align="right">
-                                                @if (local_j > -1)
-                                                {
-                                                    <button class="btn btn-primary" @onclick="@(() => UpdateRheometerMeasurement(local_j))">Update</button>
-                                                    <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement(local_j))">Cancel</button>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        <tr>
-                                            <td>
-                                                <span class="label">@(inputIterData1.ShearRate)</span>
-                                            </td>
-                                            <td>
-                                                <span class="label">@(inputIterData1.ShearStress)</span>
-                                            </td>
-                                            <td align="right">
-                                                @if (!IsHidInputAdd)
-                                                {
-                                                    <button class="btn btn-primary" @onclick="@(() => EditRheometerMeasurement(local_j))">Edit</button>
-                                                    <button class="btn btn-primary" @onclick="@(() => DeleteRheometerMeasurement(local_j))">Delete</button>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            }
-                        }
-                    </tbody>
-                    <tfoot hidden="@IsHidInputAdd">
-                        <tr>
-                            <td>
-                                <input class="text" type="text" size="7" @bind="@addedShearRate" />
-                            </td>
-                            <td>
-                                <input class="text" type="text" size="7" @bind="@addedShearStress" />
-                            </td>
-                            <td align="right">
-                                <button class="btn btn-primary" @onclick="@(() => AddRheometerMeasurement())">Add</button>
-                                <button class="btn btn-primary" @onclick="@(() => CancelRheometerMeasurement())">Cancel</button>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                 <h2>RheometerMeasurements</h2>
+                 <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
             </div>
             <div>
-                <table class="table" hidden="@IsHidInputPanel">
-                    <ScatterPlot XValues="@shearRates" YValues="@shearStresses" XAxisTitle="Shear rate (1/s)" YAxisTitle="Shear stress (Pa)" @ref="flowCurvePlot"></ScatterPlot>
-                </table>
+                  <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress" 
+                               XValues="@shearRates" YValues="@shearStresses"  UseMarker="true"
+                               XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
             </div>
         </div>
     }
 }
+</UnitAndReferenceChoiceTag>
 
 @code {
     // default values
@@ -243,14 +190,10 @@ else
     private string addedRheogramName = null;
     private string addedRheogramDescr = null;
     private double? addedRheogramStdStress = Rheogram_StdShearStress;
-    private double? addedShearRate = null;
-    private double? addedShearStress = null;
 
     private string updatedRheogramName = null;
     private string updatedRheogramDescr = null;
     private double? updatedRheogramStdStress = Rheogram_StdShearStress;
-    private double? updatedShearRate = null;
-    private double? updatedShearStress = null;
 
     private string loadedFileName = null;
     private string loadedFileDescr = null;
@@ -266,7 +209,6 @@ else
 
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
-    private int rowIndex = -1; // the index of the row selected in the Input panel
 
     private readonly object lock_ = new object();
 
@@ -640,138 +582,6 @@ else
         loadedFileStdStress = Rheogram_StdShearStress;
     }
 
-    private void EditRheometerMeasurement(int rowIdx)
-    {
-        rowIndex = rowIdx;
-        IsHidInputAdd = true;
-        updatedShearRate = rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(rowIdx).ShearRate;
-        updatedShearStress = rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(rowIdx).ShearStress;
-    }
-
-    private async void DeleteRheometerMeasurement(int rowIdx)
-    {
-        rowIndex = rowIdx;
-        if (rheogramList[rheogramIdx] != null)
-        {
-            int iterData1Count = rheogramList[rheogramIdx].RheometerMeasurementList.Count;
-            if (iterData1Count > 0)
-            {
-                // remove the RheometerMeasurement to be deleted
-                RheometerMeasurement iterData1 = rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(rowIdx);
-                if (iterData1 != null)
-                {
-                    // then update the database
-                    if (!rheogramID.Equals(Guid.Empty) && rheogramList[rheogramIdx].RheometerMeasurementList.Remove(iterData1))
-                    {
-                        StringContent content = new StringContent(rheogramList[rheogramIdx].GetJson(), Encoding.UTF8, "application/json");
-                        var a = await httpClient.PutAsync("Rheograms/" + rheogramID.ToString(), content);
-                        if (a.IsSuccessStatusCode)
-                        {
-                            await OnInitializedAsync();
-                            await InvokeAsync(() => { StateHasChanged(); });
-                        }
-                        else
-                        {
-                            logger.LogWarning("Impossible to update the current Rheogram");
-                        }
-                    }
-                    else
-                    {
-                        logger.LogWarning("Impossible to remove the selected RheometerMeasurement or the current Rheogram ID is empty");
-                    }
-                }
-                else
-                {
-                    logger.LogWarning("Impossible to retrieve the selected RheometerMeasurement");
-                }
-            }
-        }
-    }
-
-    private async void UpdateRheometerMeasurement(int rowIdx)
-    {
-        rowIndex = rowIdx;
-        int iterData1Count = rheogramList[rheogramIdx].RheometerMeasurementList.Count;
-
-        if (rheogramList[rheogramIdx] != null && !rheogramID.Equals(Guid.Empty) && iterData1Count > 0)
-        {
-            // collect UI data
-            if (updatedShearRate.HasValue)
-            {
-                rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(rowIdx).ShearRate = (double)updatedShearRate; // else unchanged
-                rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(rowIdx).ShearStress = (double)updatedShearStress; // else unchanged
-            }
-
-            // then refresh the UI
-            updatedShearRate = null;
-            updatedShearStress = null;
-            IsHidInputAdd = false;
-            rowIndex = -1;
-
-            // finally update the Rheogram
-            StringContent content = new StringContent(rheogramList[rheogramIdx].GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Rheograms/" + rheogramID.ToString(), content);
-            if (a.IsSuccessStatusCode)
-            {
-                await OnInitializedAsync();
-                await InvokeAsync(() => { StateHasChanged(); });
-            }
-            else
-            {
-                logger.LogWarning("Impossible to update the current Rheogram");
-            }
-        }
-    }
-
-    private void CancelRheometerMeasurement(int rowIdx)
-    {
-        // rowIndex is just used to make the distinction with the no-argument overload
-        IsHidInputAdd = false;
-        rowIndex = -1;
-        // empty UI edit boxes
-        updatedShearRate = null;
-        updatedShearStress = null;
-    }
-
-    private async void AddRheometerMeasurement()
-    {
-        if (rheogramList[rheogramIdx] != null && !rheogramID.Equals(Guid.Empty))
-        {
-            RheometerMeasurement addedIterData1 = new RheometerMeasurement(); // attribute must be set separately because non-empty constructors cannot be passed through the ModelClientShared json conversion mechanism
-            if (addedShearRate.HasValue)
-            {
-                addedIterData1.ShearRate = (double)addedShearRate; // else unchanged
-                addedIterData1.ShearStress = (double)addedShearStress; // else unchanged
-            }
-
-            rheogramList[rheogramIdx].RheometerMeasurementList.Add(addedIterData1);
-
-            // update UI
-            addedShearRate = null;
-            addedShearStress = null;
-
-            // then update the database
-            StringContent content = new StringContent(rheogramList[rheogramIdx].GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Rheograms/" + rheogramID.ToString(), content);
-            if (a.IsSuccessStatusCode)
-            {
-                await OnInitializedAsync();
-                await InvokeAsync(() => { StateHasChanged(); });
-            }
-            else
-            {
-                logger.LogWarning("Impossible to add the current Rheogram");
-            }
-        }
-    }
-
-    private void CancelRheometerMeasurement()
-    {
-        // empty UI edit boxes
-        addedShearRate = null;
-        addedShearStress = null;
-    }
-
     private void HideInput()
     {
         IsHidInputPanel = !IsHidInputPanel;
@@ -801,4 +611,17 @@ else
             logger.LogWarning(ex.Message, "Plot has been disposed");
         }
     }
+    private void ManageUpdatedRheogramStdStress(double? val)
+    {
+        updatedRheogramStdStress = val;
+    }
+    private void ManageAddedRheogramStdStress(double? val)
+    {
+        addedRheogramStdStress = val;
+    }
+    private void ManageLoadedFileStdStress(double? val)
+    {
+        loadedFileStdStress = val;
+    }
+
 }

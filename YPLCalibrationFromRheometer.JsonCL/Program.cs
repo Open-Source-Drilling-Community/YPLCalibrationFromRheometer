@@ -31,7 +31,7 @@ namespace YPLCalibrationFromRheometer.JsonCL
             do
             {
                 DirectoryInfo info = Directory.GetParent(solutionRootDir);
-                if (info != null && "YPLCalibrationFromRheometer".Equals(info.Name))
+                if (info != null && info.Name != null && info.Name.StartsWith("YPLCalibrationFromRheometer"))
                 {
                     found = true;
                 }
@@ -40,8 +40,8 @@ namespace YPLCalibrationFromRheometer.JsonCL
                     solutionRootDir += "..\\";
                 }
             } while (!found);
-            string jsonSchemaRootDir = solutionRootDir + "YPLCalibrationFromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
-            string sourceCodeDir = solutionRootDir + "YPLCalibrationFromRheometer.ModelClientShared\\";
+            string jsonSchemaRootDir = solutionRootDir + "..\\YPLCalibrationFromRheometer.Service\\wwwroot\\YPLCalibrationFromRheometer\\json-schemas\\";
+            string sourceCodeDir = solutionRootDir + "..\\YPLCalibrationFromRheometer.ModelClientShared\\";
             if (args != null && args.Length >= 1 && Directory.Exists(args[0]))
             {
                 sourceCodeDir = args[0];
@@ -51,14 +51,14 @@ namespace YPLCalibrationFromRheometer.JsonCL
             {
                 codeNamespace = args[1];
             }
-            JsonSchema pipeModelSchema = await JsonSchema.FromFileAsync(jsonSchemaRootDir + "YPLCalibration.txt");
+            JsonSchema modelSchema = await JsonSchema.FromFileAsync(jsonSchemaRootDir + "YPLCalibration.txt");
             CSharpGeneratorSettings settings = new CSharpGeneratorSettings();
             settings.Namespace = codeNamespace;
-            var pipeModelGenerator = new CSharpGenerator(pipeModelSchema, settings);
-            var pipeModelFile = pipeModelGenerator.GenerateFile();
+            var modelGenerator = new CSharpGenerator(modelSchema, settings);
+            var modelFile = modelGenerator.GenerateFile();
             using (StreamWriter writer = new StreamWriter(sourceCodeDir + "YPLCalibrationModelFromJson.cs"))
             {
-                writer.WriteLine(pipeModelFile);
+                writer.WriteLine(modelFile);
             }
             lock (lock_)
             {
