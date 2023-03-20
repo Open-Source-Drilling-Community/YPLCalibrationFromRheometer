@@ -155,15 +155,12 @@ Eric Cayeux: erca@norceresearch.no
 
 Gilles Pelfrene: gipe@norceresearch.no 
 
-# Go to wiki for more!
+# Go to WIKI for more!
 
-Wiki page includes:
--	Model
-    - Short introduction on the importance of drilling fluid rheometry
-    - Description of calibration methods used
-    - Description of correction methods used
-    - Bibliography
--	Software
-    - Installation process
+[WIKI](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki) page includes:
+- [Background information on the model](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Background)
+- [A tutorial on the use of the webapp](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/WebApp-tutorial)
+- [A tutorial on the use of the microservice](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Microservice-tutorial)
+- [A tutorial on the software architecture and design choices](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Software-architecture)
 
 
