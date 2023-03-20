@@ -33,7 +33,7 @@ Herschel-Bulkley Calibration and Correction of Fann35 Rheometer Measurements
 - [License](#license)
 - [Contributions](#contributions)
 - [Contact](#contact)
-- [Go to wiki for more!](#go-to-wiki-for-more)
+- [Go to WIKI for more!](#go-to-wiki-for-more)
 
 # About this repo
 This repository contains a program (microservice and webapp) used to calibrate flow curves against the [Herschel-Bulkley model](https://en.wikipedia.org/wiki/Herschel%E2%80%93Bulkley_fluid) and correct [Fann35 rheometer](https://www.fann.com/en/products/model-35) measurements for non-Newtonian effects.
