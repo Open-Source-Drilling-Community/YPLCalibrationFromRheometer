@@ -83,33 +83,25 @@ The solution is structure as follows:
 YPLCalibrationFromRheometer/
 │
 ├── Model/
-│   ├── data model & associated calculations
-│   └── dotnet framework = netcoreapp3.1
+│   └── data model & associated calculations
 ├── Service/
 │   ├── microservice API
 │   └── data persistence
-│   └── dotnet framework = netcoreapp3.1
 ├── WebApp.Client/
-│   ├── simple dotnet blazor-server-based webapp
-│   └── dotnet framework = net6.0 (plotting features based on Plotly.Blazor)
+│   └── simple dotnet blazor-server-based webapp
 ├── RheometerCorrectionApp/
-│   ├── Windows form based app to check-for correction algorithms
-│   └── dotnet framework = netcoreapp3.1
+│   └── Windows form based app to check-for correction algorithms
 ├── Test
-│   ├── Functional test-suite of the microservice API
-│   └── dotnet framework = netcoreapp3.1
+│   └── Functional test-suite of the microservice API
 ├── NUnit
-│   ├── Unit test-suite of the core algorithms of the microservice
-│   └── dotnet framework = netcoreapp3.1
+│   └── Unit test-suite of the core algorithms of the microservice
 ├── ModelClientShared
-│   ├── POCO version of the data model
-│   └── dotnet framework = netcoreapp3.1
+│   └── POCO version of the data model
 ├── JsonSD
-│   ├── Automatically generates the json schema from the data model
-│   └── dotnet framework = netcoreapp3.1
+│   └── Automatically generates the json schema from the data model
 └── JsonCL
-    ├── Automatically generates a POCO version of the data model from its json schema
-    └── dotnet framework = netcoreapp3.1
+    └── Automatically generates a POCO version of the data model from its json schema
+
 ```
 
 # Current status
