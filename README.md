@@ -11,7 +11,7 @@
 [forks-shield]: https://img.shields.io/github/forks/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?logo=GitHub
 [forks-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/network/members
 [stars-shield]: https://img.shields.io/github/stars/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%230000ff&logo=GitHub
-[stars-url]: https://img.shields.io/github/stars/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?style=flat-square
+[stars-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%23FF0000&logo=GitHub
 [issues-url]: https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/issues
 [license-shield]: https://img.shields.io/github/license/Open-Source-Drilling-Community/YPLCalibrationFromRheometer?color=%2300FFFF
@@ -52,13 +52,13 @@ The program:
 # Program features
 The program is composed of: 
 
--	a webapp that allows to handle rheometer measurements and launch computations in a user-friendly way. It is packaged as a docker container and deployed on a NORCE server at the following endpoints (3 different webpages):
+-	a webapp that allows to handle rheometer measurements and launch computations in a user-friendly way. It is packaged as a [docker](https://www.docker.com/) container and deployed on a NORCE server at the following endpoints (3 different webpages):
 
     - https://app.digiwells.no/YPLCalibrationFromRheometer/webapp/Rheograms
     - https://app.digiwells.no/YPLCalibrationFromRheometer/webapp/YPLCalibrations
     - https://app.digiwells.no/YPLCalibrationFromRheometer/webapp/YPLCorrections
 
--	a microservice that performs the core computations and can be queried by any 3rd party client (a web navigator or any other online application) through http-requests. It is packaged as a docker container and deployed on a NORCE server at the following endpoints:
+-	a microservice that performs the core computations and can be queried by any 3rd party client (a web navigator or any other online application) through http-requests. It is packaged as a [docker](https://www.docker.com/) container and deployed on a NORCE server at the following endpoints:
 
     - https://app.digiwells.no/YPLCalibrationFromRheometer/api/Rheograms 
     - https://app.digiwells.no/YPLCalibrationFromRheometer/api/YPLCalibrations
@@ -80,10 +80,12 @@ The solution is structure as follows:
 YPLCalibrationFromRheometer/
 │
 ├── Model/
-│   ├── defines the data model
-│   ├── implements calculations
+│   ├── data model (RheometerMeasurement, Rheogram, YPLModel, YPLCalibration, YPLCorrection)
+│   └── associated calculations (correct rheograms, calibrate rheograms against the YPL model)
 ├── Service/
-│   ├── 
+│   ├── microservice API (controllers handling Rheograms, YPLCalibrations, YplCorrections and UnitSystems)
+│   ├── API logic implementation (managers handling access to database)
+│   └── data persisted into SQLite database embedded into the docker container (design principle of microservices)
 ├── WebApp.Client/
 │   ├── 
 ├── RheometerCorrectionApp/
