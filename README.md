@@ -83,7 +83,7 @@ The solution is structure as follows:
 YPLCalibrationFromRheometer/
 │
 ├── Model/
-│   └── data model & associated calculations
+│   └── data model and associated calculations
 ├── Service/
 │   ├── microservice API
 │   └── data persistence
