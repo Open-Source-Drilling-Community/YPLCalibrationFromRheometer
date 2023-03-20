@@ -153,6 +153,6 @@ Gilles Pelfrene: gipe@norceresearch.no
 - [Background information on the model](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Background)
 - [A tutorial on the use of the webapp](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/WebApp-tutorial)
 - [A tutorial on the use of the microservice](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Microservice-tutorial)
-- [A tutorial on the software architecture and design choices](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Software-architecture)
+- [Develop, build, deploy the program](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/For-developers)
 
 
