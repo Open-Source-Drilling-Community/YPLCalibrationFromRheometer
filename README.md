@@ -72,7 +72,10 @@ The program is composed of:
 
 The program is packaged as a Visual Studio solution, developed in C# and based on the .NET Core 3.1 framework (compatible with Windows, Linux and MacOS).
 
-Visual Studio is used for the developmenent but it should be possible to build the solution from the command line for those who just have the .Net environment without Visual Studio.
+Visual Studio has been used for the developmenent but as any dotnet program, it is possible to build it:
+- from the free version of Visual Studio, e.g. Community Edition (see [here](https://visualstudio.microsoft.com/vs/community/)), with the advantage that the `.sln` file at the root of the current directory is directly readable by VS Community
+- from the command line (assuming dotnet is already installed, otherwise see [here](https://dotnet.microsoft.com/en-us/download))
+- from the light-weight generic Visual Studio Code (see [here](https://code.visualstudio.com/))
 
 The solution is structure as follows:
 
@@ -80,42 +83,51 @@ The solution is structure as follows:
 YPLCalibrationFromRheometer/
 │
 ├── Model/
-│   ├── data model (RheometerMeasurement, Rheogram, YPLModel, YPLCalibration, YPLCorrection)
-│   └── associated calculations (correct rheograms, calibrate rheograms against the YPL model)
+│   ├── data model & associated calculations
+│   └── dotnet framework = netcoreapp3.1
 ├── Service/
-│   ├── microservice API (controllers handling Rheograms, YPLCalibrations, YplCorrections and UnitSystems)
-│   ├── API logic implementation (managers handling access to database)
-│   └── data persisted into SQLite database embedded into the docker container (design principle of microservices)
+│   ├── microservice API
+│   └── data persistence
+│   └── dotnet framework = netcoreapp3.1
 ├── WebApp.Client/
-│   ├── 
+│   ├── simple dotnet blazor-server-based webapp
+│   └── dotnet framework = net6.0 (plotting features based on Plotly.Blazor)
 ├── RheometerCorrectionApp/
-│   ├── 
+│   ├── Windows form based app to check-for correction algorithms
+│   └── dotnet framework = netcoreapp3.1
 ├── Test
-│   ├── 
+│   ├── Functional test-suite of the microservice API
+│   └── dotnet framework = netcoreapp3.1
 ├── NUnit
-│   ├── 
-└── ModelClientShared
-    └──  					"Explaining relations between each module"
-
+│   ├── Unit test-suite of the core algorithms of the microservice
+│   └── dotnet framework = netcoreapp3.1
+├── ModelClientShared
+│   ├── POCO version of the data model
+│   └── dotnet framework = netcoreapp3.1
+├── JsonSD
+│   ├── Automatically generates the json schema from the data model
+│   └── dotnet framework = netcoreapp3.1
+└── JsonCL
+    ├── Automatically generates a POCO version of the data model from its json schema
+    └── dotnet framework = netcoreapp3.1
 ```
-
-- A model where the actual calibration and correction are made.
-- Unit tests to control that the implemented method works and that any later modifications do not break backward compatibility.
-- A microservice implemented and containerized with docker. The web API can be found in [host]/[service]/api/values where [service]=OSDC.YPL.ModelCalibration.FromRheometer and [host]=https://app.DigiWells.no
-- An example test program to check that the container works properly.
-- The web service also provides online documentation. The online documentation can be found in [service].
-- The web service default web page provides a web interface to handle rheograms, calibrations and corrections according to the CRUD API.
-- The web app client is based on Blazor server technology
-- A SQLite database allows for data storage on the digiwells server but also locally if needed.
 
 # Current status
 
 -	Model
-
-    - Calibration of YPL steady state from Couette rheometer measurements with the methods from Zamora/Kelessidis and Mullineux: OSDC.YPL.ModelCalibration.FromRheometer. Its docker image has the following tag: digiwells/osdcyplmodelcalibrationfromrheometerservice
-  
+    - calibration of any flow curve against the Herschel-Bulkley model
+    - calibration methods available: Zamora/Kelessidis and Mullineux
+    - shear stress correction
+        - standard correction of Fann35 shear stress rheometer measurements for non-Newtonian end effects 
+        - rheology dependent correction of Fann35 (R1B1, R1B2, R1B5 configurations) shear stress rheometer measurements for non-Newtonian end effects (after [Lac and Parry, 2017](http://sor.scitation.org/doi/10.1122/1.4986925))
+    - shear rate correction
+        - correction of Couette rheometer measurements for non-Newtonian effects (after [Skadsem and Saasen, 2019](https://www.degruyter.com/document/doi/10.1515/arh-2019-0001/html))
 
 -	Software
+    - microservice handling Rheogram's, YPLCorrection's, YPLCalibration's and Unit's through a CRUD API where data are exchanged as json strings (.NET Core 3.1)
+    - blazer-server webapp allowing to interact with the microservice (.NET 6.0)
+    - microservice and webapp packaged as docker containers and deployed on a publicly accessible NORCE server (see [above](#program-features))
+    - [SQLite](https://sqlite.org/index.html) data storage capability embedded into the container itself
 
 # License
 
