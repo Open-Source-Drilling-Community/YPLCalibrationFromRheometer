@@ -543,7 +543,7 @@ else
             while (i < table.Rows.Count - i0 &&
                 double.TryParse(table.Rows[i0 + i][j0].ToString(), out sr) &&
                 double.TryParse(table.Rows[i0 + i][j0 + 1].ToString(), out ss) &&
-                !NORCE.General.Std.Numeric.EQ(sr, srPrev) && !NORCE.General.Std.Numeric.EQ(sr, srPrevPrev))
+                !OSDC.DotnetLibraries.General.Common.Numeric.EQ(sr, srPrev) && !OSDC.DotnetLibraries.General.Common.Numeric.EQ(sr, srPrevPrev))
             {
                 RheometerMeasurement meas = new RheometerMeasurement();
                 meas.ShearRate = sr;

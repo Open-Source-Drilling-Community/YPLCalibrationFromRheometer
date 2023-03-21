@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\General.Math\NORCE.General.Math.csproj" />
-    <ProjectReference Include="..\General.Statistics\NORCE.General.Statistics.csproj" />
-    <ProjectReference Include="..\General.Std\NORCE.General.Std.csproj" />
+    <PackageReference Include="OSDC.DotnetLibraries.General.Common" Version="1.0.2" />
+    <PackageReference Include="OSDC.DotnetLibraries.General.Math" Version="1.0.2" />
+    <PackageReference Include="OSDC.DotnetLibraries.General.Statistics" Version="1.0.1" />
   </ItemGroup>
 
 </Project>

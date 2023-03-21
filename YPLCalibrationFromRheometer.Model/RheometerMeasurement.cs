@@ -1,4 +1,4 @@
-﻿using NORCE.General.Std;
+﻿using OSDC.DotnetLibraries.General.Common;
 using System;
 
 namespace YPLCalibrationFromRheometer.Model

@@ -1,6 +1,6 @@
-﻿using NORCE.General.Std;
-using NORCE.General.Math;
-using NORCE.General.Statistics;
+﻿using OSDC.DotnetLibraries.General.Common;
+using OSDC.DotnetLibraries.General.Math;
+using OSDC.DotnetLibraries.General.Statistics;
 using System;
 using System.Collections.Generic;
 
