@@ -72,7 +72,7 @@ The program is composed of:
 
 The program is packaged as a Visual Studio solution, developed in C# and based on the .NET Core 3.1 framework (compatible with Windows, Linux and MacOS).
 
-Visual Studio has been used for the developmenent but as any dotnet program, it is possible to build it:
+Visual Studio has been used for the development but as any dotnet program, it is possible to build it:
 - from the free version of Visual Studio, e.g. Community Edition (see [here](https://visualstudio.microsoft.com/vs/community/)), with the advantage that the `.sln` file at the root of the current directory is directly readable by VS Community
 - from the command line (assuming dotnet is already installed, otherwise see [here](https://dotnet.microsoft.com/en-us/download))
 - from the light-weight generic Visual Studio Code (see [here](https://code.visualstudio.com/))
