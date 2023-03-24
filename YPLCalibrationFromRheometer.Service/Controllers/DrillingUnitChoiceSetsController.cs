@@ -23,9 +23,9 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
 
         // GET api/DrillingUnitChoiceSets
         [HttpGet]
-        public IEnumerable<MetaID> Get()
+        public IEnumerable<MetaInfo> Get()
         {
-            List<MetaID> ids = drillingUnitChoiceSetsManager_.GetIDs();
+            List<MetaInfo> ids = drillingUnitChoiceSetsManager_.GetIDs();
             return ids;
         }
 

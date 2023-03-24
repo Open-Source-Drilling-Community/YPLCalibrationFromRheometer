@@ -39,11 +39,13 @@ else
                     <tr>
                         <td>@unitChoiceSets_[i].Name</td>
                         <td>@unitChoiceSets_[i].Description</td>
-                        <td>@unitChoiceSets_[i].Flags["IsDefault"]</td>
+                        <td>@(DefaultDrillingUnitChoiceSetIDs.Contains(unitChoiceSets_[i].ID))</td>
                         <td align="right">
-                            <button class="btn btn-primary" hidden="@unitChoiceSets_[local_i].Flags["IsDefault"]" @onclick="@(() => Delete(local_i))">Delete</button>
+                            <button class="btn btn-primary" hidden="@(DefaultDrillingUnitChoiceSetIDs.Contains(unitChoiceSets_[local_i].ID))" @onclick="@(() => Delete(local_i))">Delete</button>
                             <button class="btn btn-primary" @onclick="@(() => Details(local_i))">
-                                @(@unitChoiceSets_[local_i].Flags["IsDefault"] ? "Details" : "Edit")
+                                @(
+                                    DefaultDrillingUnitChoiceSetIDs.Contains(unitChoiceSets_[local_i].ID) ? "Details" : "Edit"
+                                    )
                             </button>
                         </td>
                     </tr>
@@ -103,6 +105,12 @@ else
 }
 @code
 {
+    private HashSet<Guid> DefaultDrillingUnitChoiceSetIDs = new HashSet<Guid> {
+        new Guid("f8338e35-c548-4284-a2e7-61b94a7b4769"),
+        new Guid("0e595036-8f8b-4b70-9d81-3b45f351f55c"),
+        new Guid("3693c680-8c7e-4977-874e-109be3600c64"),
+        new Guid("67e6faf9-8d2f-4071-badb-f8d1355017a4")}; // DrillingUnitChoiceSet Ids, by order of appearance: SI, Metric, US, Imperial
+
     class QuantityUnitChoiceAssociation
     {
         public OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity Quantity { get; set; }
@@ -194,13 +202,14 @@ else
                         }
                     }
                 }
+                quantityUnitAssociations_.Sort((q1, q2) => q1.Quantity.Name.CompareTo(q2.Quantity.Name));
                 await InvokeAsync(() => { StateHasChanged(); });
             }
         }
     }
     private async void Delete(int i)
     {
-        if (unitChoiceSets_ != null && i >= 0 && i < unitChoiceSets_.Count && !unitChoiceSets_[i].Flags["IsDefault"])
+        if (unitChoiceSets_ != null && i >= 0 && i < unitChoiceSets_.Count && !(DefaultDrillingUnitChoiceSetIDs.Contains(unitChoiceSets_[i].ID)))
         {
             bool success = await APIUtilsUnitConversion.DeleteDrillingUnitConversionSet(httpClient, logger, unitChoiceSets_[i].ID);
             if (success)

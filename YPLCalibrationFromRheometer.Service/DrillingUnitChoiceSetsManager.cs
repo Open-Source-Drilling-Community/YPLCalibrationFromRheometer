@@ -21,7 +21,7 @@ namespace YPLCalibrationFromRheometer.Service
             connection_ = SQLConnectionManager.GetConnection(loggerFactory);
 
             // first initiate a call to the database to make sure all its tables are initialized
-            List<MetaID> unitChoiceSetIDs = GetIDs();
+            List<MetaInfo> unitChoiceSetIDs = GetIDs();
 
             // then create some default DrillingUnitChoiceSets'
             if (!unitChoiceSetIDs.Any())
@@ -118,9 +118,9 @@ namespace YPLCalibrationFromRheometer.Service
             return count >= 1;
         }
 
-        public List<MetaID> GetIDs()
+        public List<MetaInfo> GetIDs()
         {
-            List<MetaID> ids = new List<MetaID>();
+            List<MetaInfo> ids = new List<MetaInfo>();
             if (connection_ != null)
             {
                 var command = connection_.CreateCommand();
@@ -133,11 +133,13 @@ namespace YPLCalibrationFromRheometer.Service
                         if (!reader.IsDBNull(0))
                         {
                             int res = reader.GetInt32(3);
-                            Dictionary<string, bool> flags = new Dictionary<string, bool>
+                            MetaInfo metaInfo = new MetaInfo
                             {
-                                { "IsDefault", res != 0 }
+                                ID = reader.GetGuid(0),
+                                Name = reader.GetString(1),
+                                Description = reader.GetString(2)
                             };
-                            ids.Add(new MetaID(reader.GetGuid(0), reader.GetString(1), reader.GetString(2), flags));
+                            ids.Add(metaInfo); // Note: the IsDefault flag cannot be passed through a MetaInfo anymore (from OSDC.DotnetLibraries.DataManagement > v1.2)
                         }
                     }
                 }

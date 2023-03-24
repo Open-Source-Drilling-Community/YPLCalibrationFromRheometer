@@ -22,17 +22,26 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
 
         // GET api/DrillingPhysicalQuantities
         [HttpGet]
-        public IEnumerable<MetaID> Get(int option)
+        public IEnumerable<MetaInfo> Get(int option)
         {
             if (option == 0)
             {
-                List<PhysicalQuantity> quantities = DrillingPhysicalQuantity.AvailableQuantities;
-                List<MetaID> ids = new List<MetaID>();
+                List<PhysicalQuantity> quantities = new List<PhysicalQuantity>();
+                // Adding base Conversion quantities
+                quantities.AddRange(PhysicalQuantity.AvailableQuantities);
+                // and quantities specific to Conversion.DrillingEngineering
+                quantities.AddRange(DrillingPhysicalQuantity.AvailableQuantities);
+                List<MetaInfo> ids = new List<MetaInfo>();
                 if (quantities != null)
                 {
                     foreach (PhysicalQuantity quantity in quantities)
                     {
-                        ids.Add(new MetaID(quantity.ID, quantity.Name));
+                        MetaInfo metaInfo = new MetaInfo
+                        {
+                            ID = quantity.ID,
+                            Name = quantity.Name
+                        };
+                        ids.Add(metaInfo);
                     }
                 }
                 return ids;
@@ -47,6 +56,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpGet("{id}")]
         public PhysicalQuantity Get(Guid id)
         {
+            // GetQuantity(Guid id) method looks into Conversion quantities and Conversion.DrillingEngineering
             PhysicalQuantity quantity = DrillingPhysicalQuantity.GetQuantity(id);
             return quantity;
         }
