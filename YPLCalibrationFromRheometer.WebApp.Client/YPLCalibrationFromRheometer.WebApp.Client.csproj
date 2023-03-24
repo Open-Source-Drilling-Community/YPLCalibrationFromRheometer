@@ -5,6 +5,7 @@
 		<UserSecretsId>cccd571c-ef54-4f22-8fb0-70cb8755ad7d</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
