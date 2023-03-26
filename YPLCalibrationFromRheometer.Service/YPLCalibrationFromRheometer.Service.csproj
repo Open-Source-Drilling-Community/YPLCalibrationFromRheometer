@@ -6,6 +6,7 @@
 		<UserSecretsId>d4693808-78e9-47c7-919b-bed83a86870d</UserSecretsId>
 		<RootNamespace>YPLCalibrationFromRheometer.Service</RootNamespace>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 
