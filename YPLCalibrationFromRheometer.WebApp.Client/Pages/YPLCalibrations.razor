@@ -100,7 +100,7 @@ else
     </div>
     @if (yplCalibrationIdx >= 0)
     {
-        int inputIterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count;
+            int inputIterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.Count;
         <div hidden="@IsHidSubPanel">
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Input Rheogram</h2></button>
@@ -405,20 +405,20 @@ else
             yplCalibrationIdx < yplCalibrationList.Count &&
             yplCalibrationList[yplCalibrationIdx] != null &
             yplCalibrationList[yplCalibrationIdx].RheogramInput != null &&
-            yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList != null)
+            yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements != null)
         {
-            for (int i = 0; i < yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.Count; ++i)
+            for (int i = 0; i < yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.Count; ++i)
             {
-                if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate < minShearRate)
+                if (yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate < minShearRate)
                 {
-                    minShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    minShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate;
                 }
-                if (yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate > maxShearRate)
+                if (yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate > maxShearRate)
                 {
-                    maxShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    maxShearRate = yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate;
                 }
-                shearRates.Add(yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate);
-                shearStresses.Add(yplCalibrationList[yplCalibrationIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearStress);
+                shearRates.Add(yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate);
+                shearStresses.Add(yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearStress);
             }
         }
         listShearRates.Clear();

@@ -1,29 +1,21 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace YPLCalibrationFromRheometer.ModelClientShared
 {
-    public partial class RheometerMeasurement
+    public partial class ShearRateAndStress
     {
         /// <summary>
-        /// 
+        /// this method is the exact copy of YPLCalibrationFromRheometer.Model.RheometerMeasurement.Copy(RheometerMeasurement dest)
         /// </summary>
         /// <param name="dest"></param>
         /// <returns></returns>
-        public bool Copy(RheometerMeasurement dest)
+        public bool Copy(ShearRateAndStress dest)
         {
             if (dest != null)
             {
-                dest.RotationalSpeed = RotationalSpeed;
-                dest.Torque = Torque;
-                dest.ISONewtonianShearRate = ISONewtonianShearRate;
-                dest.ISONewtonianShearStress = ISONewtonianShearStress;
-                dest.BobNewtonianShearRate = BobNewtonianShearRate;
-                dest.BobNewtonianShearStress = BobNewtonianShearStress;
+                dest.ShearRate = ShearRate;
+                dest.ShearStress = ShearStress;
                 return true;
             }
             else
@@ -46,14 +38,14 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static RheometerMeasurement FromJson(string str)
+        public static ShearRateAndStress FromJson(string str)
         {
-            RheometerMeasurement value = null;
+            ShearRateAndStress value = null;
             if (!string.IsNullOrEmpty(str))
             {
                 try
                 {
-                    value = JsonConvert.DeserializeObject<RheometerMeasurement>(str);
+                    value = JsonConvert.DeserializeObject<ShearRateAndStress>(str);
                 }
                 catch (Exception ex)
                 {
@@ -62,6 +54,6 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
             }
             return value;
         }
-
     }
 }
+

@@ -12,16 +12,6 @@
                 <tr>
                     <td>Name</td>
                     <td>Description</td>
-                    <td>
-                        <span>R₁ (</span>
-                        <SpanUnitLabel QuantityName="Pipe Diameter" />
-                        <span>)</span>
-                    </td>
-                    <td>
-                            <span>R₂ (</span>
-                        <SpanUnitLabel QuantityName="Pipe Diameter" />
-                        <span>)</span>
-                    </td>
                     <td></td>
                 </tr>
             </thead>
@@ -35,14 +25,6 @@
                         <td>
                             <span class="label">@(yplCorrectionList[yplCorrectionIdx].Description)</span>
                         </td>
-                        <td>
-                            <SpanWithUnit QuantityName="Pipe Diameter"
-                                          SIValue="@(yplCorrectionList[yplCorrectionIdx].R1)" />
-                        </td>
-                        <td>
-                            <SpanWithUnit QuantityName="Pipe Diameter"
-                                          SIValue="@(yplCorrectionList[yplCorrectionIdx].R2)" />
-                        </td>
                         <td></td>
                     </tr>
                 }
@@ -54,16 +36,6 @@
                         </td>
                         <td>
                             <input class="text" type="text" size="50" @bind="@updatedYplCorrectionDescr" />
-                        </td>
-                        <td>
-                            <InputWithUnit QuantityName="Pipe Diameter"
-                                           SIValueNullable="@updatedYplCorrectionR1"
-                                           SIValueNullableChanged="@((val) => ManageUpdatedYplCorrectionR1(val))" />
-                        </td>
-                        <td>
-                            <InputWithUnit QuantityName="Pipe Diameter"
-                                           SIValueNullable="@updatedYplCorrectionR2"
-                                           SIValueNullableChanged="@((val) => ManageUpdatedYplCorrectionR2(val))" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Update(yplCorrectionIdx))">Update</button>
@@ -90,16 +62,6 @@ else
                 <tr>
                     <td>Name</td>
                     <td>Description</td>
-                    <td>
-                       <span>R₁ (</span>
-                       <SpanUnitLabel QuantityName="Pipe Diameter" />
-                       <span>)</span>
-                    </td>
-                    <td>
-                        <span>R₂ (</span>
-                        <SpanUnitLabel QuantityName="Pipe Diameter" />
-                        <span>)</span>
-                    </td>
                     <td></td>
                 </tr>
             </thead>
@@ -113,14 +75,6 @@ else
                         </td>
                         <td>
                             <span class="label">@yplCorrectionList[i].Description</span>
-                        </td>
-                        <td>
-                           <SpanWithUnit QuantityName="Pipe Diameter"
-                                      SIValue="@(yplCorrectionList[i].R1)" />
-                        </td>
-                        <td>
-                            <SpanWithUnit QuantityName="Pipe Diameter"
-                                  SIValue="@(yplCorrectionList[i].R2)" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
@@ -137,16 +91,6 @@ else
                     <td>
                         <input class="text" type="text" size="50" @bind="@addedYplCorrectionDescr" />
                     </td>
-                    <td>
-                        <InputWithUnit QuantityName="Pipe Diameter"
-                                       SIValueNullable="@addedYplCorrectionR1"
-                                       SIValueNullableChanged="@((val) => ManageAddedYplCorrectionR1(val))" />
-                    </td>
-                    <td>
-                        <InputWithUnit QuantityName="Pipe Diameter"
-                                       SIValueNullable="@addedYplCorrectionR2"
-                                       SIValueNullableChanged="@((val) => ManageAddedYplCorrectionR2(val))" />
-                    </td>
                     <td align="right">
                         <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
                         <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
@@ -157,10 +101,10 @@ else
     </div>
     @if (yplCorrectionIdx >= 0)
     {
-        ICollection<RheometerMeasurement> inputList = yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList;
-        ICollection<RheometerMeasurement> fullyCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList;
-        ICollection<RheometerMeasurement> shearRateCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList;
-        ICollection<RheometerMeasurement> shearStressCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList;
+            ICollection<RheometerMeasurement> inputList = yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements;
+            ICollection<ShearRateAndStress> fullyCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected;
+            ICollection<ShearRateAndStress> shearRateCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected;
+            ICollection<ShearRateAndStress> shearStressCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected;
         <div hidden="@IsHidSubPanel">
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Input Rheogram</h2></button>
@@ -192,19 +136,19 @@ else
             </div>
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Fully corrected Rheogram</h2></button>
-                <DisplayRheogram Rheogram="@yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected" IsHidden="@IsHidCalcPanel" />
+                <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected" IsHidden="@IsHidCalcPanel" />
                 <h3 hidden="@IsHidCalcPanel">YPLModel (based on Mullineux)</h3>
                 <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelFullyCorrected" IsHidden="@IsHidCalcPanel" />
             </div>
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearRate corrected Rheogram</h2></button>
-                <DisplayRheogram Rheogram="@yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected" IsHidden="@IsHidCalcPanel" />
+                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected" IsHidden="@IsHidCalcPanel" />
                  <h3 hidden="@IsHidCalcPanel">YPLModel (based on Mullineux)</h3>
                 <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelShearRateCorrected" IsHidden="@IsHidCalcPanel" />
             </div>
             <div>
                 <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearStress corrected Rheogram</h2></button>
-                <DisplayRheogram Rheogram="@yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected" IsHidden="@IsHidCalcPanel" />
+                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected" IsHidden="@IsHidCalcPanel" />
                 <h3 hidden="@IsHidCalcPanel">YPLModel (based on Mullineux)</h3>
                 <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelShearStressCorrected" IsHidden="@IsHidCalcPanel" />
              </div>
@@ -242,12 +186,8 @@ else
     // UI binding variables
     private string addedYplCorrectionName = null;
     private string addedYplCorrectionDescr = null;
-    private double? addedYplCorrectionR1 = YPLCorrection_R1;
-    private double? addedYplCorrectionR2 = YPLCorrection_R2;
     private string updatedYplCorrectionName = null;
     private string updatedYplCorrectionDescr = null;
-    private double? updatedYplCorrectionR1 = YPLCorrection_R1;
-    private double? updatedYplCorrectionR2 = YPLCorrection_R2;
 
     // variables identifying user's selected objects
     private int yplCorrectionIdx = -1; // the index of the selected YPLCorrection
@@ -408,8 +348,6 @@ else
             yplCorrectionIdx = idx;
             yplCorrectionID = yplCorrectionList[idx].ID;
             updatedYplCorrectionName = yplCorrectionList[idx].Name;
-            updatedYplCorrectionR1 = yplCorrectionList[idx].R1;
-            updatedYplCorrectionR2 = yplCorrectionList[idx].R2;
             updatedYplCorrectionDescr = yplCorrectionList[idx].Description;
             rheogramID = yplCorrectionList[idx].RheogramInput.ID;
             IsHidMainPanel = true;
@@ -441,10 +379,6 @@ else
         {
             yplCorrectionList[idx].Name = updatedYplCorrectionName;
             yplCorrectionList[idx].Description = updatedYplCorrectionDescr;
-            if (updatedYplCorrectionR1 != null)
-                yplCorrectionList[idx].R1 = (double)updatedYplCorrectionR1;
-            if (updatedYplCorrectionR2 != null)
-                yplCorrectionList[idx].R2 = (double)updatedYplCorrectionR2;
 
             // PUT YPLCorrection into the YPLCorrectionsTable (calculation is performed and output children database is also updated)
             StringContent content = new StringContent(yplCorrectionList[idx].GetJson(), Encoding.UTF8, "application/json");
@@ -453,8 +387,6 @@ else
             {
                 updatedYplCorrectionName = null;
                 updatedYplCorrectionDescr = null;
-                updatedYplCorrectionR1 = YPLCorrection_R1;
-                updatedYplCorrectionR2 = YPLCorrection_R2;
 
                 IsHidMainPanel = false;
                 IsHidSubPanel = true;
@@ -491,20 +423,20 @@ else
             yplCorrectionIdx < yplCorrectionList.Count &&
             yplCorrectionList[yplCorrectionIdx] != null &
             yplCorrectionList[yplCorrectionIdx].RheogramInput != null &&
-            yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList != null)
+            yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements != null)
         {
-            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.Count; ++i)
+            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.Count; ++i)
             {
-                if (yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate < minShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate < minShearRate)
                 {
-                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate;
                 }
-                if (yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate > maxShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate > maxShearRate)
                 {
-                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate;
                 }
-                shearRates.Add(yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearRate);
-                shearStresses.Add(yplCorrectionList[yplCorrectionIdx].RheogramInput.RheometerMeasurementList.ElementAt(i).ShearStress);
+                shearRates.Add(yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearRate);
+                shearStresses.Add(yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements.ElementAt(i).BobNewtonianShearStress);
             }
         }
         listShearRates.Clear();
@@ -538,23 +470,22 @@ else
         if (yplCorrectionList != null &&
             yplCorrectionIdx < yplCorrectionList.Count &&
             yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected != null &&
-            yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList != null)
+            yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected != null)
         {
             List<object> srs = new List<object>();
             List<object> sss = new List<object>();
-            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.Count; ++i)
+            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.Count; ++i)
             {
-                if (yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.ElementAt(i).ShearRate < minShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.ElementAt(i).ShearRate < minShearRate)
                 {
-                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.ElementAt(i).ShearRate;
                 }
-                if (yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.ElementAt(i).ShearRate > maxShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.ElementAt(i).ShearRate > maxShearRate)
                 {
-                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.ElementAt(i).ShearRate;
                 }
-                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.ElementAt(i).ShearRate);
-                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.RheometerMeasurementList.ElementAt(i).ShearStress);
+                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.ElementAt(i).ShearRate);
+                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected.ElementAt(i).ShearStress);
             }
             listShearRates.Add(srs);
             listShearStresses.Add(sss);
@@ -587,23 +518,22 @@ else
         if (yplCorrectionList != null &&
             yplCorrectionIdx < yplCorrectionList.Count &&
             yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected != null &&
-            yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList != null)
+            yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected != null)
         {
             List<object> srs = new List<object>();
             List<object> sss = new List<object>();
-            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.Count; ++i)
+            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.Count; ++i)
             {
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(i).ShearRate < minShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate < minShearRate)
                 {
-                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate;
                 }
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(i).ShearRate > maxShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate > maxShearRate)
                 {
-                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate;
                 }
-                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(i).ShearRate);
-                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.RheometerMeasurementList.ElementAt(i).ShearStress);
+                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate);
+                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearStress);
             }
             listShearRates.Add(srs);
             listShearStresses.Add(sss);
@@ -636,23 +566,22 @@ else
         if (yplCorrectionList != null &&
             yplCorrectionIdx < yplCorrectionList.Count &&
             yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected != null &&
-            yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList != null)
+            yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected != null)
         {
             List<object> srs = new List<object>();
             List<object> sss = new List<object>();
-            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.Count; ++i)
+            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.Count; ++i)
             {
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.ElementAt(i).ShearRate < minShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate < minShearRate)
                 {
-                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate;
                 }
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.ElementAt(i).ShearRate > maxShearRate)
+                if (yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate > maxShearRate)
                 {
-                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.ElementAt(i).ShearRate;
+                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate;
                 }
-                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.ElementAt(i).ShearRate);
-                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.RheometerMeasurementList.ElementAt(i).ShearStress);
+                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate);
+                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearStress);
             }
             listShearRates.Add(srs);
             listShearStresses.Add(sss);
@@ -698,21 +627,11 @@ else
             YPLCorrection addedYplCorrection = new YPLCorrection();
             addedYplCorrection.ID = Guid.NewGuid();
             addedYplCorrection.Name = addedYplCorrectionName;
-            if (addedYplCorrectionR1 != null)
-                addedYplCorrection.R1 = (double)addedYplCorrectionR1;
-            if (addedYplCorrectionR2 != null)
-                addedYplCorrection.R2 = (double)addedYplCorrectionR2;
             addedYplCorrection.Description = addedYplCorrectionDescr;
             addedYplCorrection.RheogramInput = inputRheogramList[0]; // by default, the first available Rheogram is used as input
-            addedYplCorrection.RheogramFullyCorrected = new Rheogram();
-            addedYplCorrection.RheogramFullyCorrected.ID = Guid.NewGuid();
-            addedYplCorrection.RheogramFullyCorrected.Name = addedYplCorrection.Name + "-calculated-fullyCorrected";
-            addedYplCorrection.RheogramShearRateCorrected = new Rheogram();
-            addedYplCorrection.RheogramShearRateCorrected.ID = Guid.NewGuid();
-            addedYplCorrection.RheogramShearRateCorrected.Name = addedYplCorrection.Name + "-calculated-shearRateCorrected";
-            addedYplCorrection.RheogramShearStressCorrected = new Rheogram();
-            addedYplCorrection.RheogramShearStressCorrected.ID = Guid.NewGuid();
-            addedYplCorrection.RheogramShearStressCorrected.Name = addedYplCorrection.Name + "-calculated-shearStressCorrected";
+            addedYplCorrection.RheogramFullyCorrected = new List<ShearRateAndStress>();
+            addedYplCorrection.RheogramShearRateCorrected = new List<ShearRateAndStress>();
+            addedYplCorrection.RheogramShearStressCorrected = new List<ShearRateAndStress>();
 
             // POST the YPLCorrection (note that it adds RheogramInput to the input database, triggers the CalculateOutputRheogram() method and adds the corresponding output to the output database)
             StringContent content = new StringContent(addedYplCorrection.GetJson(), Encoding.UTF8, "application/json");
@@ -721,8 +640,6 @@ else
             {
                 addedYplCorrectionName = null;
                 addedYplCorrectionDescr = null;
-                addedYplCorrectionR1 = YPLCorrection_R1;
-                addedYplCorrectionR2 = YPLCorrection_R2;
 
                 await OnInitializedAsync();
                 await InvokeAsync(() => { StateHasChanged(); });
@@ -739,8 +656,6 @@ else
         // empty UI edit box
         addedYplCorrectionName = null;
         addedYplCorrectionDescr = null;
-        addedYplCorrectionR1 = YPLCorrection_R1;
-        addedYplCorrectionR2 = YPLCorrection_R2;
     }
 
     private async void UpdateInput()
@@ -791,22 +706,6 @@ else
         IsHidCalcPanel = !IsHidCalcPanel;
         if (yplCorrectionIdx >= 0)
             await PlotFlowCurve();
-    }
-    private void ManageUpdatedYplCorrectionR1(double? val)
-    {
-        updatedYplCorrectionR1 = val;
-    }
-    private void ManageUpdatedYplCorrectionR2(double? val)
-    {
-        updatedYplCorrectionR2 = val;
-    }
-    private void ManageAddedYplCorrectionR1(double? val)
-    {
-        addedYplCorrectionR1 = val;
-    }
-    private void ManageAddedYplCorrectionR2(double? val)
-    {
-        addedYplCorrectionR2 = val;
     }
 }
 

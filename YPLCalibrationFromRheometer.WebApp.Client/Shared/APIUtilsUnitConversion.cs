@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System;
+using OSDC.DotnetLibraries.General.DataManagement;
 
 namespace YPLCalibrationFromRheometer.WebApp.Client
 {
@@ -23,10 +24,10 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
             return client;
         }
 
-        public static async Task<List<MetaInfo>> LoadDrillingUnitChoiceSets(HttpClient httpClient, ILogger logger)
+        public static async Task<List<MetaID>> LoadDrillingUnitChoiceSets(HttpClient httpClient, ILogger logger)
         {
             bool success = false;
-            List<MetaInfo> unitChoiceSets = new();
+            List<MetaID> unitChoiceSets = new();
             try
             {
                 //ids of the existing UnitChoiceSets are retrieved first to keep controllers API standard
@@ -36,7 +37,7 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
                     string str = await a.Content.ReadAsStringAsync();
                     if (!string.IsNullOrEmpty(str))
                     {
-                        unitChoiceSets = Newtonsoft.Json.JsonConvert.DeserializeObject<List<MetaInfo>>(str);
+                        unitChoiceSets = Newtonsoft.Json.JsonConvert.DeserializeObject<List<MetaID>>(str);
                         success = true;
                     }
                 }
@@ -186,15 +187,15 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
                 var a = await httpClient.GetAsync("DrillingPhysicalQuantities");
                 if (a.IsSuccessStatusCode)
                 {
-                    List<MetaInfo> metaIds = null;
+                    List<MetaID> MetaIDs = null;
                     string str = await a.Content.ReadAsStringAsync();
                     if (!string.IsNullOrEmpty(str))
                     {
-                        metaIds = Newtonsoft.Json.JsonConvert.DeserializeObject<List<MetaInfo>>(str);
+                        MetaIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<List<MetaID>>(str);
                     }
-                    for (int i = 0; i < metaIds.Count; i++)
+                    for (int i = 0; i < MetaIDs.Count; i++)
                     {
-                        a = await httpClient.GetAsync("DrillingPhysicalQuantities/" + metaIds[i].ID.ToString());
+                        a = await httpClient.GetAsync("DrillingPhysicalQuantities/" + MetaIDs[i].ID.ToString());
                         if (a.IsSuccessStatusCode && a.Content != null)
                         {
                             str = await a.Content.ReadAsStringAsync();
@@ -207,7 +208,7 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
                             }
                         }
                     }
-                    if (drillingPhysicalQuantities.Count != metaIds.Count)
+                    if (drillingPhysicalQuantities.Count != MetaIDs.Count)
                         throw new Exception("Inconsistent count of DataUnitConversionSet-loaded IDs and loaded DrillingPhysicalQuantities. Verify that the database garbage collector is not set with a too small time update.");
                     success = true;
                 }

@@ -328,7 +328,7 @@ namespace YPLCalibrationFromRheometer.Service
 
         public bool Update(Guid guid, DrillingUnitChoiceSet drillingUnitChoiceSet)
         {
-            if (guid != null && !guid.Equals(Guid.Empty) && drillingUnitChoiceSet != null && guid.Equals(drillingUnitChoiceSet.ID))
+            if (!guid.Equals(Guid.Empty) && drillingUnitChoiceSet != null && guid.Equals(drillingUnitChoiceSet.ID))
             {
                 // 1) the custom DrillingUnitChoiceSet is updated in the database
                 if (connection_ != null)

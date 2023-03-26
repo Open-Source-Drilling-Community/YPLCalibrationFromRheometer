@@ -13,10 +13,6 @@
                 <tr>
                     <td>Name</td>
                     <td>Description</td>
-                    <td>
-                        <span>Shear stress standard deviation</span>
-                            <SpanUnitLabel QuantityName="FluidShearStress" />
-                        </td>
                     <td></td>
                 </tr>
             </thead>
@@ -30,10 +26,6 @@
                         <td>
                             <span class="label">@(rheogramList[rheogramIdx].Description)</span>
                         </td>
-                        <td>
-                                <SpanWithUnit QuantityName="FluidShearStress"
-                                          SIValue="@(rheogramList[rheogramIdx].ShearStressStandardDeviation)" />
-                        </td>
                         <td></td>
                     </tr>
                 }
@@ -45,11 +37,6 @@
                         </td>
                         <td>
                             <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
-                        </td>
-                        <td>
-                                <InputWithUnit QuantityName="FluidShearStress"
-                                           SIValueNullable="@updatedRheogramStdStress"
-                                           SIValueNullableChanged="@((val) => ManageUpdatedRheogramStdStress(val))" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Update</button>
@@ -95,8 +82,6 @@ else
                             <span class="label">@(rheogramList[i].Description)</span>
                         </td>
                         <td>
-                                <SpanWithUnit QuantityName="FluidShearStress"
-                                      SIValue="@(rheogramList[i].ShearStressStandardDeviation)" />
                         </td>
                         <td align="right">
                             <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
@@ -113,11 +98,6 @@ else
                     <td>
                         <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
                     </td>
-                    <td>
-                        <InputWithUnit QuantityName="FluidShearStress"
-                                       SIValueNullable="@addedRheogramStdStress" 
-                                       SIValueNullableChanged="@((val) => ManageAddedRheogramStdStress(val))" />
-                    </td>
                     <td align="right">
                         <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
                         <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
@@ -129,11 +109,6 @@ else
                     </td>
                     <td>
                         <input class="text" type="text" size="30" @bind="@loadedFileDescr" />
-                    </td>
-                    <td>
-                        <InputWithUnit QuantityName="FluidShearStress"
-                                       SIValueNullable="@loadedFileStdStress"
-                                       SIValueNullableChanged="@((val) => ManageAddedRheogramStdStress(val))" />
                     </td>
                     <td align="right">
                         @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
@@ -152,10 +127,64 @@ else
     </div>
     @if (rheogramIdx >= 0)
     {
-        int inputIterData1Count = rheogramList[rheogramIdx].RheometerMeasurementList.Count;
+            int inputIterData1Count = rheogramList[rheogramIdx].Measurements.Count;
         <div hidden="@IsHidSubPanel">
             <div>
-                 <h2>RheometerMeasurements</h2>
+                <h2>Rheometer</h2>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span>Rheometer</span>
+                            </td>
+                            <td>
+                                    <select @bind="@rheogramList[rheogramIdx].CouetteRheometerID">
+                                        @foreach (var v in rheometerList)
+                                        {
+                                            <option value="@v.Item2">@v.Item1</option>
+                                        }
+                                    </select>
+                                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h2>Inputs</h2>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span>Source for rotation or shear rate</span>
+                            </td>
+                            <td>
+                                    <select @bind="@rheogramList[rheogramIdx].RateSource">
+                                        @foreach (var v in rateSourceList)
+                                        {
+                                            <option value="@v.Item2">@v.Item1</option>
+                                        }
+                                    </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span>Source for torque and shear stress</span>
+                            </td>
+                            <td>
+                                    <select @bind="@rheogramList[rheogramIdx].StressSource">
+                                        @foreach (var v in stressSourceList)
+                                        {
+                                            <option value="@v.Item2">@v.Item1</option>
+                                        }
+                                    </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                 <h2>Rheometer Measurements</h2>
                  <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
             </div>
             <div>
@@ -170,7 +199,6 @@ else
 
 @code {
     // default values
-    private const double Rheogram_StdShearStress = .01; // this value is the same as in Model.Rheogram (could maybe be shared through ModelClientShared)
     private string[] SRLabels = { "shearrate", "shear rate" };
     private string[] SSLabels = { "shearstress", "shear stress" };
 
@@ -186,18 +214,19 @@ else
     // main data object
     private List<Rheogram> rheogramList;
 
+    private List<Tuple<string, Guid>> rheometerList = new List<Tuple<string, Guid>>();
+    private List<Tuple<string, RateSourceEnum>> rateSourceList = new List<Tuple<string, RateSourceEnum>>();
+    private List<Tuple<string, StressSourceEnum>> stressSourceList = new List<Tuple<string, StressSourceEnum>>();
+
     // temporary objects are used essentially to post or put modifications to the database
     private string addedRheogramName = null;
     private string addedRheogramDescr = null;
-    private double? addedRheogramStdStress = Rheogram_StdShearStress;
 
     private string updatedRheogramName = null;
     private string updatedRheogramDescr = null;
-    private double? updatedRheogramStdStress = Rheogram_StdShearStress;
 
     private string loadedFileName = null;
     private string loadedFileDescr = null;
-    private double? loadedFileStdStress = Rheogram_StdShearStress;
 
     private bool isLoading;
     private decimal progressPercent;
@@ -216,9 +245,26 @@ else
     {
         try
         {
+            rateSourceList.Clear();
+            rateSourceList.Add(new Tuple<string, RateSourceEnum>("Rotational Speed", RateSourceEnum.RotationalSpeed));
+            rateSourceList.Add(new Tuple<string, RateSourceEnum>("ISO Newtonian Shear Rate", RateSourceEnum.ISONewtonianShearRate));
+            rateSourceList.Add(new Tuple<string, RateSourceEnum>("Bob Newtonian Shear Rate", RateSourceEnum.BobNewtonianShearRate));
+            stressSourceList.Clear();
+            stressSourceList.Add(new Tuple<string, StressSourceEnum>("Torque", StressSourceEnum.Torque));
+            stressSourceList.Add(new Tuple<string, StressSourceEnum>("ISO Newtonian Shear Stress", StressSourceEnum.ISONewtonianShearStress));
+            stressSourceList.Add(new Tuple<string, StressSourceEnum>("Bob Newtonian Shear Stress", StressSourceEnum.BobNewtonianShearStress));
             string host = YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL;
             logger.LogInformation("Trying to load Rheograms from client: " + host);
             SetHttpClient(host);
+            rheometerList.Clear();
+            List<CouetteRheometer> rheometers = await LoadRheometers();
+            if (rheometers != null)
+            {
+                foreach (var r in rheometers)
+                {
+                    rheometerList.Add(new Tuple<string, Guid>(r.Name, r.ID));
+                }
+            }
             rheogramList = await LoadRheograms();
             if (rheogramIdx >= 0)
                 PlotFlowCurve();
@@ -236,6 +282,68 @@ else
         httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    private async Task<List<CouetteRheometer>> LoadRheometers()
+    {
+        List<CouetteRheometer> list = null;
+        bool success = false;
+        try
+        {
+            var a = await httpClient.GetAsync("CouetteRheometers/");
+            if (a.IsSuccessStatusCode)
+            {
+                Guid[] ids = null;
+                string str = await a.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
+                }
+                if (list == null)
+                {
+                    list = new List<CouetteRheometer>();
+                }
+                list.Clear();
+                CouetteRheometer rheometer = null;
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    a = await httpClient.GetAsync("CouetteRheometers/" + ids[i].ToString());
+                    if (a.IsSuccessStatusCode && a.Content != null)
+                    {
+                        str = await a.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            rheometer = JsonConvert.DeserializeObject<CouetteRheometer>(str);
+                            if (rheometer == null)
+                                throw new NullReferenceException("Impossible to deserialize rheometer string:" + str);
+                            list.Add(rheometer);
+                        }
+                    }
+                }
+                if (list.Count != ids.Length)
+                    throw new Exception("Inconsistent count of rheometer-loaded IDs and loaded rheometers.");
+                success = true;
+            }
+            else
+            {
+                logger.LogWarning("Impossible to get rheometers from controller");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to load rheometers");
+        }
+        if (success)
+        {
+            list.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
+            logger.LogInformation("Loaded rheometers successfully");
+            return list;
+        }
+        else
+        {
+            logger.LogWarning("Impossible to load Rheograms");
+            return null;
+        }
     }
 
     private async Task<List<Rheogram>> LoadRheograms()
@@ -302,7 +410,6 @@ else
             rheogramIdx = idx;
             updatedRheogramName = rheogramList[idx].Name;
             updatedRheogramDescr = rheogramList[idx].Description;
-            updatedRheogramStdStress = rheogramList[idx].ShearStressStandardDeviation;
             rheogramID = rheogramList[idx].ID;
             IsHidMainPanel = true;
             IsHidSubPanel = false;
@@ -333,11 +440,10 @@ else
     private async void Update(int idx)
     {
         if (rheogramList != null && idx >= 0 && idx < rheogramList.Count && !rheogramList[idx].ID.Equals(System.Guid.Empty) &&
-            !string.IsNullOrEmpty(updatedRheogramName) && updatedRheogramStdStress != null && updatedRheogramStdStress > 0.0)
+            !string.IsNullOrEmpty(updatedRheogramName))
         {
             rheogramList[idx].Name = updatedRheogramName;
             rheogramList[idx].Description = updatedRheogramDescr;
-            rheogramList[idx].ShearStressStandardDeviation = (double)updatedRheogramStdStress;
 
             //PUT Rheogram into the RheogramInputsTable (YPLCalibrations referencing this Rheogram are updated at the Manager level)
             StringContent content = new StringContent(rheogramList[idx].GetJson(), Encoding.UTF8, "application/json");
@@ -346,7 +452,6 @@ else
             {
                 updatedRheogramName = null;
                 updatedRheogramDescr = null;
-                updatedRheogramStdStress = Rheogram_StdShearStress;
 
                 IsHidMainPanel = false;
                 IsHidSubPanel = true;
@@ -373,13 +478,12 @@ else
 
     private async void Add()
     {
-        if (!string.IsNullOrEmpty(addedRheogramName) && addedRheogramStdStress != null && addedRheogramStdStress > 0.0)
+        if (!string.IsNullOrEmpty(addedRheogramName))
         {
             Rheogram addedRheogram = new Rheogram();
             addedRheogram.ID = Guid.NewGuid();
             addedRheogram.Name = addedRheogramName;
             addedRheogram.Description = addedRheogramDescr;
-            addedRheogram.ShearStressStandardDeviation = (double)addedRheogramStdStress;
 
             // POST the Rheogram
             StringContent content = new StringContent(addedRheogram.GetJson(), Encoding.UTF8, "application/json");
@@ -388,7 +492,6 @@ else
             {
                 addedRheogramName = null;
                 addedRheogramDescr = null;
-                addedRheogramStdStress = Rheogram_StdShearStress;
 
                 await OnInitializedAsync();
                 await InvokeAsync(() => { StateHasChanged(); });
@@ -402,94 +505,90 @@ else
 
     private async void Load(InputFileChangeEventArgs e)
     {
-        if (loadedFileStdStress != null && loadedFileStdStress > 0.0)
+
+        isLoading = true;
+        progressPercent = 0;
+        DataTableCollection dts = null;
+
+        //Uploading files from client navigator
+        foreach (var file in e.GetMultipleFiles())
         {
-            isLoading = true;
-            progressPercent = 0;
-            DataTableCollection dts = null;
-
-            //Uploading files from client navigator
-            foreach (var file in e.GetMultipleFiles())
+            try
             {
-                try
+                string tempPath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+
+                await using FileStream writeStream = new(tempPath, FileMode.Create);
+                using var readStream = file.OpenReadStream();
+                var bytesRead = 0;
+                var totalRead = 0;
+                var buffer = new byte[1024 * 10];
+
+                while ((bytesRead = await readStream.ReadAsync(buffer)) != 0)
                 {
-                    string tempPath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                    totalRead += bytesRead;
 
-                    await using FileStream writeStream = new(tempPath, FileMode.Create);
-                    using var readStream = file.OpenReadStream();
-                    var bytesRead = 0;
-                    var totalRead = 0;
-                    var buffer = new byte[1024 * 10];
+                    await writeStream.WriteAsync(buffer, 0, bytesRead);
 
-                    while ((bytesRead = await readStream.ReadAsync(buffer)) != 0)
-                    {
-                        totalRead += bytesRead;
+                    progressPercent = Decimal.Divide(totalRead, file.Size);
 
-                        await writeStream.WriteAsync(buffer, 0, bytesRead);
-
-                        progressPercent = Decimal.Divide(totalRead, file.Size);
-
-                        StateHasChanged();
-                    }
-
-                    using (var reader = ExcelReaderFactory.CreateReader(writeStream))
-                    {
-                        var result = reader.AsDataSet();
-                        dts = result.Tables;
-                    }
+                    StateHasChanged();
                 }
-                catch (Exception ex)
+
+                using (var reader = ExcelReaderFactory.CreateReader(writeStream))
                 {
-                    logger.LogError(ex, "Impossible to read from file");
+                    var result = reader.AsDataSet();
+                    dts = result.Tables;
                 }
             }
-
-            if (dts != null)
+            catch (Exception ex)
             {
-                //Loop on tables of uploaded file
-                foreach (DataTable table in dts)
+                logger.LogError(ex, "Impossible to read from file");
+            }
+        }
+
+        if (dts != null)
+        {
+            //Loop on tables of uploaded file
+            foreach (DataTable table in dts)
+            {
+                List<List<RheometerMeasurement>> rheoLists = new List<List<RheometerMeasurement>>();
+                if (ParseDataTable(table, rheoLists))
                 {
-                    List<List<RheometerMeasurement>> rheoLists = new List<List<RheometerMeasurement>>();
-                    if (ParseDataTable(table, rheoLists))
+                    for (int i = 0; i < rheoLists.Count; ++i)
                     {
-                        for (int i = 0; i < rheoLists.Count; ++i)
+                        Rheogram loadedRheogram = new Rheogram();
+                        loadedRheogram.ID = Guid.NewGuid();
+                        loadedRheogram.Name = String.IsNullOrEmpty(loadedFileName) ? $"{table.TableName}-{i + 1}" : loadedFileName + $"-{table.TableName}-{i + 1}";
+                        loadedRheogram.Description = loadedFileDescr;
+                        loadedRheogram.Measurements = rheoLists.ElementAt(i);
+                        // POST the Rheogram
+                        StringContent content = new StringContent(loadedRheogram.GetJson(), Encoding.UTF8, "application/json");
+                        var a = await httpClient.PostAsync("Rheograms/", content);
+                        if (a.IsSuccessStatusCode)
                         {
-                            Rheogram loadedRheogram = new Rheogram();
-                            loadedRheogram.ID = Guid.NewGuid();
-                            loadedRheogram.Name = String.IsNullOrEmpty(loadedFileName) ? $"{table.TableName}-{i + 1}" : loadedFileName + $"-{table.TableName}-{i + 1}";
-                            loadedRheogram.Description = loadedFileDescr;
-                            loadedRheogram.ShearStressStandardDeviation = (double)loadedFileStdStress;
-                            loadedRheogram.RheometerMeasurementList = rheoLists.ElementAt(i);
-                            // POST the Rheogram
-                            StringContent content = new StringContent(loadedRheogram.GetJson(), Encoding.UTF8, "application/json");
-                            var a = await httpClient.PostAsync("Rheograms/", content);
-                            if (a.IsSuccessStatusCode)
-                            {
-                                await OnInitializedAsync();
-                                await InvokeAsync(() => { StateHasChanged(); });
-                            }
+                            await OnInitializedAsync();
+                            await InvokeAsync(() => { StateHasChanged(); });
                         }
                     }
-                    else
-                    {
-                        logger.LogInformation($"No parseable data in table {table.TableName}");
-                    }
+                }
+                else
+                {
+                    logger.LogInformation($"No parseable data in table {table.TableName}");
                 }
             }
-            else
-            {
-                logger.LogError("Impossible to parse loaded file");
-            }
-
-            // initializes the UI
-            loadedFileName = null;
-            loadedFileDescr = null;
-            loadedFileStdStress = Rheogram_StdShearStress;
-            isLoading = false;
-            //await OnInitializedAsync();
-            //await InvokeAsync(() => { StateHasChanged(); });
-            StateHasChanged();
         }
+        else
+        {
+            logger.LogError("Impossible to parse loaded file");
+        }
+
+        // initializes the UI
+        loadedFileName = null;
+        loadedFileDescr = null;
+        isLoading = false;
+        //await OnInitializedAsync();
+        //await InvokeAsync(() => { StateHasChanged(); });
+        StateHasChanged();
     }
 
     private bool ParseDataTable(DataTable table, List<List<RheometerMeasurement>> rheoLists)
@@ -499,7 +598,7 @@ else
         //    - with at least 1 header row (containing the strings "shear rate" and "shear stress")
         //    - at max 2 header rows (second: containing units strings, in any case assumed to be expressed in SI)
         //    - at least 3 double type data rows
-        //    - no more than 2 consecutive RheometerMeasurement having the same shear rate (when applying ramp down and up)
+        //    - no more than 2 consecutive ShearRateAndStress having the same shear rate (when applying ramp down and up)
         List<int[]> startIndices = new List<int[]>();
         int minMeasCount = 3;
         //first, parse for starting indices within the table that met the first two above conditions
@@ -546,8 +645,8 @@ else
                 !OSDC.DotnetLibraries.General.Common.Numeric.EQ(sr, srPrev) && !OSDC.DotnetLibraries.General.Common.Numeric.EQ(sr, srPrevPrev))
             {
                 RheometerMeasurement meas = new RheometerMeasurement();
-                meas.ShearRate = sr;
-                meas.ShearStress = ss;
+                meas.BobNewtonianShearRate = sr;
+                meas.BobNewtonianShearStress = ss;
                 rheoList.Add(meas);
                 i++;
                 srPrevPrev = srPrev;
@@ -576,10 +675,8 @@ else
         // empty UI edit box
         addedRheogramName = null;
         addedRheogramDescr = null;
-        addedRheogramStdStress = Rheogram_StdShearStress;
         loadedFileName = null;
         loadedFileDescr = null;
-        loadedFileStdStress = Rheogram_StdShearStress;
     }
 
     private void HideInput()
@@ -597,10 +694,10 @@ else
         // update scatter plot
         shearRates.Clear();
         shearStresses.Clear();
-        for (int i = 0; i < rheogramList[rheogramIdx].RheometerMeasurementList.Count; ++i)
+        for (int i = 0; i < rheogramList[rheogramIdx].Measurements.Count; ++i)
         {
-            shearRates.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearRate);
-            shearStresses.Add(rheogramList[rheogramIdx].RheometerMeasurementList.ElementAt(i).ShearStress);
+            shearRates.Add(rheogramList[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearRate);
+            shearStresses.Add(rheogramList[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearStress);
         }
         try
         {
@@ -611,17 +708,4 @@ else
             logger.LogWarning(ex.Message, "Plot has been disposed");
         }
     }
-    private void ManageUpdatedRheogramStdStress(double? val)
-    {
-        updatedRheogramStdStress = val;
-    }
-    private void ManageAddedRheogramStdStress(double? val)
-    {
-        addedRheogramStdStress = val;
-    }
-    private void ManageLoadedFileStdStress(double? val)
-    {
-        loadedFileStdStress = val;
-    }
-
 }

@@ -1,10 +1,15 @@
-﻿using System;
+﻿using OSDC.DotnetLibraries.General.Common;
+using System;
 using System.Collections.Generic;
 
 namespace YPLCalibrationFromRheometer.Model
 {
-    public class Rheogram : ICloneable
+    public class Rheogram : ICloneable, INamable, IIdentifiable
     {
+        public enum RateSourceEnum { RotationalSpeed, ISONewtonianShearRate, BobNewtonianShearRate}
+        public enum StressSourceEnum { Torque, ISONewtonianShearStress, BobNewtonianShearStress}
+        private static double DefaultMeasurementPrecision = 0.25;
+        private CouetteRheometer rheometer_ = null;
         /// <summary>
         /// an ID for the Rheogram
         /// </summary>
@@ -19,23 +24,24 @@ namespace YPLCalibrationFromRheometer.Model
         /// a description for the Rheogram
         /// </summary>
         public string Description { get; set; }
-
         /// <summary>
-        /// the standard deviation of the shear stress measurement
-        /// typically 0.25Pa for a Fann35 rheometer, 0.02Pa for an Anton Paar rheometer
+        /// the ID of the Couette Rheometer
         /// </summary>
-        public double ShearStressStandardDeviation
-        {
-            get;
-            set;
-        } = 0.01;
-
+        public Guid CouetteRheometerID { get; set; }
         /// <summary>
-        ///  a list of RheometerMeasurement for Rheogram
+        /// the original source for the rate
         /// </summary>
-        public List<RheometerMeasurement> RheometerMeasurementList { get; set; } = new List<RheometerMeasurement>();
+        public RateSourceEnum RateSource { get; set; }
+        /// <summary>
+        /// the original source for the stress/torque
+        /// </summary>
+        public StressSourceEnum StressSource { get; set; }
+        /// <summary>
+        ///  a list of Measurements for Rheogram
+        /// </summary>
+        public List<RheometerMeasurement> Measurements { get; set; } = new List<RheometerMeasurement>();
 
-        public int Count => RheometerMeasurementList.Count;
+        public int Count => Measurements.Count;
 
         public bool IsReadOnly => false;
 
@@ -58,7 +64,31 @@ namespace YPLCalibrationFromRheometer.Model
                 src.Copy(this);
             }
         }
-        
+
+        /// <summary>
+        /// retrieve the measurement precision from the rheometer
+        /// </summary>
+        /// <returns></returns>
+        public double GetMeasurementPrecision()
+        {
+            if (GetRheometer() != null)
+            {
+                return GetRheometer().MeasurementPrecision;
+            }
+            else
+            {
+                return DefaultMeasurementPrecision;
+            }
+        }
+        public CouetteRheometer GetRheometer()
+        {
+            return rheometer_;
+        }
+        public void SetRheometer(CouetteRheometer rheometer)
+        {
+            rheometer_ = rheometer;
+        }
+
         /// <summary>
         /// copy everything except the ID
         /// </summary>
@@ -70,19 +100,22 @@ namespace YPLCalibrationFromRheometer.Model
             {
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.ShearStressStandardDeviation = ShearStressStandardDeviation;
-                if (dest.RheometerMeasurementList == null)
+                dest.CouetteRheometerID = CouetteRheometerID;
+                dest.RateSource = RateSource;
+                dest.StressSource= StressSource;
+                dest.SetRheometer(GetRheometer());
+                if (dest.Measurements == null)
                 {
-                    dest.RheometerMeasurementList = new List<RheometerMeasurement>();
+                    dest.Measurements = new List<RheometerMeasurement>();
                 }
-                dest.RheometerMeasurementList.Clear();
-                if (RheometerMeasurementList != null)
+                dest.Measurements.Clear();
+                if (Measurements != null)
                 {
-                    foreach (RheometerMeasurement itData in RheometerMeasurementList)
+                    foreach (RheometerMeasurement itData in Measurements)
                     {
                         RheometerMeasurement iterData1 = new RheometerMeasurement();
                         itData.Copy(iterData1);
-                        dest.RheometerMeasurementList.Add(iterData1);
+                        dest.Measurements.Add(iterData1);
                     }
                 }
                 return true;
@@ -105,7 +138,20 @@ namespace YPLCalibrationFromRheometer.Model
             };
             return copy;
         }
-
+        /// <summary>
+        /// Calculate the other components of the RheometerMeasurements
+        /// </summary>
+        public void Calculate()
+        {
+            CouetteRheometer rheometer = GetRheometer();
+            if (Measurements != null && rheometer != null)
+            {
+                foreach (var m in Measurements)
+                {
+                    m.Calculate(rheometer, RateSource, StressSource);
+                }
+            }
+        }
         /// <summary>
         /// index accessor. It makes sure that the start of the section is actually the end of the previous section (if any).
         /// </summary>
@@ -113,10 +159,10 @@ namespace YPLCalibrationFromRheometer.Model
         /// <returns></returns>
         public RheometerMeasurement this[int index]
         {
-            get => RheometerMeasurementList[index];
+            get => Measurements[index];
             set
             {
-                RheometerMeasurementList[index] = value;
+                Measurements[index] = value;
             }
         }
 
@@ -126,47 +172,48 @@ namespace YPLCalibrationFromRheometer.Model
         /// <param name="item"></param>
         public void Add(RheometerMeasurement item)
         {
-            RheometerMeasurementList.Add(item);
+            Measurements.Add(item);
         }
 
         public void Clear()
         {
-            RheometerMeasurementList.Clear();
+            Measurements.Clear();
         }
 
         public bool Contains(RheometerMeasurement item)
         {
-            return RheometerMeasurementList.Contains(item);
+            return Measurements.Contains(item);
         }
 
         public void CopyTo(RheometerMeasurement[] array, int arrayIndex)
         {
-            RheometerMeasurementList.CopyTo(array, arrayIndex);
+            Measurements.CopyTo(array, arrayIndex);
         }
 
         public IEnumerator<RheometerMeasurement> GetEnumerator()
         {
-            return RheometerMeasurementList.GetEnumerator();
+            return Measurements.GetEnumerator();
         }
 
         public int IndexOf(RheometerMeasurement item)
         {
-            return RheometerMeasurementList.IndexOf(item);
+            return Measurements.IndexOf(item);
         }
 
         public void Insert(int index, RheometerMeasurement item)
         {
-            RheometerMeasurementList.Insert(index, item);
+            Measurements.Insert(index, item);
         }
 
         public bool Remove(RheometerMeasurement item)
         {
-            return RheometerMeasurementList.Remove(item);
+            return Measurements.Remove(item);
         }
 
         public void RemoveAt(int index)
         {
-            RheometerMeasurementList.RemoveAt(index);
+            Measurements.RemoveAt(index);
         }
+
     }
 }

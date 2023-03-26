@@ -4,8 +4,10 @@ using System.Collections.Generic;
 
 namespace YPLCalibrationFromRheometer.Model
 {
-    public class YPLCorrection : ICloneable
+    public class YPLCorrection : ICloneable, INamable, IIdentifiable
     {
+        private double defaultBobRadius = 0.017245;
+        private double defaultGap = 0.00117;
         /// <summary>
         /// an ID for the YPLCorrection, typed as a string to support GUID
         /// </summary>
@@ -22,16 +24,6 @@ namespace YPLCalibrationFromRheometer.Model
         public string Description { get; set; }
 
         /// <summary>
-        /// a double parameter
-        /// </summary>
-        public double R1 { get; set; } = .017245;
-
-        /// <summary>
-        /// a double parameter
-        /// </summary>
-        public double R2 { get; set; } = .018415;
-
-        /// <summary>
         /// the input Rheogram
         /// </summary>
         public Rheogram RheogramInput { get; set; }
@@ -40,20 +32,20 @@ namespace YPLCalibrationFromRheometer.Model
         /// <summary>
         /// the output Rheogram after shear rate and shear stress correction algorithms have been applied
         /// </summary>
-        public Rheogram RheogramFullyCorrected { get; set; }
+        public List<ShearRateAndStress> RheogramFullyCorrected { get; set; }
 
         public YPLModel YPLModelFullyCorrected { get; set; }
 
         /// <summary>
         /// the output Rheogram after shear rate correction algorithm has been applied
         /// </summary>
-        public Rheogram RheogramShearRateCorrected { get; set; }
+        public List<ShearRateAndStress> RheogramShearRateCorrected { get; set; }
         public YPLModel YPLModelShearRateCorrected { get; set; }
 
         /// <summary>
         /// the output Rheogram after shear stress correction algorithm has been applied
         /// </summary>
-        public Rheogram RheogramShearStressCorrected { get; set; }
+        public List<ShearRateAndStress> RheogramShearStressCorrected { get; set; }
         public YPLModel YPLModelShearStressCorrected { get; set; }
 
         /// <summary>
@@ -75,6 +67,30 @@ namespace YPLCalibrationFromRheometer.Model
             }
         }
 
+        private double GetR1()
+        {
+            if (RheogramInput != null && RheogramInput.GetRheometer() != null)
+            {
+                return RheogramInput.GetRheometer().BobRadius;
+            }
+            else
+            {
+                return defaultBobRadius;
+            }
+        }
+
+        private double GetR2()
+        {
+            if (RheogramInput != null && RheogramInput.GetRheometer() != null)
+            {
+                return RheogramInput.GetRheometer().BobRadius + RheogramInput.GetRheometer().Gap;
+            }
+            else
+            {
+                return defaultBobRadius + defaultGap;
+            }
+        }
+
         /// <summary>
         /// copy everything except the ID
         /// </summary>
@@ -87,8 +103,6 @@ namespace YPLCalibrationFromRheometer.Model
                 dest.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.R1 = R1;
-                dest.R2 = R2;
                 if (RheogramInput != null)
                 {
                     if (dest.RheogramInput == null)
@@ -112,10 +126,11 @@ namespace YPLCalibrationFromRheometer.Model
                 if (RheogramFullyCorrected != null)
                 {
                     if (dest.RheogramFullyCorrected == null)
-                        dest.RheogramFullyCorrected = new Rheogram();
-                    RheogramFullyCorrected.Copy(dest.RheogramFullyCorrected);
-                    if (dest.RheogramFullyCorrected.ID.Equals(Guid.Empty))
-                        dest.RheogramFullyCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                        dest.RheogramFullyCorrected = new List<ShearRateAndStress>();
+                    foreach (var v in RheogramFullyCorrected)
+                    {
+                        dest.RheogramFullyCorrected.Add(new ShearRateAndStress(v));
+                    }
                 }
                 if (YPLModelFullyCorrected != null)
                 {
@@ -132,10 +147,11 @@ namespace YPLCalibrationFromRheometer.Model
                 if (RheogramShearRateCorrected != null)
                 {
                     if (dest.RheogramShearRateCorrected == null)
-                        dest.RheogramShearRateCorrected = new Rheogram();
-                    RheogramShearRateCorrected.Copy(dest.RheogramShearRateCorrected);
-                    if (dest.RheogramShearRateCorrected.ID.Equals(Guid.Empty))
-                        dest.RheogramShearRateCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                        dest.RheogramShearRateCorrected = new List<ShearRateAndStress>();
+                    foreach (var v in RheogramShearRateCorrected)
+                    {
+                        dest.RheogramShearRateCorrected.Add(new ShearRateAndStress(v));
+                    }
                 }
                 if (YPLModelShearRateCorrected != null)
                 {
@@ -152,10 +168,11 @@ namespace YPLCalibrationFromRheometer.Model
                 if (RheogramShearStressCorrected != null)
                 {
                     if (dest.RheogramShearStressCorrected == null)
-                        dest.RheogramShearStressCorrected = new Rheogram();
-                    RheogramShearStressCorrected.Copy(dest.RheogramShearStressCorrected);
-                    if (dest.RheogramShearStressCorrected.ID.Equals(Guid.Empty))
-                        dest.RheogramShearStressCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                        dest.RheogramShearStressCorrected = new List<ShearRateAndStress>();
+                    foreach (var v in RheogramShearStressCorrected)
+                    {
+                        dest.RheogramShearStressCorrected.Add(new ShearRateAndStress(v));
+                    }
                 }
                 if (YPLModelShearStressCorrected != null)
                 {
@@ -211,7 +228,7 @@ namespace YPLCalibrationFromRheometer.Model
                 {
                     YPLModelBasedOnNewtonianInputs.Description = "From Input Rheogram";
                 }
-                YPLModelBasedOnNewtonianInputs.FitToMullineux(RheogramInput);
+                YPLModelBasedOnNewtonianInputs.FitToMullineux(RheogramInput.Measurements, RheogramInput.GetMeasurementPrecision());
                 success = true;
             }
             else
@@ -229,23 +246,19 @@ namespace YPLCalibrationFromRheometer.Model
             bool success = true;
             if (RheogramInput != null)
             {
-                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                List<RheometerMeasurement> inputDataList = RheogramInput.Measurements;
                 if (inputDataList != null && inputDataList.Count > 0)
                 {
                     if (RheogramFullyCorrected == null)
-                        RheogramFullyCorrected = new Rheogram(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
-                    if (RheogramFullyCorrected.ID.Equals(Guid.Empty))
-                        RheogramFullyCorrected.ID = Guid.NewGuid();
-                    if (RheogramFullyCorrected.Name == null)
-                        RheogramFullyCorrected.Name = RheogramInput.Name + "-fully-corrected";
+                        RheogramFullyCorrected = new List<ShearRateAndStress>(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
                     // this case should not arrive since RheometerMeasurementList are instantiated in Rheogram ctor, still risk exists as it is a public settable attribute
-                    RheogramFullyCorrected.RheometerMeasurementList.Clear();
+                    RheogramFullyCorrected.Clear();
 
                     if (success)
                     {
                         try
                         {
-                            int nMeas = RheogramInput.RheometerMeasurementList.Count;
+                            int nMeas = RheogramInput.Measurements.Count;
                             double[] velocities = new double[nMeas];
                             double[] shearRates = new double[nMeas];
                             double[] shearStresses = new double[nMeas];
@@ -255,11 +268,11 @@ namespace YPLCalibrationFromRheometer.Model
                             // Converting back assumed Newtonian shear rates to rheometer-dependent rotational velocities
                             for (int i = 0; i < nMeas; ++i)
                             {
-                                velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.RheometerMeasurementList[i].ShearRate, R1 / R2);
-                                shearStresses[i] = RheogramInput.RheometerMeasurementList[i].ShearStress;
+                                velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.Measurements[i].BobNewtonianShearRate, GetR1() / GetR2());
+                                shearStresses[i] = RheogramInput.Measurements[i].BobNewtonianShearStress;
                             }
 
-                            Rheogram rheogram = new Rheogram();
+                            List<ShearRateAndStress> shearRateAndStresses = new List<ShearRateAndStress>();
                             bool isFullySheared = false;
                             double eps = 1e-5;
                             int count = 0;
@@ -270,22 +283,22 @@ namespace YPLCalibrationFromRheometer.Model
                                 for (int i = 0; i < velocities.Length; ++i)
                                 {
                                     // Converting rotational velocities to YPL shear rates for current YPL model parameters
-                                    shearRates[i] = GetShearRate(R1, R2, model.K, model.N, model.Tau0, velocities[i], out isFullySheared);
+                                    shearRates[i] = GetShearRate(GetR1(), GetR2(), model.K, model.N, model.Tau0, velocities[i], out isFullySheared);
                                     // Computing shear stress correction factor for current YPL model parameters
-                                    phi[i] = GetShearStressCorrectionFactor(R1, R2, model.K, model.N, model.Tau0, velocities[i]);
-                                    rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(shearRates[i], shearStresses[i] / (1 + phi[i])));
+                                    phi[i] = GetShearStressCorrectionFactor(GetR1(), GetR2(), model.K, model.N, model.Tau0, velocities[i]);
+                                    shearRateAndStresses.Add(new ShearRateAndStress(shearRates[i], shearStresses[i] / (1 + phi[i])));
                                 }
                                 dChi2 = model.Chi2;
                                 //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                                model.FitToMullineux(rheogram, YPLModel.ModelType.YPL);
-                                rheogram.RheometerMeasurementList.Clear();
+                                model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                shearRateAndStresses.Clear();
                                 dChi2 -= model.Chi2;
                             } while (System.Math.Abs(dChi2) > eps && count++ < 40);
 
                             for (int i = 0; i < nMeas; ++i)
                             {
-                                RheometerMeasurement meas = new RheometerMeasurement(shearRates[i], shearStresses[i] / (1 + phi[i]));
-                                RheogramFullyCorrected.RheometerMeasurementList.Add(meas);
+                                ShearRateAndStress meas = new ShearRateAndStress(shearRates[i], shearStresses[i] / (1 + phi[i]));
+                                RheogramFullyCorrected.Add(meas);
                             }
                             if (YPLModelFullyCorrected == null)
                             {
@@ -303,7 +316,7 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 YPLModelFullyCorrected.Description = "From Fully Corrected Rheogram";
                             }
-                            YPLModelFullyCorrected.FitToMullineux(RheogramFullyCorrected);
+                            YPLModelFullyCorrected.FitToMullineux(RheogramFullyCorrected, RheogramInput.GetMeasurementPrecision());
                             if (count > 40)
                             {
                                 System.Diagnostics.Debug.WriteLine("Full correction calculation did not converge");
@@ -338,23 +351,19 @@ namespace YPLCalibrationFromRheometer.Model
             bool success = true;
             if (RheogramInput != null)
             {
-                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                List<RheometerMeasurement> inputDataList = RheogramInput.Measurements;
                 if (inputDataList != null && inputDataList.Count > 0)
                 {
                     if (RheogramShearRateCorrected == null)
-                        RheogramShearRateCorrected = new Rheogram(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
-                    if (RheogramShearRateCorrected.ID.Equals(Guid.Empty))
-                        RheogramShearRateCorrected.ID = Guid.NewGuid();
-                    if (RheogramShearRateCorrected.Name == null)
-                        RheogramShearRateCorrected.Name = RheogramInput.Name + "-shearRate-corrected";
+                        RheogramShearRateCorrected = new List<ShearRateAndStress>(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
                     // this case should not arrive since RheometerMeasurementList are instantiated in Rheogram ctor, still risk exists as it is a public settable attribute
-                    RheogramShearRateCorrected.RheometerMeasurementList.Clear();
+                    RheogramShearRateCorrected.Clear();
 
                     if (success)
                     {
                         try
                         {
-                            int nMeas = RheogramInput.RheometerMeasurementList.Count;
+                            int nMeas = RheogramInput.Measurements.Count;
                             double[] velocities = new double[nMeas];
                             double[] shearRates = new double[nMeas];
                             double[] shearStresses = new double[nMeas];
@@ -363,11 +372,11 @@ namespace YPLCalibrationFromRheometer.Model
                             // Converting back assumed Newtonian shear rates to rheometer-dependent rotational velocities
                             for (int i = 0; i < nMeas; ++i)
                             {
-                                velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.RheometerMeasurementList[i].ShearRate, R1 / R2);
-                                shearStresses[i] = RheogramInput.RheometerMeasurementList[i].ShearStress;
+                                velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.Measurements[i].BobNewtonianShearRate, GetR1() / GetR2());
+                                shearStresses[i] = RheogramInput.Measurements[i].BobNewtonianShearStress;
                             }
 
-                            Rheogram rheogram = new Rheogram();
+                            List<ShearRateAndStress> shearRateAndStresses = new List<ShearRateAndStress>();
                             bool isFullySheared = false;
                             double eps = 1e-5;
                             int count = 0;
@@ -378,20 +387,20 @@ namespace YPLCalibrationFromRheometer.Model
                                 for (int i = 0; i < velocities.Length; ++i)
                                 {
                                     // Converting rotational velocities to YPL shear rates for current YPL model parameters
-                                    shearRates[i] = GetShearRate(R1, R2, model.K, model.N, model.Tau0, velocities[i], out isFullySheared);
-                                    rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(shearRates[i], shearStresses[i]));
+                                    shearRates[i] = GetShearRate(GetR1(), GetR2(), model.K, model.N, model.Tau0, velocities[i], out isFullySheared);
+                                    shearRateAndStresses.Add(new ShearRateAndStress(shearRates[i], shearStresses[i]));
                                 }
                                 dChi2 = model.Chi2;
                                 //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                                model.FitToMullineux(rheogram, YPLModel.ModelType.YPL);
-                                rheogram.RheometerMeasurementList.Clear();
+                                model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                shearRateAndStresses.Clear();
                                 dChi2 -= model.Chi2;
                             } while (System.Math.Abs(dChi2) > eps && count++ < 40);
 
                             for (int i = 0; i < nMeas; ++i)
                             {
-                                RheometerMeasurement meas = new RheometerMeasurement(shearRates[i], shearStresses[i]);
-                                RheogramShearRateCorrected.RheometerMeasurementList.Add(meas);
+                                ShearRateAndStress meas = new ShearRateAndStress(shearRates[i], shearStresses[i]);
+                                RheogramShearRateCorrected.Add(meas);
                             }
                             if (YPLModelShearRateCorrected == null)
                             {
@@ -409,7 +418,7 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 YPLModelShearRateCorrected.Description = "From Shear-rate Corrected Rheogram";
                             }
-                            YPLModelShearRateCorrected.FitToMullineux(RheogramShearRateCorrected);
+                            YPLModelShearRateCorrected.FitToMullineux(RheogramShearRateCorrected, RheogramInput.GetMeasurementPrecision());
                             if (count > 40)
                             {
                                 System.Diagnostics.Debug.WriteLine("Shear rate correction calculation did not converge");
@@ -444,23 +453,19 @@ namespace YPLCalibrationFromRheometer.Model
             bool success = true;
             if (RheogramInput != null)
             {
-                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                List<RheometerMeasurement> inputDataList = RheogramInput.Measurements;
                 if (inputDataList != null && inputDataList.Count > 0)
                 {
                     if (RheogramShearStressCorrected == null)
-                        RheogramShearStressCorrected = new Rheogram(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
-                    if (RheogramShearStressCorrected.ID.Equals(Guid.Empty))
-                        RheogramShearStressCorrected.ID = Guid.NewGuid();
-                    if (RheogramShearStressCorrected.Name == null)
-                        RheogramShearStressCorrected.Name = RheogramInput.Name + "-shearstress-corrected";
+                        RheogramShearStressCorrected = new List<ShearRateAndStress>(); // this precaution should not be necessary while it is instantiated at construction, but it is actually necessary because the jsonified version of this class in ModelClientShared does not transfer attributes' default values
                     // this case should not arrive since RheometerMeasurementList are instantiated in Rheogram ctor, still risk exists as it is a public settable attribute
-                    RheogramShearStressCorrected.RheometerMeasurementList.Clear();
+                    RheogramShearStressCorrected.Clear();
 
                     if (success)
                     {
                         try
                         {
-                            int nMeas = RheogramInput.RheometerMeasurementList.Count;
+                            int nMeas = RheogramInput.Measurements.Count;
                             double[] velocities = new double[nMeas];
                             double[] shearRates = new double[nMeas];
                             double[] shearStresses = new double[nMeas];
@@ -470,12 +475,12 @@ namespace YPLCalibrationFromRheometer.Model
                             // Converting back assumed Newtonian shear rates to rheometer-dependent rotational velocities
                             for (int i = 0; i < nMeas; ++i)
                             {
-                                shearRates[i] = RheogramInput.RheometerMeasurementList[i].ShearRate;
-                                velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.RheometerMeasurementList[i].ShearRate, R1 / R2);
-                                shearStresses[i] = RheogramInput.RheometerMeasurementList[i].ShearStress;
+                                shearRates[i] = RheogramInput.Measurements[i].BobNewtonianShearRate;
+                                velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.Measurements[i].BobNewtonianShearRate, GetR1() / GetR2());
+                                shearStresses[i] = RheogramInput.Measurements[i].BobNewtonianShearStress;
                             }
 
-                            Rheogram rheogram = new Rheogram();
+                            List<ShearRateAndStress> shearRateAndStresses = new List<ShearRateAndStress>();
                             double eps = 1e-5;
                             int count = 0;
 
@@ -485,20 +490,20 @@ namespace YPLCalibrationFromRheometer.Model
                                 for (int i = 0; i < velocities.Length; ++i)
                                 {
                                     // Computing shear stress correction factor for current YPL model parameters
-                                    phi[i] = GetShearStressCorrectionFactor(R1, R2, model.K, model.N, model.Tau0, velocities[i]);
-                                    rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(shearRates[i], shearStresses[i] / (1 + phi[i])));
+                                    phi[i] = GetShearStressCorrectionFactor(GetR1(), GetR2(), model.K, model.N, model.Tau0, velocities[i]);
+                                    shearRateAndStresses.Add(new ShearRateAndStress(shearRates[i], shearStresses[i] / (1 + phi[i])));
                                 }
                                 dChi2 = model.Chi2;
                                 //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                                model.FitToMullineux(rheogram, YPLModel.ModelType.YPL);
-                                rheogram.RheometerMeasurementList.Clear();
+                                model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                shearRateAndStresses.Clear();
                                 dChi2 -= model.Chi2;
                             } while (System.Math.Abs(dChi2) > eps && count++ < 40);
 
                             for (int i = 0; i < nMeas; ++i)
                             {
-                                RheometerMeasurement meas = new RheometerMeasurement(shearRates[i], shearStresses[i] / (1 + phi[i]));
-                                RheogramShearStressCorrected.RheometerMeasurementList.Add(meas);
+                                ShearRateAndStress meas = new ShearRateAndStress(shearRates[i], shearStresses[i] / (1 + phi[i]));
+                                RheogramShearStressCorrected.Add(meas);
                             }
                             if (YPLModelShearStressCorrected == null)
                             {
@@ -516,7 +521,7 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 YPLModelShearStressCorrected.Description = "From Shear-stress Corrected Rheogram";
                             }
-                            YPLModelShearStressCorrected.FitToMullineux(RheogramShearStressCorrected);
+                            YPLModelShearStressCorrected.FitToMullineux(RheogramShearStressCorrected, RheogramInput.GetMeasurementPrecision());
                             if (count > 40)
                             {
                                 System.Diagnostics.Debug.WriteLine("Shear stress correction calculation did not converge");

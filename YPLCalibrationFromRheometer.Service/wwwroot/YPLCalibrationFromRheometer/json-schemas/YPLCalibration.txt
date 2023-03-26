@@ -1,17 +1,94 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "TupleOfYPLCalibrationAndYPLCorrection",
+  "title": "TupleOfCouetteRheometerAndYPLCalibrationAndYPLCorrection",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "Item1": {
-      "$ref": "#/definitions/YPLCalibration"
+      "$ref": "#/definitions/CouetteRheometer"
     },
     "Item2": {
+      "$ref": "#/definitions/YPLCalibration"
+    },
+    "Item3": {
       "$ref": "#/definitions/YPLCorrection"
     }
   },
   "definitions": {
+    "CouetteRheometer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ID": {
+          "type": "string",
+          "format": "guid"
+        },
+        "RheometerType": {
+          "$ref": "#/definitions/RheometerTypeEnum"
+        },
+        "BobRadius": {
+          "type": "number",
+          "format": "double"
+        },
+        "Gap": {
+          "type": "number",
+          "format": "double"
+        },
+        "NewtonianEndEffectCorrection": {
+          "type": "number",
+          "format": "double"
+        },
+        "BobLength": {
+          "type": "number",
+          "format": "double"
+        },
+        "ConicalAngle": {
+          "type": "number",
+          "format": "double"
+        },
+        "MeasurementPrecision": {
+          "type": "number",
+          "format": "double"
+        },
+        "UseISOConvention": {
+          "type": "boolean"
+        },
+        "FixedSpeedList": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    },
+    "RheometerTypeEnum": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "RotorBob",
+        "RotatingBob"
+      ],
+      "enum": [
+        0,
+        1
+      ]
+    },
     "YPLCalibration": {
       "type": "object",
       "additionalProperties": false,
@@ -94,11 +171,17 @@
             "string"
           ]
         },
-        "ShearStressStandardDeviation": {
-          "type": "number",
-          "format": "double"
+        "CouetteRheometerID": {
+          "type": "string",
+          "format": "guid"
         },
-        "RheometerMeasurementList": {
+        "RateSource": {
+          "$ref": "#/definitions/RateSourceEnum"
+        },
+        "StressSource": {
+          "$ref": "#/definitions/StressSourceEnum"
+        },
+        "Measurements": {
           "type": [
             "array",
             "null"
@@ -116,31 +199,59 @@
         }
       }
     },
+    "RateSourceEnum": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "RotationalSpeed",
+        "ISONewtonianShearRate",
+        "BobNewtonianShearRate"
+      ],
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "StressSourceEnum": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Torque",
+        "ISONewtonianShearStress",
+        "BobNewtonianShearStress"
+      ],
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
     "RheometerMeasurement": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "ID": {
-          "type": "string",
-          "format": "guid"
-        },
-        "Name": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "Description": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "ShearRate": {
+        "RotationalSpeed": {
           "type": "number",
           "format": "double"
         },
-        "ShearStress": {
+        "Torque": {
+          "type": "number",
+          "format": "double"
+        },
+        "ISONewtonianShearRate": {
+          "type": "number",
+          "format": "double"
+        },
+        "ISONewtonianShearStress": {
+          "type": "number",
+          "format": "double"
+        },
+        "BobNewtonianShearRate": {
+          "type": "number",
+          "format": "double"
+        },
+        "BobNewtonianShearStress": {
           "type": "number",
           "format": "double"
         }
@@ -204,14 +315,6 @@
             "string"
           ]
         },
-        "R1": {
-          "type": "number",
-          "format": "double"
-        },
-        "R2": {
-          "type": "number",
-          "format": "double"
-        },
         "RheogramInput": {
           "oneOf": [
             {
@@ -233,14 +336,13 @@
           ]
         },
         "RheogramFullyCorrected": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/definitions/Rheogram"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/ShearRateAndStress"
+          }
         },
         "YPLModelFullyCorrected": {
           "oneOf": [
@@ -253,14 +355,13 @@
           ]
         },
         "RheogramShearRateCorrected": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/definitions/Rheogram"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/ShearRateAndStress"
+          }
         },
         "YPLModelShearRateCorrected": {
           "oneOf": [
@@ -273,14 +374,13 @@
           ]
         },
         "RheogramShearStressCorrected": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "$ref": "#/definitions/Rheogram"
-            }
-          ]
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/ShearRateAndStress"
+          }
         },
         "YPLModelShearStressCorrected": {
           "oneOf": [
@@ -291,6 +391,20 @@
               "$ref": "#/definitions/YPLModel"
             }
           ]
+        }
+      }
+    },
+    "ShearRateAndStress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ShearRate": {
+          "type": "number",
+          "format": "double"
+        },
+        "ShearStress": {
+          "type": "number",
+          "format": "double"
         }
       }
     }

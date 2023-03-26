@@ -23,10 +23,79 @@ namespace YPLCalibrationFromRheometer.Service
 
         private static void ManageYPLCalibrationFromRheometerDatabase()
         {
-            #region YPLCalibrationsTable
+            #region CouetteRheometerTable
             var command = connection_.CreateCommand();
-            command.CommandText = @"SELECT count(*) FROM YPLCalibrationsTable";
+            command.CommandText = @"SELECT count(*) FROM CouetteRheometersTable";
             long count = -1;
+            try
+            {
+                using var reader = command.ExecuteReader();
+                if (reader.Read())
+                {
+                    count = reader.GetInt64(0);
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                logger_.LogWarning(ex, "CouetteRheometersTable does not exist and will be created");
+            }
+            if (count < 0)
+            {
+                bool success = true;
+                // table does no exist
+                command.CommandText =
+                    @"CREATE TABLE CouetteRheometersTable (" +
+                    "ID text primary key, " +
+                    "Name text, " +
+                    "Description text, " +
+                    "Data text" +
+                   ")";
+                try
+                {
+                    int res = command.ExecuteNonQuery();
+                }
+                catch (SQLiteException ex)
+                {
+                    logger_.LogError(ex, "Impossible to create CouetteRheometersTable and will be dropped");
+                    success = false;
+                }
+                if (success)
+                {
+                    Console.WriteLine("CouetteRheometersTable has been successfully created and will be indexed.");
+                    command.CommandText =
+                        @"CREATE UNIQUE INDEX CouetteRheometersTableIndex ON CouetteRheometersTable (ID)";
+                    try
+                    {
+                        int res = command.ExecuteNonQuery();
+                        logger_.LogInformation("CouetteRheometersTable has been successfully created");
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to index CouetteRheometersTable and will be dropped");
+                        success = false;
+                    }
+                }
+                if (!success)
+                {
+                    command.CommandText =
+                        @"DROP TABLE CouetteRheometersTable";
+                    try
+                    {
+                        int res = command.ExecuteNonQuery();
+                        logger_.LogWarning("CouetteRheometersTable has been successfully dropped");
+                    }
+                    catch (SQLiteException ex)
+                    {
+                        logger_.LogError(ex, "Impossible to drop CouetteRheometersTable");
+                    }
+                }
+            }
+            #endregion
+
+            #region YPLCalibrationsTable
+            command = connection_.CreateCommand();
+            command.CommandText = @"SELECT count(*) FROM YPLCalibrationsTable";
+            count = -1;
             try
             {
                 using var reader = command.ExecuteReader();
@@ -49,10 +118,7 @@ namespace YPLCalibrationFromRheometer.Service
                     "Name text, " +
                     "Description text, " +
                     "RheogramInputID text, " +
-                    "YPLModelMullineuxID text," +
-                    "YPLModelKelessidisID text," +
-                    "YPLModelLevenbergID text," +
-                    "TimeStamp" +
+                    "Data text" +
                    ")";
                 try
                 {
@@ -121,17 +187,8 @@ namespace YPLCalibrationFromRheometer.Service
                     "ID text primary key, " +
                     "Name text, " +
                     "Description text, " +
-                    "R1 double precision, " +
-                    "R2 double precision, " +
                     "RheogramInputID text, " +
-                    "RheogramFullyCorrectedID text," +
-                    "RheogramShearRateCorrectedID text," +
-                    "RheogramShearStressCorrectedID text," +
-                    "YPLModelRheogramInputID text," +
-                    "YPLModelFullyCorrectedID text," +
-                    "YPLModelShearRateCorrectedID text," +
-                    "YPLModelShearStressCorrectedID text," +
-                    "TimeStamp" +
+                    "Data text" +
                     ")";
                 try
                 {
@@ -199,7 +256,9 @@ namespace YPLCalibrationFromRheometer.Service
                     @"CREATE TABLE RheogramInputsTable (" +
                     "ID text primary key, " +
                     "Name text, " +
-                    "Rheogram text" +
+                    "Description text, " +
+                    "CouetteRheometerID text, " +
+                    "Data text" +
                    ")";
                 try
                 {
@@ -238,141 +297,6 @@ namespace YPLCalibrationFromRheometer.Service
                     catch (SQLiteException ex)
                     {
                         logger_.LogError(ex, "Impossible to drop RheogramInputsTable");
-                    }
-                }
-            }
-            #endregion
-
-            #region YPLModelOutputsTable
-            command = connection_.CreateCommand();
-            command.CommandText = @"SELECT count(*) FROM YPLModelOutputsTable";
-            count = -1;
-            try
-            {
-                using var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    count = reader.GetInt64(0);
-                }
-            }
-            catch (SQLiteException ex)
-            {
-                logger_.LogWarning(ex, "YPLModelOutputsTable does not exist and will be created");
-            }
-            if (count < 0)
-            {
-                bool success = true;
-                // table does no exist
-                command.CommandText =
-                    @"CREATE TABLE YPLModelOutputsTable (" +
-                    "ID text primary key, " +
-                    "Name text, " +
-                    "YPLModel text" +
-                   ")";
-                try
-                {
-                    int res = command.ExecuteNonQuery();
-                }
-                catch (SQLiteException ex)
-                {
-                    logger_.LogError(ex, "Impossible to create YPLModelOutputsTable and will be dropped");
-                    success = false;
-                }
-                if (success)
-                {
-                    Console.WriteLine("YPLModelOutputsTable has been successfully created and will be indexed.");
-                    command.CommandText =
-                        @"CREATE UNIQUE INDEX YPLModelOutputsTableIndex ON YPLModelOutputsTable (ID)";
-                    try
-                    {
-                        int res = command.ExecuteNonQuery();
-                        logger_.LogInformation("YPLModelOutputsTable has been successfully created");
-                    }
-                    catch (SQLiteException ex)
-                    {
-                        logger_.LogError(ex, "Impossible to index YPLModelOutputsTable and will be dropped");
-                        success = false;
-                    }
-                }
-                if (!success)
-                {
-                    command.CommandText =
-                        @"DROP TABLE YPLModelOutputsTable";
-                    try
-                    {
-                        int res = command.ExecuteNonQuery();
-                        logger_.LogWarning("YPLModelOutputsTable has been successfully dropped");
-                    }
-                    catch (SQLiteException ex)
-                    {
-                        logger_.LogError(ex, "Impossible to drop YPLModelOutputsTable");
-                    }
-                }
-            }
-            #endregion
-
-            #region RheogramOutputsTable
-            command = connection_.CreateCommand();
-            command.CommandText = @"SELECT count(*) FROM RheogramOutputsTable";
-            count = -1;
-            try
-            {
-                using var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    count = reader.GetInt64(0);
-                }
-            }
-            catch (SQLiteException ex)
-            {
-                logger_.LogWarning(ex, "RheogramOutputsTable does not exist and will be created");
-            }
-            if (count < 0)
-            {
-                bool success = true;
-                // table does no exist
-                command.CommandText =
-                    @"CREATE TABLE RheogramOutputsTable (" +
-                    "ID text primary key, " +
-                    "Name text, " +
-                    "Rheogram text" +
-                   ")";
-                try
-                {
-                    int res = command.ExecuteNonQuery();
-                }
-                catch (SQLiteException ex)
-                {
-                    logger_.LogError(ex, "Impossible to create RheogramOutputsTable and will be dropped");
-                    success = false;
-                }
-                if (success)
-                {
-                    command.CommandText =
-                        @"CREATE UNIQUE INDEX RheogramOutputsTableIndex ON RheogramOutputsTable (ID)";
-                    try
-                    {
-                        int res = command.ExecuteNonQuery();
-                        logger_.LogInformation("RheogramOutputsTable has been successfully created");
-                    }
-                    catch (SQLiteException ex)
-                    {
-                        logger_.LogError(ex, "Impossible to index RheogramOutputsTable and will be dropped");
-                        success = false;
-                    }
-                }
-                if (!success)
-                {
-                    command.CommandText =
-                        @"DROP TABLE RheogramOutputsTable";
-                    try
-                    {
-                        int res = command.ExecuteNonQuery();
-                        logger_.LogWarning("RheogramOutputsTable has been successfully dropped");
-                    }
-                    catch (SQLiteException ex)
-                    {
-                        logger_.LogError(ex, "Impossible to drop RheogramOutputsTable");
                     }
                 }
             }

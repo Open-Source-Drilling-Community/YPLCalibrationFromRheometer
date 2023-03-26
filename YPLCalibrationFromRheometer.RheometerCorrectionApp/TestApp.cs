@@ -474,12 +474,12 @@ namespace YPLCalibrationFromRheometer.RheometerCorrectionApp
                         default:
                             break;
                     }
-                    rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(shearRates[i], shearStresses[i]));
+                    rheogram.Measurements.Add(new RheometerMeasurement(shearRates[i], shearStresses[i], Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
                 }
                 dChi2 = model.Chi2;
                 //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                model.FitToMullineux(rheogram, YPLModel.ModelType.YPL);
-                rheogram.RheometerMeasurementList.Clear();
+                model.FitToMullineux(rheogram.Measurements, rheogram.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                rheogram.Measurements.Clear();
                 dChi2 -= model.Chi2;
             } while (modelType != YPLModel.ModelType.N && System.Math.Abs(dChi2) > eps && count++ < 40);
 

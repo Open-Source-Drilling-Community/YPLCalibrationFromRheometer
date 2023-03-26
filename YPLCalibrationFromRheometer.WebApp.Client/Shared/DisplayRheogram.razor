@@ -15,11 +15,11 @@
         </tr>
     </thead>
     <tbody>
-        @if (Rheogram.RheometerMeasurementList.Count > 0)
+        @if (ShearRateAndStresses.Count > 0)
         {
-            @for (int j = 0; j < Rheogram.RheometerMeasurementList.Count; j++)
+            @for (int j = 0; j < ShearRateAndStresses.Count; j++)
             {
-                var rheometerMeasurement = Rheogram.RheometerMeasurementList.ElementAt(j);
+                var rheometerMeasurement = ShearRateAndStresses.ElementAt(j);
                 @if (rheometerMeasurement != null)
                 {
                     <tr>
@@ -47,7 +47,7 @@
 
 @code {
     [Parameter]
-    public Rheogram Rheogram { get; set; }
+    public ICollection<ShearRateAndStress> ShearRateAndStresses { get; set; }
 
     [Parameter]
     public bool IsHidden { get; set; }

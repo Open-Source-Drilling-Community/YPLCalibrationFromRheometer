@@ -10,7 +10,7 @@ namespace YPLCalibrationFromRheometer.Model
     /// Description of a Yield Power Law rheological behavior (or Herschel-Bulkley)
     /// tau = Tau0 + K*gamma_dot^N
     /// </summary>
-    public class YPLModel : ICloneable, IValuable
+    public class YPLModel : ICloneable, IValuable, INamable, IIdentifiable
     {
         public enum ModelType { YPL, PL, N };
 
@@ -129,6 +129,15 @@ namespace YPLCalibrationFromRheometer.Model
         }
 
         #region Kelessidis method
+        public void FitToKelessidis(List<RheometerMeasurement> rheoMeasList, double measurementPrecision, ModelType model = ModelType.YPL)
+        {
+            List<ShearRateAndStress> list = new List<ShearRateAndStress>();
+            foreach (var rheo in rheoMeasList)
+            {
+                list.Add(new ShearRateAndStress(rheo.BobNewtonianShearRate, rheo.BobNewtonianShearStress));
+            }
+            FitToKelessidis(list, measurementPrecision, model);
+        }
         /// <summary>
         /// Fit the YPL rheological behavior to the rheogram data using the method from Zamora/Kelessidis
         /// (see https://doi.org/10.1016/j.petrol.2006.06.004)
@@ -136,15 +145,14 @@ namespace YPLCalibrationFromRheometer.Model
         /// <param name="rheogram">the input rheogram used for the YPL model calibration</param>
         /// <param name="model">the type of YPL model to be calibrated (N, PL or YPL)</param>
         /// <returns>the chi-square after fitting</returns>
-        public void FitToKelessidis(Rheogram rheogram, ModelType model = ModelType.YPL)
+        public void FitToKelessidis(List<ShearRateAndStress> rheoMeasList, double measurementPrecision, ModelType model = ModelType.YPL)
         {
             Tau0 = 0;
             K = 1;
             N = 1;
             Chi2 = -1;
-            if (rheogram != null && rheogram.RheometerMeasurementList != null && rheogram.RheometerMeasurementList.Count >= 3)
+            if (rheoMeasList != null && rheoMeasList.Count >= 3)
             {
-                List<RheometerMeasurement> rheoMeasList = rheogram.RheometerMeasurementList;
                 int rheoMeasCount = rheoMeasList.Count;
 
                 // find the min shear rate
@@ -176,7 +184,7 @@ namespace YPLCalibrationFromRheometer.Model
                     // an initial guess for the yield stress is found using a straight line between i1 and i0.
                     double tau0 = rheoMeasList[i0].ShearStress - rheoMeasList[i0].ShearRate * (rheoMeasList[i1].ShearStress - rheoMeasList[i0].ShearStress) / (rheoMeasList[i1].ShearRate - rheoMeasList[i0].ShearRate);
                     // use a Newton-Raphson method to find d(chi2)/d(tau0) = 0
-                    double sig = rheogram.ShearStressStandardDeviation;
+                    double sig = measurementPrecision;
                     if (sig <= 0)
                     {
                         sig = 0.01;
@@ -292,6 +300,16 @@ namespace YPLCalibrationFromRheometer.Model
         #endregion
 
         #region Mullineux method
+        public void FitToMullineux(List<RheometerMeasurement> rheoMeasList, double measurementPrecision, ModelType model = ModelType.YPL)
+        {
+            List<ShearRateAndStress> list = new List<ShearRateAndStress>();
+            foreach (var rheo in rheoMeasList)
+            {
+                list.Add(new ShearRateAndStress(rheo.BobNewtonianShearRate, rheo.BobNewtonianShearStress));
+            }
+            FitToMullineux(list, measurementPrecision, model);
+        }
+
         /// <summary>
         /// Fit the YPL rheological behavior to the rheogram using the method from Mullineux
         /// (see https://doi.org/10.1016/j.apm.2007.09.010)
@@ -299,12 +317,11 @@ namespace YPLCalibrationFromRheometer.Model
         /// <param name="rheogram">the input rheogram used for the YPL model calibration</param>
         /// <param name="model">the type of YPL model to be calibrated (N, PL or YPL)</param>
         /// <returns>The chi-square after fitting</returns>
-        public void FitToMullineux(Rheogram rheogram, ModelType model = ModelType.YPL)
+        public void FitToMullineux(List<ShearRateAndStress> rheoMeasList, double measurementPrecision, ModelType model = ModelType.YPL)
         {
             Chi2 = -1;
-            if (rheogram != null && rheogram.RheometerMeasurementList != null && rheogram.RheometerMeasurementList.Count >= 3)
+            if (rheoMeasList != null && rheoMeasList.Count >= 3)
             {
-                List<RheometerMeasurement> rheoMeasList = rheogram.RheometerMeasurementList;
                 int rheoMeasCount = rheoMeasList.Count;
 
                 // determine N
@@ -353,7 +370,7 @@ namespace YPLCalibrationFromRheometer.Model
                 if (Numeric.EQ(System.Math.Abs(fn0), 0.0, eps))
                 {
                     // when N is found we just fit tau0 and K using a linear regression
-                    double sig = rheogram.ShearStressStandardDeviation;
+                    double sig = measurementPrecision;
                     if (sig <= 0)
                     {
                         sig = 0.01;
@@ -382,7 +399,7 @@ namespace YPLCalibrationFromRheometer.Model
             }
         }
 
-        private double FMullineux(List<RheometerMeasurement> samples, double n)
+        private double FMullineux(List<ShearRateAndStress> samples, double n)
         {
             if (samples != null)
             {
@@ -434,6 +451,15 @@ namespace YPLCalibrationFromRheometer.Model
         #endregion
 
         #region Levenberg-Marquardt algorithm
+        public void FitToLevenbergMarquardt(List<RheometerMeasurement> rheoMeasList, double measurementPrecision, ModelType model = ModelType.YPL)
+        {
+            List<ShearRateAndStress> list = new List<ShearRateAndStress>();
+            foreach (var rheo in rheoMeasList)
+            {
+                list.Add(new ShearRateAndStress(rheo.BobNewtonianShearRate, rheo.BobNewtonianShearStress));
+            }
+            FitToLevenbergMarquardt(list, measurementPrecision, model);
+        }
         /// <summary>
         /// Fit the YPL rheological behavior to the rheogram data using the Levenberg-Marquardt algorithm
         /// (see https://people.duke.edu/~hpgavin/ce281/lm.pdf)
@@ -441,14 +467,13 @@ namespace YPLCalibrationFromRheometer.Model
         /// <param name="rheogram">the input rheogram used for the YPL model calibration</param>
         /// <param name="model">the type of YPL model to be calibrated (N, PL or YPL)</param>
         /// <returns>the chi-square after fitting</returns>
-        public void FitToLevenbergMarquardt(Rheogram rheogram, ModelType model = ModelType.YPL)
+        public void FitToLevenbergMarquardt(List<ShearRateAndStress> rheoMeasList, double measurementPrecision, ModelType model = ModelType.YPL)
         {
             Tau0 = 1;
             K = 1;
             N = 1;
 
             double chisq;
-            List<RheometerMeasurement> rheoMeasList = rheogram.RheometerMeasurementList;
             int rheoMeasCount = rheoMeasList.Count;
 
             double[] gammas = new double[rheoMeasCount];
@@ -459,7 +484,7 @@ namespace YPLCalibrationFromRheometer.Model
             {
                 gammas[i] = rheoMeasList[i].ShearRate;
                 taus[i] = rheoMeasList[i].ShearStress;
-                sigs[i] = rheogram.ShearStressStandardDeviation;
+                sigs[i] = measurementPrecision;
                 ia[i] = true;
             }
             double[] p = new double[3]; //output Tau0, K, n

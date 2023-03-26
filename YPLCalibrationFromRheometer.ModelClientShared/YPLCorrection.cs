@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace YPLCalibrationFromRheometer.ModelClientShared
 {
@@ -17,8 +18,6 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                 dest.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.R1 = R1;
-                dest.R2 = R2;
                 if (RheogramInput != null)
                 {
                     if (dest.RheogramInput == null)
@@ -42,10 +41,11 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                 if (RheogramFullyCorrected != null)
                 {
                     if (dest.RheogramFullyCorrected == null)
-                        dest.RheogramFullyCorrected = new Rheogram();
-                    RheogramFullyCorrected.Copy(dest.RheogramFullyCorrected);
-                    if (dest.RheogramFullyCorrected.ID.Equals(Guid.Empty))
-                        dest.RheogramFullyCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                        dest.RheogramFullyCorrected = new List<ShearRateAndStress>();
+                    foreach (var v in RheogramFullyCorrected)
+                    {
+                        dest.RheogramFullyCorrected.Add(v);
+                    }
                 }
                 if (YPLModelFullyCorrected != null)
                 {
@@ -62,10 +62,11 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                 if (RheogramShearRateCorrected != null)
                 {
                     if (dest.RheogramShearRateCorrected == null)
-                        dest.RheogramShearRateCorrected = new Rheogram();
-                    RheogramShearRateCorrected.Copy(dest.RheogramShearRateCorrected);
-                    if (dest.RheogramShearRateCorrected.ID.Equals(Guid.Empty))
-                        dest.RheogramShearRateCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                        dest.RheogramShearRateCorrected = new List<ShearRateAndStress>();
+                    foreach (var v in RheogramShearRateCorrected)
+                    {
+                        dest.RheogramShearRateCorrected.Add(v);
+                    }
                 }
                 if (YPLModelShearRateCorrected != null)
                 {
@@ -82,10 +83,11 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                 if (RheogramShearStressCorrected != null)
                 {
                     if (dest.RheogramShearStressCorrected == null)
-                        dest.RheogramShearStressCorrected = new Rheogram();
-                    RheogramShearStressCorrected.Copy(dest.RheogramShearStressCorrected);
-                    if (dest.RheogramShearStressCorrected.ID.Equals(Guid.Empty))
-                        dest.RheogramShearStressCorrected.ID = Guid.NewGuid(); // must be ID'ed for further update or addition to the database
+                        dest.RheogramShearStressCorrected = new List<ShearRateAndStress>();
+                    foreach (var v in RheogramShearStressCorrected)
+                    {
+                        dest.RheogramShearStressCorrected.Add(v);
+                    }
                 }
                 if (YPLModelShearStressCorrected != null)
                 {

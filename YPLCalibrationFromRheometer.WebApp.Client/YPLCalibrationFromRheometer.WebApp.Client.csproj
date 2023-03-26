@@ -9,12 +9,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Components\**" />
+	  <Content Remove="Components\**" />
+	  <EmbeddedResource Remove="Components\**" />
+	  <None Remove="Components\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="ExcelDataReader" Version="3.6.0" />
 		<PackageReference Include="ExcelDataReader.DataSet" Version="3.6.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
 		<PackageReference Include="OSDC.DotnetLibraries.General.Common" Version="1.0.2" />
-		<PackageReference Include="OSDC.UnitConversion.DrillingRazorComponents" Version="1.0.19" />
-		<PackageReference Include="OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared" Version="1.0.2" />
+		<PackageReference Include="OSDC.DotnetLibraries.General.DataManagement" Version="1.2.3" />
+		<PackageReference Include="OSDC.UnitConversion.DrillingRazorComponents" Version="1.0.22" />
+		<PackageReference Include="OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared" Version="1.0.3" />
 		<PackageReference Include="Plotly.Blazor" Version="1.5.0" />
 		<PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
 	</ItemGroup>
@@ -25,7 +33,6 @@
 
 	<ItemGroup>
 	  <Folder Include="charts\" />
-	  <Folder Include="Components\" />
 	</ItemGroup>
 
 </Project>

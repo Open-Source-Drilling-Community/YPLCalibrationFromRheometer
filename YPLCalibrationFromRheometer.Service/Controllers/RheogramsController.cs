@@ -43,7 +43,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPost]
         public void Post([FromBody] Rheogram value)
         {
-            if (value != null && value.ID != null && !value.ID.Equals(Guid.Empty))
+            if (value != null && !value.ID.Equals(Guid.Empty))
             {
                 Rheogram baseData1 = rheogramManager_.Get(value.ID);
                 if (baseData1 == null)
@@ -65,7 +65,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPut("{id}")]
         public void Put(Guid id, [FromBody] Rheogram value)
         {
-            if (value != null && value.ID != null && !value.ID.Equals(Guid.Empty))
+            if (value != null && !value.ID.Equals(Guid.Empty))
             {
                 Rheogram baseData1 = rheogramManager_.Get(id);
                 if (baseData1 != null)
@@ -89,7 +89,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpDelete("{id}")]
         public void Delete(Guid id)
         {
-            if (id != null && !id.Equals(Guid.Empty))
+            if (!id.Equals(Guid.Empty))
             {
                 if (yplCalibrationManager_.RemoveReferences(id))
                 {

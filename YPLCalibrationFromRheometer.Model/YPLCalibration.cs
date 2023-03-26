@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using OSDC.DotnetLibraries.General.Common;
 
 namespace YPLCalibrationFromRheometer.Model
 {
-    public class YPLCalibration : ICloneable
+    public class YPLCalibration : ICloneable, INamable, IIdentifiable
     {
         /// <summary>
         /// an ID for the YPLCalibration, typed as a string to support GUID
@@ -126,7 +127,7 @@ namespace YPLCalibrationFromRheometer.Model
             bool success = true;
             if (RheogramInput != null)
             {
-                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                List<RheometerMeasurement> inputDataList = RheogramInput.Measurements;
                 if (inputDataList != null && inputDataList.Count > 0)
                 {
                     if (YPLModelKelessidis == null)
@@ -135,7 +136,7 @@ namespace YPLCalibrationFromRheometer.Model
                         YPLModelKelessidis.ID = Guid.NewGuid();
                     if (YPLModelKelessidis.Name == null)
                         YPLModelKelessidis.Name = RheogramInput.Name + "-calculated-Kelessidis";
-                    YPLModelKelessidis.FitToKelessidis(RheogramInput);
+                    YPLModelKelessidis.FitToKelessidis(inputDataList, RheogramInput.GetMeasurementPrecision());
                 }
                 else
                 {
@@ -158,7 +159,7 @@ namespace YPLCalibrationFromRheometer.Model
             bool success = true;
             if (RheogramInput != null)
             {
-                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                List<RheometerMeasurement> inputDataList = RheogramInput.Measurements;
                 if (inputDataList != null && inputDataList.Count > 0)
                 {
                     if (YPLModelMullineux == null)
@@ -167,7 +168,7 @@ namespace YPLCalibrationFromRheometer.Model
                         YPLModelMullineux.ID = Guid.NewGuid();
                     if (YPLModelMullineux.Name == null)
                         YPLModelMullineux.Name = RheogramInput.Name + "-calculated-Mullineux";
-                    YPLModelMullineux.FitToMullineux(RheogramInput);
+                    YPLModelMullineux.FitToMullineux(inputDataList, RheogramInput.GetMeasurementPrecision());
                 }
                 else
                 {
@@ -190,7 +191,7 @@ namespace YPLCalibrationFromRheometer.Model
             bool success = true;
             if (RheogramInput != null)
             {
-                List<RheometerMeasurement> inputDataList = RheogramInput.RheometerMeasurementList;
+                List<RheometerMeasurement> inputDataList = RheogramInput.Measurements;
                 if (inputDataList != null && inputDataList.Count > 0)
                 {
                     if (YPLModelLevenbergMarquardt == null)
@@ -199,7 +200,7 @@ namespace YPLCalibrationFromRheometer.Model
                         YPLModelLevenbergMarquardt.ID = Guid.NewGuid();
                     if (YPLModelLevenbergMarquardt.Name == null)
                         YPLModelLevenbergMarquardt.Name = RheogramInput.Name + "-calculated-Levenberg";
-                    YPLModelLevenbergMarquardt.FitToLevenbergMarquardt(RheogramInput);
+                    YPLModelLevenbergMarquardt.FitToLevenbergMarquardt(inputDataList, RheogramInput.GetMeasurementPrecision());
                 }
                 else
                 {

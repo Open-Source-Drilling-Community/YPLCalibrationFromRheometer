@@ -63,7 +63,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPut("{id}")]
         public void Put(Guid id, [FromBody] YPLCorrection value)
         {
-            if (value != null && value.ID != null && !value.ID.Equals(Guid.Empty))
+            if (value != null && !value.ID.Equals(Guid.Empty))
             {
                 YPLCorrection yplCorrection = yplCorrectionManager_.Get(id);
                 if (yplCorrection != null)
@@ -85,7 +85,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpDelete("{id}")]
         public void Delete(Guid id)
         {
-            if (id != null && !id.Equals(Guid.Empty))
+            if (!id.Equals(Guid.Empty))
             {
                 yplCorrectionManager_.Remove(id);
             }

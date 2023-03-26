@@ -25,13 +25,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToKelessidis(rheogram);
+            model.FitToKelessidis(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -48,13 +48,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToMullineux(rheogram);
+            model.FitToMullineux(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -71,13 +71,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToKelessidis(rheogram);
+            model.FitToKelessidis(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -94,13 +94,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToMullineux(rheogram);
+            model.FitToMullineux(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -117,13 +117,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToKelessidis(rheogram);
+            model.FitToKelessidis(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -166,13 +166,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToKelessidis(rheogram);
+            model.FitToKelessidis(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 5e-3);
             Assert.AreEqual(K, model.K, 5e-3);
             Assert.AreEqual(n, model.N, 5e-3);
@@ -189,13 +189,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToMullineux(rheogram);
+            model.FitToMullineux(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -212,13 +212,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToKelessidis(rheogram);
+            model.FitToKelessidis(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 5e-3);
             Assert.AreEqual(K, model.K, 5e-3);
             Assert.AreEqual(n, model.N, 5e-3);
@@ -235,13 +235,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToMullineux(rheogram);
+            model.FitToMullineux(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 1e-3);
             Assert.AreEqual(K, model.K, 1e-3);
             Assert.AreEqual(n, model.N, 1e-3);
@@ -259,13 +259,13 @@ namespace Tests
             {
                 size++;
             }
-            rheogram.RheometerMeasurementList = new List<RheometerMeasurement>();
+            rheogram.Measurements = new List<RheometerMeasurement>();
             for (double gammaDot = 1.0; gammaDot <= 1000.0; gammaDot *= 2.0)
             {
-                rheogram.RheometerMeasurementList.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n)));
+                rheogram.Measurements.Add(new RheometerMeasurement(gammaDot, tau0 + K * Math.Pow(gammaDot, n), Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
             }
             YPLModel model = new YPLModel();
-            model.FitToKelessidis(rheogram);
+            model.FitToKelessidis(rheogram.Measurements, rheogram.GetMeasurementPrecision());
             Assert.AreEqual(tau0, model.Tau0, 5e-3);
             Assert.AreEqual(K, model.K, 5e-3);
             Assert.AreEqual(n, model.N, 5e-3);

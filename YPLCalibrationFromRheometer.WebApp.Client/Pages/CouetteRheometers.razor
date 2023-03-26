@@ -1,0 +1,564 @@
+﻿@page "/CouetteRheometers"
+@inject ILogger<CouetteRheometers> logger
+
+<UnitAndReferenceChoiceTag HttpHost="@YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL"
+                           HttpBasePath="YPLCalibrationFromRheometer/api/"
+                           HttpController="DrillingUnitChoiceSets">
+<h1>Couette Rheometers</h1>
+<p>Warning, any change made to a rheometer listed below may affect the YPL calibrations and corrections from rheograms that utilize the modified rheometer.</p>
+<div hidden="@IsHidSubPanel">
+    <div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @if (IsHidInputAdd)
+                {
+                    <tr>
+                        <td>
+                            <span class="label">@(rheometerList[rheometerIdx].Name)</span>
+                        </td>
+                        <td>
+                            <span class="label">@(rheometerList[rheometerIdx].Description)</span>
+                        </td>
+                        <td></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>
+                            <input class="text" type="text" size="30" @bind="@updatedRheometerName" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="30" @bind="@updatedRheometerDescr" />
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Update(rheometerIdx))">Update</button>
+                            <button class="btn btn-primary" @onclick="@(() => Cancel(rheometerIdx))">Cancel</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+@if (rheometerList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div hidden="@IsHidMainPanel">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < rheometerList.Count; i++)
+                {
+                    var local_i = i; // Do not use a loop variable directly in a lambda expression
+                    <tr>
+                        <td>
+                            <span class="label">@rheometerList[i].Name</span>
+                        </td>
+                        <td>
+                            <span class="label">@(rheometerList[i].Description)</span>
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
+                            <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>
+                        <input class="text" type="text" size="30" @bind="@addedRheometerName" />
+                    </td>
+                    <td>
+                        <input class="text" type="text" size="30" @bind="@addedRheometerDescr" />
+                    </td>
+                    <td align="right">
+                        <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+                    </td>
+                </tr>
+             </tfoot>
+        </table>
+    </div>
+    @if (rheometerIdx >= 0)
+    {
+        <div hidden="@IsHidSubPanel">
+            <div>
+                 <h2>Couette Rheometer Description</h2>
+                 <table>
+                     <tbody>
+                         <tr>
+                             <td>
+                                 <span>Rheometer type</span>
+                             </td>
+                             <td>
+                                    <select @bind="@rheometerList[rheometerIdx].RheometerType">
+                                        <option>RotorBob</option>
+                                        <option>RotatingBob</option>
+                                    </select>
+                             </td>
+                             <td>
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <span>Bod radius</span>
+                             </td>
+                             <td>
+                                    <InputWithUnit QuantityName="Small Length" SIValue="@rheometerList[rheometerIdx].BobRadius" SIValueChanged="((val) => ManageBobRadius(val))" />
+                             </td>
+                             <td>
+                                    <SpanUnitLabel QuantityName="Small Length" />
+                             </td>
+                         </tr>
+                         <tr>
+                             <td>
+                                 <span>Gap</span>
+                             </td>
+                             <td>
+                                    <InputWithUnit QuantityName="Small Length" SIValue="@rheometerList[rheometerIdx].Gap" SIValueChanged="((val) => ManageGap(val))" />
+                                </td>
+                             <td>
+                                    <SpanUnitLabel QuantityName="Small Length" />
+                             </td>
+                         </tr>
+                         <tr>
+                                <td>
+                                    <span>Bob length</span>
+                                </td>
+                                <td>
+                                    <InputWithUnit QuantityName="Small Length" SIValue="@rheometerList[rheometerIdx].BobLength" SIValueChanged="((val) => ManageBobLength(val))" />
+                                </td>
+                                <td>
+                                    <SpanUnitLabel QuantityName="Small Length" />
+                                </td>
+                         </tr>
+                            <tr>
+                                <td>
+                                    <span>Newtonian End Effect Correction</span>
+                                </td>
+                                <td>
+                                    <InputWithUnit QuantityName="StandardDimensionless" SIValue="@rheometerList[rheometerIdx].NewtonianEndEffectCorrection" SIValueChanged="((val) => ManageNewtonianEndEffectCorrection(val))" />
+                                </td>
+                                <td>
+                                    <SpanUnitLabel QuantityName="StandardDimensionless" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Bob conical angle</span>
+                                </td>
+                                <td>
+                                    <InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@rheometerList[rheometerIdx].ConicalAngle" SIValueChanged="((val) => ManageConicalAngle(val))" />
+                                </td>
+                                <td>
+                                    <SpanUnitLabel QuantityName="DrillingPlaneAngle" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Shear stress Measurement Precision</span>
+                                </td>
+                                <td>
+                                    <InputWithUnit QuantityName="FluidShearStress" SIValue="@rheometerList[rheometerIdx].MeasurementPrecision" SIValueChanged="((val) => ManageMeasurementPrecision(val))" />
+                                </td>
+                                <td>
+                                    <SpanUnitLabel QuantityName="FluidShearStress" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Use ISO Convention</span>
+                                </td>
+                                <td>
+                                    <input type="checkbox" @bind="@rheometerList[rheometerIdx].UseISOConvention"/>
+                                </td>
+                                <td>
+                                </td>
+                            </tr>
+                        </tbody>
+                 </table>
+                 <h2>Couette Rheometer Fixed Speeds</h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span>Rotational Speed (</span>
+                                    <SpanUnitLabel QuantityName="RotationFrequency"/>
+                                    <span>)</span>
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (rheometerList[rheometerIdx].FixedSpeedList != null)
+                            {
+                                @for (int j = 0; j < rheometerList[rheometerIdx].FixedSpeedList.Count; j++)
+                                {
+                                    var local_j = j;
+                                    var localSpeed = rheometerList[rheometerIdx].FixedSpeedList.ElementAt(j);
+                                    <tr>
+                                        <td>
+                                            <SpanWithUnit QuantityName="RotationFrequency" SIValue="@localSpeed" />
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-primary" @onclick="@(() => DeleteSpeed(local_j))">Delete</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>
+                                    <InputWithUnit QuantityName="RotationFrequency" SIValueNullable="@addedSpeed" SIValueNullableChanged="@((val) => ManageAddedSpeed(val))" />
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary" @onclick="@(() => AddSpeed())">Add</button>
+                                    <button class="btn btn-primary" @onclick="@(() => CancelSpeed())">Cancel</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+            </div>
+
+        </div>
+    }
+}
+</UnitAndReferenceChoiceTag>
+
+@code {
+    // http client
+    private HttpClient httpClient;
+
+    private bool IsHidMainPanel = false;
+    private bool IsHidSubPanel = true;
+    private bool IsHidInputPanel = true;
+    private bool IsHidInputAdd = false;
+    private bool IsHidCalcPanel = true;
+
+    // main data object
+    private List<CouetteRheometer> rheometerList;
+
+    // temporary objects are used essentially to post or put modifications to the database
+    private string addedRheometerName = null;
+    private string addedRheometerDescr = null;
+
+    private string updatedRheometerName = null;
+    private string updatedRheometerDescr = null;
+
+    private bool isLoading;
+    private decimal progressPercent;
+
+    private int rheometerIdx = -1;
+    private Guid rheometerID = Guid.Empty;
+    private double? addedSpeed = null;
+
+    private readonly object lock_ = new object();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            string host = YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL;
+            logger.LogInformation("Trying to load Couette Rheometers from client: " + host);
+            SetHttpClient(host);
+            rheometerList = await LoadRheometers();
+        }
+        catch (Exception ex)
+        {
+            httpClient = null;
+            logger.LogError(ex, "Impossible to load Couette Rheometers on initialization");
+        }
+    }
+
+    private void SetHttpClient(string host)
+    {
+        httpClient = new HttpClient();
+        httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
+        httpClient.DefaultRequestHeaders.Accept.Clear();
+        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+    }
+
+    private async Task<List<CouetteRheometer>> LoadRheometers()
+    {
+        bool success = false;
+        try
+        {
+            var a = await httpClient.GetAsync("CouetteRheometers/");
+            if (a.IsSuccessStatusCode)
+            {
+                Guid[] ids = null;
+                string str = await a.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(str))
+                {
+                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
+                }
+                rheometerList = new List<CouetteRheometer>();
+                CouetteRheometer rheometer = null;
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    a = await httpClient.GetAsync("CouetteRheometers/" + ids[i].ToString());
+                    if (a.IsSuccessStatusCode && a.Content != null)
+                    {
+                        str = await a.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrEmpty(str))
+                        {
+                            rheometer = JsonConvert.DeserializeObject<CouetteRheometer>(str);
+                            if (rheometer == null)
+                                throw new NullReferenceException("Impossible to deserialize Couette Rheometer string:" + str);
+                            rheometerList.Add(rheometer);
+                        }
+                    }
+                }
+                if (rheometerList.Count != ids.Length)
+                    throw new Exception("Inconsistent count of Rheometers-loaded IDs and loaded Rheometers.");
+                success = true;
+            }
+            else
+            {
+                logger.LogWarning("Impossible to get Rheometers from controller");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to load Rheometers");
+        }
+        if (success)
+        {
+            rheometerList.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
+            logger.LogInformation("Loaded Rheometers successfully");
+            return rheometerList;
+        }
+        else
+        {
+            logger.LogWarning("Impossible to load Rheometers");
+            return null;
+        }
+    }
+
+    private async Task Edit(int idx)
+    {
+        if (rheometerList != null && idx >= 0 && idx < rheometerList.Count)
+        {
+            rheometerIdx = idx;
+            updatedRheometerName = rheometerList[idx].Name;
+            updatedRheometerDescr = rheometerList[idx].Description;
+            rheometerID = rheometerList[idx].ID;
+            IsHidMainPanel = true;
+            IsHidSubPanel = false;
+
+            await OnInitializedAsync();
+            await InvokeAsync(() => { StateHasChanged(); });
+        }
+    }
+
+    private async Task Delete(int idx)
+    {
+        if (rheometerList != null && idx >= 0 && idx < rheometerList.Count && rheometerList[idx] != null && !rheometerList[idx].ID.Equals(System.Guid.Empty))
+        {
+            // delete the Couette Rheometer from database
+            var a = await httpClient.DeleteAsync("CouetteRheometers/" + rheometerList[idx].ID);
+            if (a.IsSuccessStatusCode)
+            {
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                logger.LogWarning("Impossible to delete the selected Rheometers");
+            }
+        }
+    }
+
+    private async Task DeleteSpeed(int idx)
+    {
+        if (rheometerList != null &&
+            rheometerIdx >= 0 &&
+            rheometerIdx < rheometerList.Count &&
+            rheometerList[rheometerIdx] != null &&
+            rheometerList[rheometerIdx].FixedSpeedList != null &&
+            idx >= 0 &&
+            idx < rheometerList[rheometerIdx].FixedSpeedList.Count)
+        {
+            rheometerList[rheometerIdx].FixedSpeedList.Remove(rheometerList[rheometerIdx].FixedSpeedList.ElementAt(idx));
+        }
+    }
+    private async Task AddSpeed()
+    {
+        if (rheometerList != null && rheometerIdx >= 0 && rheometerIdx < rheometerList.Count && rheometerList[rheometerIdx] != null && addedSpeed != null)
+        {
+            if (rheometerList[rheometerIdx].FixedSpeedList == null)
+            {
+                rheometerList[rheometerIdx].FixedSpeedList = new List<double>();
+            }
+            rheometerList[rheometerIdx].FixedSpeedList.Add((double)addedSpeed);
+            List<double> tmp = new List<double>();
+            foreach (double v in rheometerList[rheometerIdx].FixedSpeedList)
+            {
+                tmp.Add(v);
+            }
+            tmp.Sort();
+            rheometerList[rheometerIdx].FixedSpeedList.Clear();
+            foreach (double v in tmp)
+            {
+                rheometerList[rheometerIdx].FixedSpeedList.Add(v);
+            }
+        }
+        addedSpeed = null;
+    }
+    private async Task CancelSpeed()
+    {
+        addedSpeed = null;
+    }
+
+    private async void Update(int idx)
+    {
+        if (rheometerList != null && idx >= 0 && idx < rheometerList.Count && !rheometerList[idx].ID.Equals(System.Guid.Empty) &&
+            !string.IsNullOrEmpty(updatedRheometerName))
+        {
+            rheometerList[idx].Name = updatedRheometerName;
+            rheometerList[idx].Description = updatedRheometerDescr;
+
+            //PUT Couette Rheometer into the CouetteRheometersTable (Rheograms referencing this rheometers are updated at the Manager level)
+            StringContent content = new StringContent(rheometerList[idx].GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PutAsync("CouetteRheometers/" + rheometerList[idx].ID, content);
+            if (a.IsSuccessStatusCode)
+            {
+                updatedRheometerName = null;
+                updatedRheometerDescr = null;
+
+                IsHidMainPanel = false;
+                IsHidSubPanel = true;
+                rheometerIdx = -1;
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                logger.LogWarning("Impossible to update the current Couette Rheometer");
+            }
+        }
+    }
+
+    private void Cancel(int idx)
+    {
+        if (rheometerList != null && idx >= 0 && idx < rheometerList.Count)
+        {
+            IsHidMainPanel = false;
+            IsHidSubPanel = true;
+            rheometerIdx = -1;
+        }
+    }
+
+    private async void Add()
+    {
+        if (!string.IsNullOrEmpty(addedRheometerName))
+        {
+            CouetteRheometer addedRheometer = new CouetteRheometer();
+            addedRheometer.ID = Guid.NewGuid();
+            addedRheometer.Name = addedRheometerName;
+            addedRheometer.Description = addedRheometerDescr;
+
+            // POST the Rheometer
+            StringContent content = new StringContent(addedRheometer.GetJson(), Encoding.UTF8, "application/json");
+            var a = await httpClient.PostAsync("CouetteRheometers/", content);
+            if (a.IsSuccessStatusCode)
+            {
+                addedRheometerName = null;
+                addedRheometerDescr = null;
+
+                await OnInitializedAsync();
+                await InvokeAsync(() => { StateHasChanged(); });
+            }
+            else
+            {
+                logger.LogWarning("Impossible to add the current Couette Rheometer");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        // empty UI edit box
+        addedRheometerName = null;
+        addedRheometerDescr = null;
+    }
+
+    private void HideInput()
+    {
+        IsHidInputPanel = !IsHidInputPanel;
+    }
+
+    private void HideCalc()
+    {
+        IsHidCalcPanel = !IsHidCalcPanel;
+    }
+
+    private void ManageBobRadius(double val)
+    {
+        if (rheometerList != null && rheometerIdx >= 0)
+        {
+            rheometerList[rheometerIdx].BobRadius = val;
+        }
+    }
+    private void ManageGap(double val)
+    {
+        if (rheometerList != null && rheometerIdx >= 0)
+        {
+            rheometerList[rheometerIdx].Gap = val;
+        }
+    }
+    private void ManageBobLength(double val)
+    {
+        if (rheometerList != null && rheometerIdx >= 0)
+        {
+            rheometerList[rheometerIdx].BobLength = val;
+        }
+    }
+    private void ManageNewtonianEndEffectCorrection(double val)
+    {
+        if (rheometerList != null && rheometerIdx >= 0)
+        {
+            rheometerList[rheometerIdx].NewtonianEndEffectCorrection = val;
+        }
+    }
+    private void ManageConicalAngle(double val)
+    {
+        if (rheometerList != null && rheometerIdx >= 0)
+        {
+            rheometerList[rheometerIdx].ConicalAngle = val;
+        }
+    }
+    private void ManageMeasurementPrecision(double val)
+    {
+        if (rheometerList != null && rheometerIdx >= 0)
+        {
+            rheometerList[rheometerIdx].MeasurementPrecision = val;
+        }
+    }
+    private async Task ManageAddedSpeed(double? val)
+    {
+        addedSpeed = val;
+    }
+}

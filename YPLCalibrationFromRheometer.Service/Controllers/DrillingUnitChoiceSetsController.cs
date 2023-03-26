@@ -40,7 +40,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPost]
         public void Post([FromBody] DrillingUnitChoiceSet value)
         {
-            if (value != null && value.ID != null && value.ID != Guid.Empty)
+            if (value != null && value.ID != Guid.Empty)
             {
                 DrillingUnitChoiceSet baseData1 = drillingUnitChoiceSetsManager_.Get(value.ID);
                 if (baseData1 == null)

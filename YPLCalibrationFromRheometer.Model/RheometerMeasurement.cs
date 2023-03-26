@@ -10,30 +10,29 @@ namespace YPLCalibrationFromRheometer.Model
     public class RheometerMeasurement : ICloneable
     {
         /// <summary>
-        /// an ID for the RheometerMeasurement, typed as a string to support GUID
+        /// the rotational speed of the rotor or bob depending of the type of rheometer
         /// </summary>
-        public Guid ID { get; set; }
-
+        public double RotationalSpeed { get; set; }
         /// <summary>
-        /// name of the RheometerMeasurement
+        /// the measured torque at the bob
         /// </summary>
-        public string Name { get; set; }
-
+        public double Torque { get; set; }
         /// <summary>
-        /// a description for the RheometerMeasurement
+        /// the shear rate in the middle of the gap (ISO convention) utilizing the Newtonian fluid hypothesis
         /// </summary>
-        public string Description { get; set; }
-
+        public double ISONewtonianShearRate { get; set; }
         /// <summary>
-        /// the shear rate is expected in SI unit, i.e. dimension [T^-1](1/s)
+        /// the shear stress in the middle of the gap (ISO convention) utilizing the Newtonian fluid hypothesis
         /// </summary>
-        public double ShearRate { get; set; }
-
+        public double ISONewtonianShearStress { get; set; }
         /// <summary>
-        /// the shear stress is expected in SI unit, i.e., dimension [ML^-1T^-2](Pa)
+        /// the shear rate at the bob wall utilizing the Newtonian fluid hypothesis
         /// </summary>
-        public double ShearStress { get; set; }
-
+        public double BobNewtonianShearRate { get; set; }
+        /// <summary>
+        /// the shear stress at the bob wall utilizing the Newtonian fluid hypothesis
+        /// </summary>
+        public double BobNewtonianShearStress { get; set; }
         /// <summary>
         /// default constructor
         /// </summary>
@@ -44,10 +43,32 @@ namespace YPLCalibrationFromRheometer.Model
         /// <summary>
         /// constructor
         /// </summary>
-        public RheometerMeasurement(double shearRate, double shearStress) : base()
+        public RheometerMeasurement(double rate, double stressOrTorque, Rheogram.RateSourceEnum rateSource, Rheogram.StressSourceEnum stressSource) : base()
         {
-            ShearRate = shearRate;
-            ShearStress = shearStress;
+            switch (rateSource)
+            {
+                case Rheogram.RateSourceEnum.RotationalSpeed:
+                    this.RotationalSpeed = rate;
+                    break;
+                case Rheogram.RateSourceEnum.ISONewtonianShearRate:
+                    ISONewtonianShearRate = rate;
+                    break;
+                default:
+                    BobNewtonianShearRate = rate;
+                    break;
+            }
+            switch (stressSource)
+            {
+                case Rheogram.StressSourceEnum.Torque:
+                    Torque = stressOrTorque;
+                    break;
+                case Rheogram.StressSourceEnum.ISONewtonianShearStress:
+                    ISONewtonianShearStress = stressOrTorque;
+                    break;
+                default:
+                    BobNewtonianShearStress = stressOrTorque;
+                    break;
+            }
         }
 
         /// <summary>
@@ -71,8 +92,12 @@ namespace YPLCalibrationFromRheometer.Model
         {
             if (dest != null)
             {
-                dest.ShearRate = ShearRate;
-                dest.ShearStress = ShearStress;
+                dest.RotationalSpeed = RotationalSpeed;
+                dest.Torque = Torque;
+                dest.ISONewtonianShearRate = ISONewtonianShearRate;
+                dest.ISONewtonianShearStress = ISONewtonianShearStress;
+                dest.BobNewtonianShearRate = BobNewtonianShearRate;
+                dest.BobNewtonianShearStress = BobNewtonianShearStress;
                 return true;
             }
             else
@@ -90,7 +115,6 @@ namespace YPLCalibrationFromRheometer.Model
             RheometerMeasurement iterData1 = new RheometerMeasurement(this);
             return iterData1;
         }
-
         public int Compare(RheometerMeasurement x, RheometerMeasurement y)
         {
             if (x == null || y == null)
@@ -99,17 +123,59 @@ namespace YPLCalibrationFromRheometer.Model
             }
             else
             {
-                if (Numeric.EQ(x.ShearRate, y.ShearRate, 1e-6))
+                if (Numeric.EQ(x.BobNewtonianShearRate, y.BobNewtonianShearRate, 1e-6))
                 {
                     return 0;
                 }
-                else if (Numeric.GT(x.ShearRate, y.ShearRate, 1e-6))
+                else if (Numeric.GT(x.BobNewtonianShearRate, y.BobNewtonianShearRate, 1e-6))
                 {
                     return 1;
                 }
                 else
                 {
                     return -1;
+                }
+            }
+        }
+
+        public void Calculate(CouetteRheometer rheometer, Rheogram.RateSourceEnum rateSource, Rheogram.StressSourceEnum stressSource)
+        {
+            if (rheometer != null && !Numeric.EQ(rheometer.BobRadius, 0) && !Numeric.EQ(rheometer.Gap, 0) && !Numeric.EQ(rheometer.BobLength, 0))
+            {
+                double ksi = (rheometer.BobRadius + rheometer.Gap) / rheometer.BobRadius;
+                double omega;
+                switch (rateSource)
+                {
+                    case Rheogram.RateSourceEnum.RotationalSpeed:
+                        omega = RotationalSpeed * 2.0 * Math.PI;
+                        ISONewtonianShearRate = (1.0 + ksi * ksi) * omega / (ksi * ksi - 1.0);
+                        BobNewtonianShearRate = 2.0 * ksi * ksi * omega / (ksi * ksi - 1.0);
+                        break;
+                    case Rheogram.RateSourceEnum.ISONewtonianShearRate:
+                        omega = ISONewtonianShearRate * (ksi * ksi - 1.0) / (1 + ksi * ksi);
+                        RotationalSpeed = omega / (2.0 * Math.PI);
+                        BobNewtonianShearRate = 2.0 * ksi * ksi * omega / (ksi * ksi - 1.0);
+                        break;
+                    default:
+                        omega = BobNewtonianShearRate * (ksi * ksi - 1) / (2.0 * ksi * ksi);
+                        RotationalSpeed = omega / (2.0 * Math.PI);
+                        ISONewtonianShearRate = (1.0 + ksi * ksi) * omega / (ksi * ksi - 1.0);
+                        break;
+                }
+                switch (stressSource)
+                {
+                    case Rheogram.StressSourceEnum.Torque:
+                        ISONewtonianShearStress = (1.0 + ksi * ksi) * Torque / (2.0 * ksi * ksi * 2.0 * Math.PI * rheometer.BobRadius * rheometer.BobRadius * rheometer.BobLength * rheometer.NewtonianEndEffectCorrection);
+                        BobNewtonianShearStress = 2.0 * ksi * ksi * ISONewtonianShearStress / (1.0 + ksi * ksi);
+                        break;
+                    case Rheogram.StressSourceEnum.ISONewtonianShearStress:
+                        Torque = ISONewtonianShearStress * 2.0 * ksi * ksi * 2.0 * Math.PI * rheometer.BobRadius * rheometer.BobRadius * rheometer.BobLength * rheometer.NewtonianEndEffectCorrection / (1.0 + ksi * ksi);
+                        BobNewtonianShearStress = 2.0 * ksi * ksi * ISONewtonianShearStress / (1.0 + ksi * ksi);
+                        break;
+                    default:
+                        ISONewtonianShearStress = BobNewtonianShearStress * (1.0 * ksi * ksi) / (2.0 * ksi * ksi);
+                        Torque = ISONewtonianShearStress * 2.0 * ksi * ksi * 2.0 * Math.PI * rheometer.BobRadius * rheometer.BobRadius * rheometer.BobLength * rheometer.NewtonianEndEffectCorrection / (1.0 + ksi * ksi);
+                        break;
                 }
             }
         }

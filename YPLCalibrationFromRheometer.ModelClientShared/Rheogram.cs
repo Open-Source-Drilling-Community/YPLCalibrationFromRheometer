@@ -17,19 +17,19 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
             {
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.ShearStressStandardDeviation = ShearStressStandardDeviation;
-                if (dest.RheometerMeasurementList == null)
+                dest.CouetteRheometerID = CouetteRheometerID;
+                if (dest.Measurements == null)
                 {
-                    dest.RheometerMeasurementList = new List<RheometerMeasurement>();
+                    dest.Measurements = new List<RheometerMeasurement>();
                 }
-                dest.RheometerMeasurementList.Clear();
-                if (RheometerMeasurementList != null)
+                dest.Measurements.Clear();
+                if (Measurements != null)
                 {
-                    foreach (RheometerMeasurement itData in RheometerMeasurementList)
+                    foreach (RheometerMeasurement itData in Measurements)
                     {
                         RheometerMeasurement iterData1 = new RheometerMeasurement();
                         itData.Copy(iterData1);
-                        dest.RheometerMeasurementList.Add(iterData1);
+                        dest.Measurements.Add(iterData1);
                     }
                 }
                 return true;
