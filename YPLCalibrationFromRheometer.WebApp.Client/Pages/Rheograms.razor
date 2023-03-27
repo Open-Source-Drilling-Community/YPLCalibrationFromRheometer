@@ -3,198 +3,206 @@
 
 <UnitAndReferenceChoiceTag HttpHost="@YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL"
                            HttpBasePath="YPLCalibrationFromRheometer/api/"
-                               HttpController="DrillingUnitChoiceSets">
-<h1>Rheograms</h1>
-<p>Warning, any change made to the Rheogram's listed below may affect YPLCalibrations which refer to it</p>
-<div hidden="@IsHidSubPanel">
-    <div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <td>Name</td>
-                    <td>Description</td>
-                    <td></td>
-                </tr>
-            </thead>
-            <tbody>
-                @if (IsHidInputAdd)
-                {
+                           HttpController="DrillingUnitChoiceSets">
+    <h1>Rheograms</h1>
+    <p>Warning, any change made to the Rheogram's listed below may affect YPLCalibrations which refer to it</p>
+    <div hidden="@IsHidSubPanel">
+        <div>
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>
-                            <span class="label">@(rheogramList[rheogramIdx].Name)</span>
-                        </td>
-                        <td>
-                            <span class="label">@(rheogramList[rheogramIdx].Description)</span>
-                        </td>
+                        <td>Name</td>
+                        <td>Description</td>
                         <td></td>
                     </tr>
-                }
-                else
-                {
-                    <tr>
-                        <td>
-                            <input class="text" type="text" size="30" @bind="@updatedRheogramName" />
-                        </td>
-                        <td>
-                            <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
-                        </td>
-                        <td align="right">
-                            <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Update</button>
-                            <button class="btn btn-primary" @onclick="@(() => Cancel(rheogramIdx))">Cancel</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-            </tfoot>
-        </table>
-    </div>
-</div>
-
-@if (rheogramList == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div hidden="@IsHidMainPanel">
-        <table class="table">
-            <thead>
-                <tr>
-                    <td>Name</td>
-                    <td>Description</td>
-                        <td>
-                            <span>Shear stress standard deviation</span>
-                            <SpanUnitLabel QuantityName="FluidShearStress" />
-                        </td>
-                        <td></td>
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 0; i < rheogramList.Count; i++)
-                {
-                    var local_i = i; // Do not use a loop variable directly in a lambda expression
-                    <tr>
-                        <td>
-                            <span class="label">@rheogramList[i].Name</span>
-                        </td>
-                        <td>
-                            <span class="label">@(rheogramList[i].Description)</span>
-                        </td>
-                        <td>
-                        </td>
-                        <td align="right">
-                            <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
-                            <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td>
-                        <input class="text" type="text" size="30" @bind="@addedRheogramName" />
-                    </td>
-                    <td>
-                        <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
-                    </td>
-                    <td align="right">
-                        <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
-                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <input class="text" type="text" size="30" @bind="@loadedFileName" />
-                    </td>
-                    <td>
-                        <input class="text" type="text" size="30" @bind="@loadedFileDescr" />
-                    </td>
-                    <td align="right">
-                        @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
-                        <label class="btn btn-primary">
-                            <InputFile OnChange="@Load" multiple />
-                            Load
-                        </label>
-                        @if (isLoading)
-                        {
-                            <p>Uploading... @string.Format("{0:P0}", progressPercent)</p>
-                        }
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-    @if (rheogramIdx >= 0)
-    {
-            int inputIterData1Count = rheogramList[rheogramIdx].Measurements.Count;
-        <div hidden="@IsHidSubPanel">
-            <div>
-                <h2>Rheometer</h2>
-                <table>
-                    <tbody>
+                </thead>
+                <tbody>
+                    @if (IsHidInputAdd)
+                    {
                         <tr>
                             <td>
-                                <span>Rheometer</span>
+                                <span class="label">@(rheogramList[rheogramIdx].Name)</span>
                             </td>
                             <td>
+                                <span class="label">@(rheogramList[rheogramIdx].Description)</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>
+                                <input class="text" type="text" size="30" @bind="@updatedRheogramName" />
+                            </td>
+                            <td>
+                                <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
+                            </td>
+                            <td align="right">
+                                <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Update</button>
+                                <button class="btn btn-primary" @onclick="@(() => Cancel(rheogramIdx))">Cancel</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    @if (rheogramList == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div hidden="@IsHidMainPanel">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Description</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < rheogramList.Count; i++)
+                    {
+                        var local_i = i; // Do not use a loop variable directly in a lambda expression
+                        <tr>
+                            <td>
+                                <span class="label">@rheogramList[i].Name</span>
+                            </td>
+                            <td>
+                                <span class="label">@(rheogramList[i].Description)</span>
+                            </td>
+                            <td align="right">
+                                <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
+                                <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>
+                            <input class="text" type="text" size="30" @bind="@addedRheogramName" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
+                        </td>
+                        <td align="right">
+                            <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                            <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <p>Below, you can add rheograms from an input csv/xls/xlsx file</p>
+            <p>The parser looks into the file, for one or several tables with two consecutive columns labelled "shear rate" and "shear stress", containing at least 3 records, and assuming that values are relative to the value at the bob</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Name</td>
+                        <td>Description</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <input class="text" type="text" size="30" @bind="@loadedFileName" />
+                        </td>
+                        <td>
+                            <input class="text" type="text" size="30" @bind="@loadedFileDescr" />
+                        </td>
+                        <td align="right">
+                            @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
+                            <label class="btn btn-primary">
+                                <InputFile OnChange="@Load" multiple />
+                                Load
+                            </label>
+                            @if (isLoading)
+                            {
+                                <p>Uploading... @string.Format("{0:P0}", progressPercent)</p>
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        @if (rheogramIdx >= 0)
+        {
+            int inputIterData1Count = rheogramList[rheogramIdx].Measurements.Count;
+            <div hidden="@IsHidSubPanel">
+                <div>
+                    <h2>Rheometer</h2>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span>Rheometer</span>
+                                </td>
+                                <td>
                                     <select @bind="@rheogramList[rheogramIdx].CouetteRheometerID">
                                         @foreach (var v in rheometerList)
                                         {
                                             <option value="@v.Item2">@v.Item1</option>
                                         }
                                     </select>
-                                
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div>
-                <h2>Inputs</h2>
-                <table>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <span>Source for rotation or shear rate</span>
-                            </td>
-                            <td>
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>Inputs</h2>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span>Source for rotation or shear rate</span>
+                                </td>
+                                <td>
                                     <select @bind="@rheogramList[rheogramIdx].RateSource">
                                         @foreach (var v in rateSourceList)
                                         {
                                             <option value="@v.Item2">@v.Item1</option>
                                         }
                                     </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span>Source for torque and shear stress</span>
-                            </td>
-                            <td>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Source for torque and shear stress</span>
+                                </td>
+                                <td>
                                     <select @bind="@rheogramList[rheogramIdx].StressSource">
                                         @foreach (var v in stressSourceList)
                                         {
                                             <option value="@v.Item2">@v.Item1</option>
                                         }
                                     </select>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>Rheometer Measurements</h2>
+                    <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
+                </div>
+                <div>
+                    <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
+                         XValues="@shearRates" YValues="@shearStresses" UseMarker="true"
+                         XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
+                </div>
             </div>
-            <div>
-                 <h2>Rheometer Measurements</h2>
-                 <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
-            </div>
-            <div>
-                  <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress" 
-                               XValues="@shearRates" YValues="@shearStresses"  UseMarker="true"
-                               XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
-            </div>
-        </div>
+        }
     }
-}
 </UnitAndReferenceChoiceTag>
 
 @code {
@@ -478,12 +486,13 @@ else
 
     private async void Add()
     {
-        if (!string.IsNullOrEmpty(addedRheogramName))
+        if (!string.IsNullOrEmpty(addedRheogramName) && rheometerList.Count > 0)
         {
             Rheogram addedRheogram = new Rheogram();
             addedRheogram.ID = Guid.NewGuid();
             addedRheogram.Name = addedRheogramName;
             addedRheogram.Description = addedRheogramDescr;
+            addedRheogram.CouetteRheometerID = rheometerList.First().Item2;
 
             // POST the Rheogram
             StringContent content = new StringContent(addedRheogram.GetJson(), Encoding.UTF8, "application/json");
