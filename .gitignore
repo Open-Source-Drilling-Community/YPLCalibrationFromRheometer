@@ -9,5 +9,4 @@
 *.user
 .vs/
 UpgradeLog*.htm
-/YPLCalibrationFromRheometer.WebApp.Client/Pages/Rheograms.razor.bak
 /home/YPLCalibrationFromRheometer.db
