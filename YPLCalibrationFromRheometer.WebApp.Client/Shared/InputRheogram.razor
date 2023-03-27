@@ -46,41 +46,41 @@
                     @if (IsHidInputAdd && j == rowIndex)
                     {
                         <tr>
-                             <td>
-                                <InputWithUnit Hidden="@(!UseRotationalSpeed)" 
-                                               QuantityName="Small Rotation Frequency"
-                                               SIValueNullable="@updatedRotationalSpeed"
-                                               SIValueNullableChanged="@((val) => ManageUpdatedRotationalSpeed(val))" />
+                            <td>
+                                <InputWithUnit Hidden="@(!UseRotationalSpeed)"
+                               QuantityName="Small Rotation Frequency"
+                               SIValueNullable="@updatedRotationalSpeed"
+                               SIValueNullableChanged="@((val) => ManageUpdatedRotationalSpeed(val))" />
                             </td>
                             <td>
                                 <InputWithUnit Hidden="@(!UseTorque)"
-                                               QuantityName="Small Torque"
-                                               SIValueNullable="@updatedTorque"
-                                               SIValueNullableChanged="@((val) => ManageUpdatedTorque(val))" />
+                               QuantityName="Small Torque"
+                               SIValueNullable="@updatedTorque"
+                               SIValueNullableChanged="@((val) => ManageUpdatedTorque(val))" />
                             </td>
-                           <td>
+                            <td>
                                 <InputWithUnit Hidden="@(!UseISONewtonianShearRate)"
-                                               QuantityName="FluidShearRate"
-                                               SIValueNullable="@updatedISOShearRate"
-                                               SIValueNullableChanged="@((val) => ManageUpdatedISOShearRate(val))" />
+                               QuantityName="FluidShearRate"
+                               SIValueNullable="@updatedISOShearRate"
+                               SIValueNullableChanged="@((val) => ManageUpdatedISOShearRate(val))" />
                             </td>
                             <td>
                                 <InputWithUnit Hidden="@(!UseISONewtonianShearStress)"
-                                               QuantityName="FluidShearStress"
-                                               SIValueNullable="@updatedISOShearStress"
-                                               SIValueNullableChanged="@((val) => ManageUpdatedISOShearStress(val))" />
+                               QuantityName="FluidShearStress"
+                               SIValueNullable="@updatedISOShearStress"
+                               SIValueNullableChanged="@((val) => ManageUpdatedISOShearStress(val))" />
                             </td>
                             <td>
                                 <InputWithUnit Hidden="@(!UseBobNewtonianShearRate)"
-                                               QuantityName="FluidShearRate"
-                                               SIValueNullable="@updatedBobShearRate"
-                                               SIValueNullableChanged="@((val) => ManageUpdatedBobShearRate(val))" />
+                               QuantityName="FluidShearRate"
+                               SIValueNullable="@updatedBobShearRate"
+                               SIValueNullableChanged="@((val) => ManageUpdatedBobShearRate(val))" />
                             </td>
                             <td>
                                 <InputWithUnit Hidden="@(!UseBobNewtonianShearStress)"
-                                               QuantityName="FluidShearStress"
-                                               SIValueNullable="@updatedBobShearStress"
-                                               SIValueNullableChanged="@((val) => ManageUpdatedBobShearStress(val))" />
+                               QuantityName="FluidShearStress"
+                               SIValueNullable="@updatedBobShearStress"
+                               SIValueNullableChanged="@((val) => ManageUpdatedBobShearStress(val))" />
                             </td>
                             <td align="right">
                                 @if (local_j > -1)
@@ -134,7 +134,7 @@
     <tfoot hidden="@IsHidInputAdd">
         <tr>
             <td>
-                <InputWithUnit Hidden="@(!UseRotationalSpeed)" 
+                <InputWithUnit Hidden="@(!UseRotationalSpeed)"
                                QuantityName="Small Rotation Frequency"
                                SIValueNullable="@addedRotationalSpeed"
                                SIValueNullableChanged="@((val) => ManageAddedRotationalSpeed(val))" />
@@ -191,7 +191,8 @@
     [Parameter]
     public Guid RheogramID { get; set; }
 
-    private bool UseRotationalSpeed {
+    private bool UseRotationalSpeed
+    {
         get
         {
             return (Rheogram != null && Rheogram.RateSource == RateSourceEnum.RotationalSpeed);
@@ -376,16 +377,25 @@
             if (addedRotationalSpeed.HasValue)
             {
                 measurement.RotationalSpeed = (double)addedRotationalSpeed; // else unchanged
+            }
+            if (addedTorque.HasValue)
+            {
                 measurement.Torque = (double)addedTorque; // else unchanged
             }
             if (addedISOShearRate.HasValue)
             {
                 measurement.ISONewtonianShearRate = (double)addedISOShearRate; // else unchanged
+            }
+            if (addedISOShearStress.HasValue)
+            {
                 measurement.ISONewtonianShearStress = (double)addedISOShearStress; // else unchanged
             }
             if (addedBobShearRate.HasValue)
             {
                 measurement.BobNewtonianShearRate = (double)addedBobShearRate; // else unchanged
+            }
+            if (addedBobShearStress.HasValue)
+            {
                 measurement.BobNewtonianShearStress = (double)addedBobShearStress; // else unchanged
             }
             Rheogram.Measurements.Add(measurement);
