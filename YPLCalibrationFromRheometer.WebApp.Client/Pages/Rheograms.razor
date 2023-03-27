@@ -193,7 +193,7 @@
                 </div>
                 <div>
                     <h2>Rheometer Measurements</h2>
-                    <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
+                    <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
                 </div>
                 <div>
                     <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
@@ -209,9 +209,6 @@
     // default values
     private string[] SRLabels = { "shearrate", "shear rate" };
     private string[] SSLabels = { "shearstress", "shear stress" };
-
-    // http client
-    private HttpClient httpClient;
 
     private bool IsHidMainPanel = false;
     private bool IsHidSubPanel = true;
@@ -261,11 +258,11 @@
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("Torque", StressSourceEnum.Torque));
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("ISO Newtonian Shear Stress", StressSourceEnum.ISONewtonianShearStress));
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("Bob Newtonian Shear Stress", StressSourceEnum.BobNewtonianShearStress));
-            string host = YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL;
-            logger.LogInformation("Trying to load Rheograms from client: " + host);
-            SetHttpClient(host);
+            logger.LogInformation("Trying to load Rheograms from client: " + APIUtils.HttpClientYPLCalibrationFromRheometer.ToString());
             rheometerList.Clear();
-            List<CouetteRheometer> rheometers = await LoadRheometers();
+            List<CouetteRheometer> rheometers = await APIUtils.LoadDatas<CouetteRheometer>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "CouetteRheometers/");
+            if (rheometers != null)
+                rheometers.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
             if (rheometers != null)
             {
                 foreach (var r in rheometers)
@@ -273,141 +270,15 @@
                     rheometerList.Add(new Tuple<string, Guid>(r.Name, r.ID));
                 }
             }
-            rheogramList = await LoadRheograms();
+            rheogramList = await APIUtils.LoadDatas<Rheogram>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "Rheograms/");
+            if (rheogramList != null)
+                rheogramList.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
             if (rheogramIdx >= 0)
                 PlotFlowCurve();
         }
         catch (Exception ex)
         {
-            httpClient = null;
             logger.LogError(ex, "Impossible to load Rheograms on initialization");
-        }
-    }
-
-    private void SetHttpClient(string host)
-    {
-        httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
-        httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-    }
-
-    private async Task<List<CouetteRheometer>> LoadRheometers()
-    {
-        List<CouetteRheometer> list = null;
-        bool success = false;
-        try
-        {
-            var a = await httpClient.GetAsync("CouetteRheometers/");
-            if (a.IsSuccessStatusCode)
-            {
-                Guid[] ids = null;
-                string str = await a.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(str))
-                {
-                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
-                }
-                if (list == null)
-                {
-                    list = new List<CouetteRheometer>();
-                }
-                list.Clear();
-                CouetteRheometer rheometer = null;
-                for (int i = 0; i < ids.Length; i++)
-                {
-                    a = await httpClient.GetAsync("CouetteRheometers/" + ids[i].ToString());
-                    if (a.IsSuccessStatusCode && a.Content != null)
-                    {
-                        str = await a.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))
-                        {
-                            rheometer = JsonConvert.DeserializeObject<CouetteRheometer>(str);
-                            if (rheometer == null)
-                                throw new NullReferenceException("Impossible to deserialize rheometer string:" + str);
-                            list.Add(rheometer);
-                        }
-                    }
-                }
-                if (list.Count != ids.Length)
-                    throw new Exception("Inconsistent count of rheometer-loaded IDs and loaded rheometers.");
-                success = true;
-            }
-            else
-            {
-                logger.LogWarning("Impossible to get rheometers from controller");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Impossible to load rheometers");
-        }
-        if (success)
-        {
-            list.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
-            logger.LogInformation("Loaded rheometers successfully");
-            return list;
-        }
-        else
-        {
-            logger.LogWarning("Impossible to load Rheograms");
-            return null;
-        }
-    }
-
-    private async Task<List<Rheogram>> LoadRheograms()
-    {
-        bool success = false;
-        try
-        {
-            var a = await httpClient.GetAsync("Rheograms/");
-            if (a.IsSuccessStatusCode)
-            {
-                Guid[] ids = null;
-                string str = await a.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(str))
-                {
-                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
-                }
-                rheogramList = new List<Rheogram>();
-                Rheogram rheogram = null;
-                for (int i = 0; i < ids.Length; i++)
-                {
-                    a = await httpClient.GetAsync("Rheograms/" + ids[i].ToString());
-                    if (a.IsSuccessStatusCode && a.Content != null)
-                    {
-                        str = await a.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))
-                        {
-                            rheogram = JsonConvert.DeserializeObject<Rheogram>(str);
-                            if (rheogram == null)
-                                throw new NullReferenceException("Impossible to deserialize Rheograms string:" + str);
-                            rheogramList.Add(rheogram);
-                        }
-                    }
-                }
-                if (rheogramList.Count != ids.Length)
-                    throw new Exception("Inconsistent count of Rheogram-loaded IDs and loaded Rheograms.");
-                success = true;
-            }
-            else
-            {
-                logger.LogWarning("Impossible to get Rheograms from controller");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Impossible to load Rheograms");
-        }
-        if (success)
-        {
-            rheogramList.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
-            logger.LogInformation("Loaded Rheograms successfully");
-            return rheogramList;
-        }
-        else
-        {
-            logger.LogWarning("Impossible to load Rheograms");
-            return null;
         }
     }
 
@@ -432,7 +303,7 @@
         if (rheogramList != null && idx >= 0 && idx < rheogramList.Count && rheogramList[idx] != null && !rheogramList[idx].ID.Equals(System.Guid.Empty))
         {
             // delete Rheogram from database
-            var a = await httpClient.DeleteAsync("Rheograms/" + rheogramList[idx].ID);
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.DeleteAsync("Rheograms/" + rheogramList[idx].ID);
             if (a.IsSuccessStatusCode)
             {
                 await OnInitializedAsync();
@@ -455,7 +326,7 @@
 
             //PUT Rheogram into the RheogramInputsTable (YPLCalibrations referencing this Rheogram are updated at the Manager level)
             StringContent content = new StringContent(rheogramList[idx].GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("Rheograms/" + rheogramList[idx].ID, content);
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PutAsync("Rheograms/" + rheogramList[idx].ID, content);
             if (a.IsSuccessStatusCode)
             {
                 updatedRheogramName = null;
@@ -496,7 +367,7 @@
 
             // POST the Rheogram
             StringContent content = new StringContent(addedRheogram.GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PostAsync("Rheograms/", content);
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PostAsync("Rheograms/", content);
             if (a.IsSuccessStatusCode)
             {
                 addedRheogramName = null;
@@ -572,7 +443,7 @@
                         loadedRheogram.Measurements = rheoLists.ElementAt(i);
                         // POST the Rheogram
                         StringContent content = new StringContent(loadedRheogram.GetJson(), Encoding.UTF8, "application/json");
-                        var a = await httpClient.PostAsync("Rheograms/", content);
+                        var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PostAsync("Rheograms/", content);
                         if (a.IsSuccessStatusCode)
                         {
                             await OnInitializedAsync();
