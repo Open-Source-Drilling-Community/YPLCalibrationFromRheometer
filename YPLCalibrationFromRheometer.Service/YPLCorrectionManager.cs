@@ -195,7 +195,7 @@ namespace YPLCalibrationFromRheometer.Service
                 !yplCorrection.RheogramInput.ID.Equals(Guid.Empty))
             {
                 // first apply calculations
-                if (!yplCorrection.CalculateInputRheogram() || 
+                if (!yplCorrection.CalculateInputRheogram() ||
                     !yplCorrection.CalculateFullyCorrected() ||
                     !yplCorrection.CalculateShearRateCorrected() ||
                     !yplCorrection.CalculateShearStressCorrected())
@@ -217,9 +217,9 @@ namespace YPLCalibrationFromRheometer.Service
                             // first add the YPLCorrection to the YPLCorrectionsTable
                             var command = connection_.CreateCommand();
                             command.CommandText = @"INSERT INTO YPLCorrectionsTable " +
-                                "(ID, Name, Description, "+
+                                "(ID, Name, Description, " +
                                 "RheogramInputID, Data) " +
-                                "VALUES "+
+                                "VALUES " +
                                 "(" +
                                 "'" + yplCorrection.ID.ToString() + "', " +
                                 "'" + yplCorrection.Name + "', " +
@@ -342,14 +342,15 @@ namespace YPLCalibrationFromRheometer.Service
             {
                 if (connection_ != null)
                 {
-                    bool success = true;
-                    if (success)
+                    lock (lock_)
                     {
-                        // first delete all YPLCorrections referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
+                        using var transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        // delete all YPLCorrections referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
                         try
                         {
                             var command = connection_.CreateCommand();
-                            command.CommandText = @"DELETE FROM YPLCorrectionsTable WHERE RheogramInputID = '" + guid.ToString() + "')";
+                            command.CommandText = @"DELETE FROM YPLCorrectionsTable WHERE RheogramInputID = '" + guid.ToString() + "'";
                             int count = command.ExecuteNonQuery();
                             if (count < 0)
                             {
@@ -359,12 +360,19 @@ namespace YPLCalibrationFromRheometer.Service
                         catch (SQLiteException ex)
                         {
                             logger_.LogError(ex, "Impossible to delete YPLCorrections referencing the Rheogram of given ID from YPLCorrectionsTable");
-                            return false;
+                            success = false;
                         }
+                        if (success)
+                        {
+                            logger_.LogInformation("Removed all YPLCorrections referencing the Rheogram of given ID successfully");
+                            transaction.Commit();
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                        }
+                        return success;
                     }
-                    // Finalizing
-                    logger_.LogInformation("Removed all YPLCorrections and YPLModel referencing the Rheogram of given ID successfully");
-                    return true;
                 }
                 else
                 {
@@ -388,9 +396,9 @@ namespace YPLCalibrationFromRheometer.Service
                 updatedYplCorrection.RheogramFullyCorrected != null && updatedYplCorrection.RheogramShearRateCorrected != null && updatedYplCorrection.RheogramShearStressCorrected != null)
             {
                 // first apply calculations
-                if (!updatedYplCorrection.CalculateInputRheogram() || 
-                    !updatedYplCorrection.CalculateFullyCorrected() || 
-                    !updatedYplCorrection.CalculateShearRateCorrected() || 
+                if (!updatedYplCorrection.CalculateInputRheogram() ||
+                    !updatedYplCorrection.CalculateFullyCorrected() ||
+                    !updatedYplCorrection.CalculateShearRateCorrected() ||
                     !updatedYplCorrection.CalculateShearStressCorrected())
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
