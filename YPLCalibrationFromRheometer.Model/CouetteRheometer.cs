@@ -59,7 +59,7 @@ namespace YPLCalibrationFromRheometer.Model
         /// </summary>
         public bool UseISOConvention { get; set; }
         /// <summary>
-        /// for mechanical rheometers that have a fixed list of speeds. The values are in rotation per second.
+        /// for mechanical rheometers that have a fixed list of speeds. The values are in rev per second.
         /// </summary>
         public List<double> FixedSpeedList { get; set; }
 
