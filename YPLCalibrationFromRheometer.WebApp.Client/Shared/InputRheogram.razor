@@ -1,35 +1,44 @@
-﻿<table class="table" hidden="@IsHidden">
+﻿<table class="table" hidden="@IsHidden" style="text-align: center">
     <thead>
         <tr>
             <td>
-                <span>Rotational Speed (</span>
-                <SpanUnitLabel QuantityName="Small Rotation Frequency" />
-                <span>)</span>
+                <span>Rotational Speed</span>
             </td>
             <td>
-                <span>Torque at the bob (</span>
-                <SpanUnitLabel QuantityName="Small Torque" />
-                <span>)</span>
+                <span>Torque at the bob</span>
             </td>
             <td>
-                <span>Newtonian ISO Shear-rate (</span>
-                <SpanUnitLabel QuantityName="FluidShearRate" />
-                <span>)</span>
+                <span>Newtonian ISO Shear-rate</span>
             </td>
             <td>
-                <span>Newtonian ISO Shear-stress (</span>
-                <SpanUnitLabel QuantityName="FluidShearStress" />
-                <span>)</span>
+                <span>Newtonian ISO Shear-stress</span>
             </td>
             <td>
-                <span>Newtonian Shear-rate at the Bob (</span>
-                <SpanUnitLabel QuantityName="FluidShearRate" />
-                <span>)</span>
+                <span>Newtonian Shear-rate at the Bob</span>
             </td>
             <td>
-                <span>Newtonian Shear-stress at the Bob (</span>
-                <SpanUnitLabel QuantityName="FluidShearStress" />
-                <span>)</span>
+                <span>Newtonian Shear-stress at the Bob</span>
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                [<SpanUnitLabel QuantityName="Small Rotation Frequency" />]
+            </td>
+            <td>
+                [<SpanUnitLabel QuantityName="Small Torque" />]
+            </td>
+            <td>
+                [<SpanUnitLabel QuantityName="FluidShearRate" />]
+            </td>
+            <td>
+                [<SpanUnitLabel QuantityName="FluidShearStress" />]
+            </td>
+            <td>
+                [<SpanUnitLabel QuantityName="FluidShearRate" />]
+            </td>
+            <td>
+                [<SpanUnitLabel QuantityName="FluidShearStress" />]
             </td>
             <td></td>
         </tr>
@@ -47,7 +56,7 @@
                     {
                         <tr>
                             <td>
-                                <InputWithUnit Hidden="@(!UseRotationalSpeed)"
+                                <InputWithUnit Hidden="@(!UseRotationalSpeed || IsFixedSpeed)"
                                QuantityName="Small Rotation Frequency"
                                SIValueNullable="@updatedRotationalSpeed"
                                SIValueNullableChanged="@((val) => ManageUpdatedRotationalSpeed(val))" />
@@ -59,7 +68,7 @@
                                SIValueNullableChanged="@((val) => ManageUpdatedTorque(val))" />
                             </td>
                             <td>
-                                <InputWithUnit Hidden="@(!UseISONewtonianShearRate)"
+                                <InputWithUnit Hidden="@(!UseISONewtonianShearRate || IsFixedSpeed)"
                                QuantityName="FluidShearRate"
                                SIValueNullable="@updatedISOShearRate"
                                SIValueNullableChanged="@((val) => ManageUpdatedISOShearRate(val))" />
@@ -71,7 +80,7 @@
                                SIValueNullableChanged="@((val) => ManageUpdatedISOShearStress(val))" />
                             </td>
                             <td>
-                                <InputWithUnit Hidden="@(!UseBobNewtonianShearRate)"
+                                <InputWithUnit Hidden="@(!UseBobNewtonianShearRate || IsFixedSpeed)"
                                QuantityName="FluidShearRate"
                                SIValueNullable="@updatedBobShearRate"
                                SIValueNullableChanged="@((val) => ManageUpdatedBobShearRate(val))" />
@@ -131,7 +140,7 @@
             }
         }
     </tbody>
-    <tfoot hidden="@IsHidInputAdd">
+    <tfoot hidden="@(IsHidInputAdd || IsFixedSpeed)">
         <tr>
             <td>
                 <InputWithUnit Hidden="@(!UseRotationalSpeed)"
@@ -190,6 +199,9 @@
 
     [Parameter]
     public Guid RheogramID { get; set; }
+
+    [Parameter]
+    public bool IsFixedSpeed { get; set; }
 
     private bool UseRotationalSpeed
     {
@@ -301,7 +313,7 @@
                         var a = await HTTPClient.PutAsync("Rheograms/" + RheogramID.ToString(), content);
                         if (a.IsSuccessStatusCode)
                         {
-                            await OnInitializedAsync();
+                            await  OnInitializedAsync();
                             await InvokeAsync(() => { StateHasChanged(); });
                         }
                     }
@@ -321,16 +333,25 @@
             if (updatedRotationalSpeed.HasValue)
             {
                 Rheogram.Measurements.ElementAt(rowIdx).RotationalSpeed = (double)updatedRotationalSpeed; // else unchanged
+            }
+            if (updatedTorque.HasValue)
+            {
                 Rheogram.Measurements.ElementAt(rowIdx).Torque = (double)updatedTorque; // else unchanged
             }
             if (updatedISOShearRate.HasValue)
             {
                 Rheogram.Measurements.ElementAt(rowIdx).ISONewtonianShearRate = (double)updatedISOShearRate; // else unchanged
+            }
+            if (updatedISOShearStress.HasValue)
+            {
                 Rheogram.Measurements.ElementAt(rowIdx).ISONewtonianShearStress = (double)updatedISOShearStress; // else unchanged
             }
             if (updatedBobShearRate.HasValue)
             {
                 Rheogram.Measurements.ElementAt(rowIdx).BobNewtonianShearRate = (double)updatedBobShearRate; // else unchanged
+            }
+            if (updatedBobShearStress.HasValue)
+            {
                 Rheogram.Measurements.ElementAt(rowIdx).BobNewtonianShearStress = (double)updatedBobShearStress; // else unchanged
             }
 
