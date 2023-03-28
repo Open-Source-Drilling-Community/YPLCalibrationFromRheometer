@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="YPLCalibrationFromRheometer.Model.CouetteRheometer">
+    <Position X="1.5" Y="0.75" Width="2" />
+    <NestedTypes>
+      <Enum Name="YPLCalibrationFromRheometer.Model.CouetteRheometer.RheometerTypeEnum" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>CouetteRheometer.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgQAAggAAAAAYQAQQAAAAAQAAAAAAAAAAAABE=</HashCode>
+      <FileName>CouetteRheometer.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="YPLCalibrationFromRheometer.Model.Rheogram">
+    <Position X="5.75" Y="2" Width="3.5" />
+    <NestedTypes>
+      <Enum Name="YPLCalibrationFromRheometer.Model.Rheogram.RateSourceEnum" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Rheogram.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="YPLCalibrationFromRheometer.Model.Rheogram.StressSourceEnum" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Rheogram.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AEIAgEAAAAEgkBAQCAAADAQMAiAAAAABCAAQAABQIBA=</HashCode>
+      <FileName>Rheogram.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Measurements" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="YPLCalibrationFromRheometer.Model.ShearRateAndStress">
+    <Position X="25.25" Y="2.25" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAAAAAAAgQAAAAAAABAAAAAABA=</HashCode>
+      <FileName>ShearRateAndStress.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="YPLCalibrationFromRheometer.Model.RheometerMeasurement">
+    <Position X="1.75" Y="5.25" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAEgCAAABiAAAAAAAABAAABAADA=</HashCode>
+      <FileName>RheometerMeasurement.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="YPLCalibrationFromRheometer.Model.YPLCalibration">
+    <Position X="10.5" Y="6.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAggSACAAAAAIQAAgAAAAAAgAAAAAAAQBA=</HashCode>
+      <FileName>YPLCalibration.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="YPLModelKelessidis" />
+      <Property Name="YPLModelLevenbergMarquardt" />
+      <Property Name="YPLModelMullineux" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="YPLCalibrationFromRheometer.Model.YPLModel">
+    <Position X="14.75" Y="6.5" Width="2.5" />
+    <NestedTypes>
+      <Enum Name="YPLCalibrationFromRheometer.Model.YPLModel.ModelType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>YPLModel.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIEAggAIAAAAgACQAAgAABBAAAAAEAJAAABA=</HashCode>
+      <FileName>YPLModel.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="YPLCalibrationFromRheometer.Model.YPLCorrection">
+    <Position X="20" Y="1.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>CAgARAAAAGAgpAAAAAFBBCQAAgghCAAEDAkAIUAUxBA=</HashCode>
+      <FileName>YPLCorrection.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="RheogramInput" />
+      <Property Name="YPLModelBasedOnNewtonianInputs" />
+      <Property Name="YPLModelFullyCorrected" />
+      <Property Name="YPLModelShearRateCorrected" />
+      <Property Name="YPLModelShearStressCorrected" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="RheogramFullyCorrected" />
+      <Property Name="RheogramShearRateCorrected" />
+      <Property Name="RheogramShearStressCorrected" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

@@ -465,6 +465,7 @@ else
             listNames.Add("YPL From Newtonian Assumption");
             listUseMarkers.Add(false);
         }
+        
         minShearRate = double.MaxValue;
         maxShearRate = double.MinValue;
         if (yplCorrectionList != null &&
@@ -513,6 +514,8 @@ else
             listNames.Add("YPL From Fully Corrected Rheogram");
             listUseMarkers.Add(false);
         }
+      
+       /*
         minShearRate = double.MaxValue;
         maxShearRate = double.MinValue;
         if (yplCorrectionList != null &&
@@ -561,6 +564,8 @@ else
             listNames.Add("YPL From Shear-rate Corrected Rheogram");
             listUseMarkers.Add(false);
         }
+        */
+       /*
         minShearRate = double.MaxValue;
         maxShearRate = double.MinValue;
         if (yplCorrectionList != null &&
@@ -609,7 +614,7 @@ else
             listNames.Add("YPL From Shear-stress Corrected Rheogram");
             listUseMarkers.Add(false);
         }
-
+        */
         try
         {
             await flowCurvePlot.Plot();

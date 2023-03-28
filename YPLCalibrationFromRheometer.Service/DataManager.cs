@@ -564,6 +564,337 @@ namespace YPLCalibrationFromRheometer.Service
                     rheogram.Add(new RheometerMeasurement(512, 41.818, rheogram.RateSource, rheogram.StressSource));
                     rheogram.Calculate();
                     Add(rheogram);
+
+                    //////////////////////////////////
+                    // Example Rheogram #3 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 10degC",
+                        Description = "Versatec 1.37sg @ 10degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.5196, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.6578, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.8146, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.9859, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 3.1716, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 3.3837, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 3.6294, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 3.8974, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 4.2086, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 4.5639, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 4.9672, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 5.4318, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 5.9677, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 6.5878, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 7.3079, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 8.1477, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 9.1328, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 10.292, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 11.664, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 13.298, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 15.25, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    // Example Rheogram #4 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 20degC",
+                        Description = "Versatec 1.37sg @ 20degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.0577, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.1715, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.3005, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.4491, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 2.5985, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 2.7706, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 2.976, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 3.1883, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.4419, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.7294, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 4.0526, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 4.4228, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.8514, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 5.3455, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 5.916, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 6.5789, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 7.3552, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 8.2668, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 9.3414, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 10.617, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 12.134, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    
+                    // Example Rheogram #5 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 30degC",
+                        Description = "Versatec 1.37sg @ 30degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 1.9866, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.0875, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.1994, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.3232, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 2.4576, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 2.607, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 2.7778, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 2.9645, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.1781, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.4188, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 3.6904, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 4, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.3546, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 4.7617, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 5.2302, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 5.7717, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 6.4018, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 7.138, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 8.0034, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 9.0279, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 10.24, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    // Example Rheogram #6 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 40degC",
+                        Description = "Versatec 1.37sg @ 40degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.02, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.231, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.2144, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.3735, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 2.4619, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 2.6592, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 2.8225, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 2.947, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.1174, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.3399, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 3.5762, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 3.8344, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.156, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 4.5129, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 4.914, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 5.3743, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 5.9095, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 6.5353, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 7.2604, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 8.1156, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 9.1217, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    // Example Rheogram #7 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 50degC",
+                        Description = "Versatec 1.37sg @ 50degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.1151, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.2041, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.3, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.404, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 2.5159, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 2.6406, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 2.7797, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 2.9318, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.1039, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.2972, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 3.5141, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 3.7603, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.0382, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 4.3559, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 4.7191, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 5.1348, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 5.6128, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 6.1653, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 6.8067, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 7.5556, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 8.429, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    // Example Rheogram #8 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 60degC",
+                        Description = "Versatec 1.37sg @ 60degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.1926, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.2792, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.3734, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.4857, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 2.5831, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 2.7021, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 2.8448, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 2.9796, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.1456, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.3319, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 3.5339, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 3.7605, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.0212, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 4.3181, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 4.6522, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 5.0344, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 5.4749, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 5.9814, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 6.5664, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 7.2479, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 8.0389, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    // Example Rheogram #9 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 70degC",
+                        Description = "Versatec 1.37sg @ 70degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.4179, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.5159, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.5989, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.6989, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 2.8048, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 2.9275, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 3.0499, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 3.194, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.3459, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.5194, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 3.7138, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 3.9399, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.1783, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 4.4605, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 4.7778, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 5.1391, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 5.5528, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 6.0282, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 6.5753, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 7.2109, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 7.9457, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
+                    // Example Rheogram #10 //
+                    //////////////////////////////////
+                    rheogram = new Rheogram
+                    {
+                        ID = Guid.NewGuid(),
+                        Name = "Versatec 1.37sg @ 80degC",
+                        Description = "Versatec 1.37sg @ 80degC Anton Paar MCR301",
+                        CouetteRheometerID = defaultMCR301RheometerID,
+                        RateSource = Rheogram.RateSourceEnum.ISONewtonianShearRate,
+                        StressSource = Rheogram.StressSourceEnum.ISONewtonianShearStress
+                    };
+                    rheogram.SetRheometer(defaultMCR301Rheometer);
+                    if (rheogram.Measurements == null)
+                    {
+                        rheogram.Measurements = new List<RheometerMeasurement>();
+                    }
+                    /// RheometerMeasurements
+                    rheogram.Add(new RheometerMeasurement(1, 2.7059, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.26, 2.7957, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.58, 2.8917, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(1.99, 2.9946, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(2.51, 3.101, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.16, 3.2146, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(3.98, 3.3432, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(5.01, 3.4774, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(6.31, 3.6299, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(7.94, 3.7977, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(10.0, 3.983, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(12.6, 4.1903, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(15.8, 4.4243, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(19.9, 4.6882, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(25.1, 4.9866, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(31.6, 5.3251, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(39.8, 5.7119, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(50.1, 6.1548, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(63.1, 6.6623, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(79.4, 7.2505, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Add(new RheometerMeasurement(99.9, 7.9279, rheogram.RateSource, rheogram.StressSource));
+                    rheogram.Calculate();
+                    Add(rheogram);
+
                 }
             }
         }
