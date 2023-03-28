@@ -110,6 +110,21 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
         [Newtonsoft.Json.JsonProperty("Measurements", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.Collections.Generic.ICollection<RheometerMeasurement> Measurements { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("ShearRateCorrection", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public ShearRateCorrectionEnum ShearRateCorrection { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ShearStressCorrection", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public ShearStressCorrectionEnum ShearStressCorrection { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("CalibrationMethod", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public CalibrationMethodEnum CalibrationMethod { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("CorrectedFlowCurve", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<ShearRateAndStress> CorrectedFlowCurve { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("CalibratedYPLModel", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public YPLModel CalibratedYPLModel { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("Count", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Count { get; set; }
     
@@ -161,6 +176,47 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
     
         [Newtonsoft.Json.JsonProperty("BobNewtonianShearStress", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double BobNewtonianShearStress { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
+    public enum ShearRateCorrectionEnum
+    {
+        SkadsemSaasen = 0,
+    
+        None = 1,
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
+    public enum ShearStressCorrectionEnum
+    {
+        LacParry = 0,
+    
+        None = 1,
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
+    public enum CalibrationMethodEnum
+    {
+        Mullineux = 0,
+    
+        LevenbergMarquardt = 1,
+    
+        Kelessidis = 2,
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
+    public partial class ShearRateAndStress 
+    {
+        [Newtonsoft.Json.JsonProperty("ShearRate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double ShearRate { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ShearStress", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double ShearStress { get; set; }
     
     
     }
@@ -227,18 +283,6 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
     
         [Newtonsoft.Json.JsonProperty("YPLModelShearStressCorrected", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public YPLModel YPLModelShearStressCorrected { get; set; }
-    
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v9.0.0.0)")]
-    public partial class ShearRateAndStress 
-    {
-        [Newtonsoft.Json.JsonProperty("ShearRate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double ShearRate { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("ShearStress", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double ShearStress { get; set; }
     
     
     }

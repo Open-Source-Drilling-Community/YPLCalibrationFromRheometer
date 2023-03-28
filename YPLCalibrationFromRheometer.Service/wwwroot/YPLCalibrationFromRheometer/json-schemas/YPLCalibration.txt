@@ -190,6 +190,34 @@
             "$ref": "#/definitions/RheometerMeasurement"
           }
         },
+        "ShearRateCorrection": {
+          "$ref": "#/definitions/ShearRateCorrectionEnum"
+        },
+        "ShearStressCorrection": {
+          "$ref": "#/definitions/ShearStressCorrectionEnum"
+        },
+        "CalibrationMethod": {
+          "$ref": "#/definitions/CalibrationMethodEnum"
+        },
+        "CorrectedFlowCurve": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/ShearRateAndStress"
+          }
+        },
+        "CalibratedYPLModel": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/definitions/YPLModel"
+            }
+          ]
+        },
         "Count": {
           "type": "integer",
           "format": "int32"
@@ -252,6 +280,58 @@
           "format": "double"
         },
         "BobNewtonianShearStress": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "ShearRateCorrectionEnum": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "SkadsemSaasen",
+        "None"
+      ],
+      "enum": [
+        0,
+        1
+      ]
+    },
+    "ShearStressCorrectionEnum": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "LacParry",
+        "None"
+      ],
+      "enum": [
+        0,
+        1
+      ]
+    },
+    "CalibrationMethodEnum": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "Mullineux",
+        "LevenbergMarquardt",
+        "Kelessidis"
+      ],
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "ShearRateAndStress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ShearRate": {
+          "type": "number",
+          "format": "double"
+        },
+        "ShearStress": {
           "type": "number",
           "format": "double"
         }
@@ -391,20 +471,6 @@
               "$ref": "#/definitions/YPLModel"
             }
           ]
-        }
-      }
-    },
-    "ShearRateAndStress": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "ShearRate": {
-          "type": "number",
-          "format": "double"
-        },
-        "ShearStress": {
-          "type": "number",
-          "format": "double"
         }
       }
     }

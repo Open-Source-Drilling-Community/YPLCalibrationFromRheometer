@@ -1,6 +1,7 @@
 ﻿using OSDC.DotnetLibraries.General.Common;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Intrinsics;
 
 namespace YPLCalibrationFromRheometer.Model
 {
@@ -8,7 +9,13 @@ namespace YPLCalibrationFromRheometer.Model
     {
         public enum RateSourceEnum { RotationalSpeed, ISONewtonianShearRate, BobNewtonianShearRate}
         public enum StressSourceEnum { Torque, ISONewtonianShearStress, BobNewtonianShearStress}
+
+        public enum CalibrationMethodEnum { Mullineux, LevenbergMarquardt, Kelessidis }
+        public enum ShearRateCorrectionEnum { SkadsemSaasen, None}
+        public enum ShearStressCorrectionEnum { LacParry, None}
+
         private static double DefaultMeasurementPrecision = 0.25; // default measurement precision of a Fann35 R1B1 is 0.5° # 0.5 lbf/100ft^2 # 0.25 Pa
+
         private CouetteRheometer rheometer_ = null;
         /// <summary>
         /// an ID for the Rheogram
@@ -40,6 +47,26 @@ namespace YPLCalibrationFromRheometer.Model
         ///  a list of Measurements for Rheogram
         /// </summary>
         public List<RheometerMeasurement> Measurements { get; set; } = new List<RheometerMeasurement>();
+        /// <summary>
+        /// the choice of shear rate correction
+        /// </summary>
+        public ShearRateCorrectionEnum ShearRateCorrection { get; set; }
+        /// <summary>
+        /// the choice of shear stress correction
+        /// </summary>
+        public ShearStressCorrectionEnum ShearStressCorrection { get; set; }
+        /// <summary>
+        /// the choice of calibration method
+        /// </summary>
+        public CalibrationMethodEnum CalibrationMethod { get; set; }
+        /// <summary>
+        /// the corrected list of shear rates and stresses
+        /// </summary>
+        public List<ShearRateAndStress> CorrectedFlowCurve { get; set; } = new List<ShearRateAndStress>();
+        /// <summary>
+        /// the calibrated YPL model to the corrected list of shear rates and stresses
+        /// </summary>
+        public YPLModel CalibratedYPLModel { get; set; }
 
         public int Count => Measurements.Count;
 
@@ -118,6 +145,28 @@ namespace YPLCalibrationFromRheometer.Model
                         dest.Measurements.Add(iterData1);
                     }
                 }
+                dest.CalibrationMethod = CalibrationMethod;
+                dest.ShearRateCorrection= ShearRateCorrection;
+                dest.ShearStressCorrection = ShearStressCorrection;
+                if (dest.CorrectedFlowCurve == null)
+                {
+                    dest.CorrectedFlowCurve = new List<ShearRateAndStress>();
+                }
+                dest.CorrectedFlowCurve.Clear();
+                if (CorrectedFlowCurve != null)
+                {
+                    foreach (var v in CorrectedFlowCurve)
+                    {
+                        if (v != null)
+                        {
+                            dest.CorrectedFlowCurve.Add(new ShearRateAndStress(v));
+                        }
+                    }
+                }
+                if (CalibratedYPLModel!= null)
+                {
+                    dest.CalibratedYPLModel = new YPLModel(CalibratedYPLModel); 
+                }
                 return true;
             }
             else
@@ -149,6 +198,53 @@ namespace YPLCalibrationFromRheometer.Model
                 foreach (var m in Measurements)
                 {
                     m.Calculate(rheometer, RateSource, StressSource);
+                }
+                YPLCorrection corrector = new YPLCorrection();
+                corrector.RheogramInput= this;
+                if (ShearRateCorrection == ShearRateCorrectionEnum.SkadsemSaasen && ShearStressCorrection == ShearStressCorrectionEnum.LacParry)
+                {
+                    corrector.CalculateFullyCorrected();
+                    CorrectedFlowCurve = corrector.RheogramFullyCorrected;
+                }
+                else if (ShearRateCorrection == ShearRateCorrectionEnum.SkadsemSaasen)
+                {
+                    corrector.CalculateShearRateCorrected();
+                    CorrectedFlowCurve = corrector.RheogramShearRateCorrected;
+                }
+                else if (ShearStressCorrection == ShearStressCorrectionEnum.LacParry)
+                {
+                    corrector.CalculateShearStressCorrected();
+                    CorrectedFlowCurve = corrector.RheogramShearStressCorrected;
+                }
+                else
+                {
+                    CorrectedFlowCurve = new List<ShearRateAndStress>();
+                    if (Measurements != null)
+                    {
+                        foreach (var v in Measurements)
+                        {
+                            CorrectedFlowCurve.Add(new ShearRateAndStress(v.BobNewtonianShearRate, v.BobNewtonianShearStress));
+                        }
+                    }
+                }
+                if (CorrectedFlowCurve != null)
+                {
+                    if (CalibratedYPLModel == null)
+                    {
+                        CalibratedYPLModel = new YPLModel();
+                    }
+                    switch (CalibrationMethod)
+                    {
+                        case CalibrationMethodEnum.Kelessidis:
+                            CalibratedYPLModel.FitToKelessidis(CorrectedFlowCurve, GetMeasurementPrecision());
+                            break;
+                        case CalibrationMethodEnum.LevenbergMarquardt:
+                            CalibratedYPLModel.FitToLevenbergMarquardt(CorrectedFlowCurve, GetMeasurementPrecision());
+                            break;
+                        default:
+                            CalibratedYPLModel.FitToMullineux(CorrectedFlowCurve, GetMeasurementPrecision());
+                            break;
+                    }
                 }
             }
         }

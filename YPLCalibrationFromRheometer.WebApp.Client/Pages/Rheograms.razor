@@ -192,12 +192,71 @@
                     </table>
                 </div>
                 <div>
+                    <h2>Corrections</h2>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span>Shear rate correction</span>
+                                </td>
+                                <td>
+                                    <select @bind="@rheogramList[rheogramIdx].ShearRateCorrection">
+                                        @foreach (var v in shearRateCorrectionList)
+                                        {
+                                            <option value="@v.Item2">@v.Item1</option>
+                                        }
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span>Shear stress correction</span>
+                                </td>
+                                <td>
+                                    <select @bind="@rheogramList[rheogramIdx].ShearStressCorrection">
+                                        @foreach (var v in shearStressCorrectionList)
+                                        {
+                                            <option value="@v.Item2">@v.Item1</option>
+                                        }
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>YPL Calibration</h2>
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span>Calibration Method</span>
+                                </td>
+                                <td>
+                                    <select @bind="@rheogramList[rheogramIdx].CalibrationMethod">
+                                        @foreach (var v in calibrationMethodList)
+                                        {
+                                            <option value="@v.Item2">@v.Item1</option>
+                                        }
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
                     <h2>Rheometer Measurements</h2>
                     <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer" IsHidden="@IsHidInputAdd" Rheogram="@rheogramList[rheogramIdx]" RheogramID="@rheogramID" />
                 </div>
                 <div>
+                    <h2>Corrected Flow-curve</h2>
+                    <DisplayRheogram ShearRateAndStresses="@rheogramList[rheogramIdx].CorrectedFlowCurve" />
+                    <h2>Yield Power Law Model</h2>
+                    <YPLCalibrationTable YPLModel="@rheogramList[rheogramIdx].CalibratedYPLModel" />
+                </div>
+                <div>
                     <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
-                         XValues="@shearRates" YValues="@shearStresses" UseMarker="true"
+                         ListXValues="@xValues" ListYValues="@yValues" ListUseMarkers="@markers" ListNames="@names"                     
                          XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
                 </div>
             </div>
@@ -222,6 +281,9 @@
     private List<Tuple<string, Guid>> rheometerList = new List<Tuple<string, Guid>>();
     private List<Tuple<string, RateSourceEnum>> rateSourceList = new List<Tuple<string, RateSourceEnum>>();
     private List<Tuple<string, StressSourceEnum>> stressSourceList = new List<Tuple<string, StressSourceEnum>>();
+    private List<Tuple<string, ShearRateCorrectionEnum>> shearRateCorrectionList = new List<Tuple<string, ShearRateCorrectionEnum>>();
+    private List<Tuple<string, ShearStressCorrectionEnum>> shearStressCorrectionList = new List<Tuple<string, ShearStressCorrectionEnum>>();
+    private List<Tuple<string, CalibrationMethodEnum>> calibrationMethodList = new List<Tuple<string, CalibrationMethodEnum>>();
 
     // temporary objects are used essentially to post or put modifications to the database
     private string addedRheogramName = null;
@@ -238,8 +300,16 @@
 
     // objects used for visualization
     ScatterPlot flowCurvePlot = new ScatterPlot();
-    List<object> shearRates = new List<object>();
-    List<object> shearStresses = new List<object>();
+    List<object> newtonianShearRates = new List<object>();
+    List<object> newtonianShearStresses = new List<object>();
+    List<object> correctedShearRates = new List<object>();
+    List<object> correctedShearStresses = new List<object>();
+    List<object> YPLModelShearRates = new List<object>();
+    List<object> YPLModelShearStresses = new List<object>();
+    List<List<object>> xValues = new List<List<object>>();
+    List<List<object>> yValues = new List<List<object>>();
+    List<bool> markers = new List<bool>();
+    List<string> names = new List<string>();
 
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
@@ -250,6 +320,22 @@
     {
         try
         {
+            xValues.Clear();
+            yValues.Clear();
+            markers.Clear();
+            names.Clear();
+            xValues.Add(newtonianShearRates);
+            xValues.Add(correctedShearRates);
+            xValues.Add(YPLModelShearRates);
+            yValues.Add(newtonianShearStresses);
+            yValues.Add(correctedShearStresses);
+            yValues.Add(YPLModelShearStresses);
+            markers.Add(true);
+            markers.Add(true);
+            markers.Add(false);
+            names.Add("Newtonian Flow-curve");
+            names.Add("Corrected Flow-curve");
+            names.Add("Calibrated YPL Model");
             rateSourceList.Clear();
             rateSourceList.Add(new Tuple<string, RateSourceEnum>("Rotational Speed", RateSourceEnum.RotationalSpeed));
             rateSourceList.Add(new Tuple<string, RateSourceEnum>("ISO Newtonian Shear Rate", RateSourceEnum.ISONewtonianShearRate));
@@ -258,6 +344,16 @@
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("Torque", StressSourceEnum.Torque));
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("ISO Newtonian Shear Stress", StressSourceEnum.ISONewtonianShearStress));
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("Bob Newtonian Shear Stress", StressSourceEnum.BobNewtonianShearStress));
+            shearRateCorrectionList.Clear();
+            shearRateCorrectionList.Add(new Tuple<string, ShearRateCorrectionEnum>("Skadsem & Saasen", ShearRateCorrectionEnum.SkadsemSaasen));
+            shearRateCorrectionList.Add(new Tuple<string, ShearRateCorrectionEnum>("None", ShearRateCorrectionEnum.None));
+            shearStressCorrectionList.Clear();
+            shearStressCorrectionList.Add(new Tuple<string, ShearStressCorrectionEnum>("Lac & Parry", ShearStressCorrectionEnum.LacParry));
+            shearStressCorrectionList.Add(new Tuple<string, ShearStressCorrectionEnum>("None", ShearStressCorrectionEnum.None));
+            calibrationMethodList.Clear();
+            calibrationMethodList.Add(new Tuple<string, CalibrationMethodEnum>("Mullineux", CalibrationMethodEnum.Mullineux));
+            calibrationMethodList.Add(new Tuple<string, CalibrationMethodEnum>("Levenberg-Marquardt", CalibrationMethodEnum.LevenbergMarquardt));
+            calibrationMethodList.Add(new Tuple<string, CalibrationMethodEnum>("Kelessidis", CalibrationMethodEnum.Kelessidis));
             logger.LogInformation("Trying to load Rheograms from client: " + APIUtils.HttpClientYPLCalibrationFromRheometer.ToString());
             rheometerList.Clear();
             List<CouetteRheometer> rheometers = await APIUtils.LoadDatas<CouetteRheometer>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "CouetteRheometers/");
@@ -572,12 +668,44 @@
     private async void PlotFlowCurve()
     {
         // update scatter plot
-        shearRates.Clear();
-        shearStresses.Clear();
+        newtonianShearRates.Clear();
+        newtonianShearStresses.Clear();
         for (int i = 0; i < rheogramList[rheogramIdx].Measurements.Count; ++i)
         {
-            shearRates.Add(rheogramList[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearRate);
-            shearStresses.Add(rheogramList[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearStress);
+            newtonianShearRates.Add(rheogramList[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearRate);
+            newtonianShearStresses.Add(rheogramList[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearStress);
+        }
+        correctedShearRates.Clear();
+        correctedShearStresses.Clear();
+        double minShearRate = double.MaxValue;
+        double maxShearRate = double.MinValue;
+        if (rheogramList[rheogramIdx].CorrectedFlowCurve != null)
+        {
+            for (int i = 0; i < rheogramList[rheogramIdx].CorrectedFlowCurve.Count; ++i)
+            {
+                if (rheogramList[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate > maxShearRate)
+                {
+                    maxShearRate = rheogramList[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate;
+                }
+                if (rheogramList[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate < minShearRate)
+                {
+                    minShearRate = rheogramList[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate;
+                }
+                correctedShearRates.Add(rheogramList[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate);
+                correctedShearStresses.Add(rheogramList[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearStress);
+            }
+        }
+        YPLModelShearRates.Clear();
+        YPLModelShearStresses.Clear();
+        if (rheogramList[rheogramIdx].CalibratedYPLModel != null && minShearRate < maxShearRate)
+        {
+            YPLModel model = rheogramList[rheogramIdx].CalibratedYPLModel;
+            double step = (maxShearRate - minShearRate) / 50.0;
+            for (double shearRate = minShearRate; OSDC.DotnetLibraries.General.Common.Numeric.LE(shearRate, maxShearRate); shearRate += step)
+            {
+                YPLModelShearRates.Add(shearRate);
+                YPLModelShearStresses.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
+            }
         }
         try
         {
