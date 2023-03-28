@@ -51,7 +51,7 @@ namespace YPLCalibrationFromRheometer.Model
         public double ConicalAngle { get; set; }
         /// <summary>
         /// The standard deviation of of the degree to which repeated measurements under unchanged conditions show the same results.
-        /// Typically 0.25Pa for a Fann35 rheometer, 0.02Pa for an Anton Paar rheometer
+        /// Typically 0.5° # 0.5 lbf/100ft^2 # 0.25 Pa for a Fann35 R1B1 rheometer, 0.02Pa for an Anton Paar rheometer
         /// </summary>
         public double MeasurementPrecision { get; set; }
         /// <summary>
@@ -59,7 +59,7 @@ namespace YPLCalibrationFromRheometer.Model
         /// </summary>
         public bool UseISOConvention { get; set; }
         /// <summary>
-        /// for mechanical rheometers that have a fixed list of speeds. The values are in rotation per second.
+        /// for mechanical rheometers that have a fixed list of speeds. The values are in rev per second.
         /// </summary>
         public List<double> FixedSpeedList { get; set; }
 

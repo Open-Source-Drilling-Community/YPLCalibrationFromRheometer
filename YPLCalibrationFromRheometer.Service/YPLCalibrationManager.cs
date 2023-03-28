@@ -148,9 +148,9 @@ namespace YPLCalibrationFromRheometer.Service
                             string name = reader.GetString(0);
                             string description = reader.GetString(1);
                             inputID = reader.GetGuid(2);
-                            string json= reader.GetString(3);
+                            string json = reader.GetString(3);
                             yplCalibration = JsonConvert.DeserializeObject<YPLCalibration>(json);
-                            if(yplCalibration == null ||
+                            if (yplCalibration == null ||
                                 !yplCalibration.ID.Equals(guid) ||
                                 !yplCalibration.Name.Equals(name) ||
                                 inputID == Guid.Empty)
@@ -334,41 +334,37 @@ namespace YPLCalibrationFromRheometer.Service
             {
                 if (connection_ != null)
                 {
-                    // first select all YPLCalibrations referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
-                    List<Guid> parentIds = new List<Guid>();
-                    var command = connection_.CreateCommand();
-                    command.CommandText = @"SELECT YPLCalibrationsTable.ID " +
-                        "FROM YPLCalibrationsTable, RheogramInputsTable " +
-                        "WHERE YPLCalibrationsTable.RheogramInputID = RheogramInputsTable.ID " +
-                        "AND RheogramInputsTable.ID = '" + guid.ToString() + "'";
-                    try
+                    lock (lock_)
                     {
-                        using SQLiteDataReader reader = command.ExecuteReader();
-                        while (reader.Read())
+                        using var transaction = connection_.BeginTransaction();
+                        bool success = true;
+                        // delete all YPLCalibrations referencing the Rheogram as their input identified by the given ID from YPLCalibrationsTable 
+                        try
                         {
-                            Guid parentId = reader.GetGuid(0);
-                            if (!parentId.Equals(Guid.Empty))
-                                parentIds.Add(parentId);
+                            var command = connection_.CreateCommand();
+                            command.CommandText = @"DELETE FROM YPLCalibrationsTable WHERE RheogramInputID = '" + guid.ToString() + "'";
+                            int count = command.ExecuteNonQuery();
+                            if (count < 0)
+                            {
+                                success = false;
+                            }
                         }
-                    }
-                    catch (SQLiteException ex)
-                    {
-                        logger_.LogError(ex, "Impossible to retrieve YPLCalibrations referencing the Rheogram of given ID from YPLCalibrationsTable");
-                        return false;
-                    }
-
-                    // then delete all of them through the use of the YPLCalibrationManager (which ensures their children outputs are properly deleted)
-                    foreach (Guid parentId in parentIds)
-                    {
-                        if (!Remove(parentId))
+                        catch (SQLiteException ex)
                         {
-                            logger_.LogWarning("Impossible to delete one of the YPLCalibrations referencing the Rheogram of given ID from YPLCalibrationsTable");
-                            return false;
+                            logger_.LogError(ex, "Impossible to retrieve YPLCalibrations referencing the Rheogram of given ID from YPLCalibrationsTable");
+                            success = false;
                         }
+                        if (success)
+                        {
+                            logger_.LogInformation("Removed all YPLCalibrations referencing the Rheogram of given ID from the YPLCalibrationsTable successfully");
+                            transaction.Commit();
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                        }
+                        return success;
                     }
-                    // Finalizing
-                    logger_.LogInformation("Removed all YPLCalibrations referencing the Rheogram of given ID from the YPLCalibrationsTable successfully");
-                    return true;
                 }
                 else
                 {

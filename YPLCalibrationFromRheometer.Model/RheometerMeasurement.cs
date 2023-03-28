@@ -10,27 +10,27 @@ namespace YPLCalibrationFromRheometer.Model
     public class RheometerMeasurement : ICloneable
     {
         /// <summary>
-        /// the rotational speed of the rotor or bob depending of the type of rheometer
+        /// the rotational speed of the rotor or bob depending of the type of rheometer, in [rev/s]
         /// </summary>
         public double RotationalSpeed { get; set; }
         /// <summary>
-        /// the measured torque at the bob
+        /// the measured torque at the bob, in [N.m]
         /// </summary>
         public double Torque { get; set; }
         /// <summary>
-        /// the shear rate in the middle of the gap (ISO convention) utilizing the Newtonian fluid hypothesis
+        /// the shear rate in the middle of the gap (ISO convention) utilizing the Newtonian fluid hypothesis, in [1/s]
         /// </summary>
         public double ISONewtonianShearRate { get; set; }
         /// <summary>
-        /// the shear stress in the middle of the gap (ISO convention) utilizing the Newtonian fluid hypothesis
+        /// the shear stress in the middle of the gap (ISO convention) utilizing the Newtonian fluid hypothesis, in [Pa]
         /// </summary>
         public double ISONewtonianShearStress { get; set; }
         /// <summary>
-        /// the shear rate at the bob wall utilizing the Newtonian fluid hypothesis
+        /// the shear rate at the bob wall utilizing the Newtonian fluid hypothesis, in [1/s]
         /// </summary>
         public double BobNewtonianShearRate { get; set; }
         /// <summary>
-        /// the shear stress at the bob wall utilizing the Newtonian fluid hypothesis
+        /// the shear stress at the bob wall utilizing the Newtonian fluid hypothesis, in [Pa]
         /// </summary>
         public double BobNewtonianShearStress { get; set; }
         /// <summary>
@@ -173,7 +173,7 @@ namespace YPLCalibrationFromRheometer.Model
                         BobNewtonianShearStress = 2.0 * ksi * ksi * ISONewtonianShearStress / (1.0 + ksi * ksi);
                         break;
                     default:
-                        ISONewtonianShearStress = BobNewtonianShearStress * (1.0 * ksi * ksi) / (2.0 * ksi * ksi);
+                        ISONewtonianShearStress = BobNewtonianShearStress * (1.0 + ksi * ksi) / (2.0 * ksi * ksi);
                         Torque = ISONewtonianShearStress * 2.0 * ksi * ksi * 2.0 * Math.PI * rheometer.BobRadius * rheometer.BobRadius * rheometer.BobLength * rheometer.NewtonianEndEffectCorrection / (1.0 + ksi * ksi);
                         break;
                 }

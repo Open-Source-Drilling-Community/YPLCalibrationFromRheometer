@@ -125,7 +125,7 @@ else
                         <tfoot></tfoot>
                     </table>
                     <p>Warning, any change made to this Rheogram will be sent to the database and thus will affect other YPLCalibrations which refer to it</p>
-                    <InputRheogram HTTPClient="@httpClient" IsHidden="@IsHidInputAdd" Rheogram="@yplCalibrationList[yplCalibrationIdx].RheogramInput" RheogramID="@rheogramID" />
+                    <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer" IsHidden="@IsHidInputAdd" Rheogram="@yplCalibrationList[yplCalibrationIdx].RheogramInput" RheogramID="@rheogramID" />
                  </div>
             </div>
             <div>
@@ -152,9 +152,6 @@ else
 </UnitAndReferenceChoiceTag>
 
 @code {
-    // http client
-    private HttpClient httpClient;
-
     // html booleans for dynamic visualization
     private bool IsHidMainPanel = false;
     private bool IsHidSubPanel = true;
@@ -189,137 +186,20 @@ else
     {
         try
         {
-            string host = YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL;
-            logger.LogInformation("Trying to load YPLCalibrations from client: " + host);
-            SetHttpClient(host);
-            yplCalibrationList = await LoadYPLCalibrations();
+            logger.LogInformation("Trying to load YPLCalibrations from client: " + APIUtils.HttpClientYPLCalibrationFromRheometer.ToString());
+            yplCalibrationList = await APIUtils.LoadDatas<YPLCalibration>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "YPLCalibrations/");
             if (yplCalibrationList != null)
-                rheogramList = await LoadRheograms();
+                yplCalibrationList.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
+            if (yplCalibrationList != null)
+            {
+                rheogramList = await APIUtils.LoadDatas<Rheogram>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "Rheograms/");
+                if (rheogramList != null)
+                    rheogramList.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
+            }
         }
         catch (Exception ex)
         {
-            httpClient = null;
             logger.LogError(ex, "Impossible to load YPLCalibrations or Rheograms on initialization");
-        }
-    }
-
-    private void SetHttpClient(string host)
-    {
-        httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri(host + "YPLCalibrationFromRheometer/api/");
-        httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-    }
-
-    private async Task<List<YPLCalibration>> LoadYPLCalibrations()
-    {
-        bool success = false;
-        try
-        {
-            var a = await httpClient.GetAsync("YPLCalibrations");
-            if (a.IsSuccessStatusCode)
-            {
-                Guid[] ids = null;
-                string str = await a.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(str))
-                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
-                this.yplCalibrationList = new List<YPLCalibration>();
-                YPLCalibration calculationData = null;
-                for (int i = 0; i < ids.Length; i++)
-                {
-                    a = await httpClient.GetAsync("YPLCalibrations/" + ids[i].ToString());
-                    if (a.IsSuccessStatusCode && a.Content != null)
-                    {
-                        str = await a.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))
-                        {
-                            calculationData = JsonConvert.DeserializeObject<YPLCalibration>(str);
-                            if (calculationData == null)
-                                throw new NullReferenceException("Impossible to deserialize YPLCalibration string:" + str);
-                            this.yplCalibrationList.Add(calculationData);
-                        }
-                    }
-                }
-                if (this.yplCalibrationList.Count != ids.Length)
-                    throw new Exception("Inconsistent count of YPLCalibration-loaded IDs and loaded YPLCalibrations.");
-                success = true;
-            }
-            else
-            {
-                logger.LogWarning("Impossible to get YPLCalibrations from controller");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Impossible to load YPLCalibrations");
-        }
-        if (success)
-        {
-            yplCalibrationList.Sort((yplc1, yplc2) => yplc1.Name.CompareTo(yplc2.Name));
-            logger.LogInformation("Loaded YPLCalibrations successfully");
-            return yplCalibrationList;
-        }
-        else
-        {
-            logger.LogWarning("Impossible to load YPLCalibrations");
-            return null;
-        }
-    }
-
-    private async Task<List<Rheogram>> LoadRheograms()
-    {
-        bool success = false;
-        try
-        {
-            var a = await httpClient.GetAsync("Rheograms");
-            if (a.IsSuccessStatusCode)
-            {
-                Guid[] ids = null;
-                string str = await a.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(str))
-                {
-                    ids = Newtonsoft.Json.JsonConvert.DeserializeObject<Guid[]>(str);
-                }
-                rheogramList = new List<Rheogram>();
-                Rheogram baseData1 = null;
-                for (int i = 0; i < ids.Length; i++)
-                {
-                    a = await httpClient.GetAsync("Rheograms/" + ids[i].ToString());
-                    if (a.IsSuccessStatusCode && a.Content != null)
-                    {
-                        str = await a.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))
-                        {
-                            baseData1 = JsonConvert.DeserializeObject<Rheogram>(str);
-                            if (baseData1 == null)
-                                throw new NullReferenceException("Impossible to deserialize baseData1 string:" + str);
-                            rheogramList.Add(baseData1);
-                        }
-                    }
-                }
-                if (rheogramList.Count != ids.Length)
-                    throw new Exception("Inconsistent count of Rheogram-loaded IDs and loaded Rheograms.");
-                success = true;
-            }
-            else
-            {
-                logger.LogWarning("Impossible to get Rheograms from controller");
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Impossible to load Rheograms");
-        }
-        if (success)
-        {
-            rheogramList.Sort((rheo1, rheo2) => rheo1.Name.CompareTo(rheo2.Name));
-            logger.LogInformation("Loaded Rheograms successfully");
-            return rheogramList;
-        }
-        else
-        {
-            logger.LogWarning("Impossible to load Rheograms");
-            return null;
         }
     }
 
@@ -342,7 +222,7 @@ else
         if (yplCalibrationList != null && idx >= 0 && idx < yplCalibrationList.Count && yplCalibrationList[idx] != null && !yplCalibrationList[idx].ID.Equals(System.Guid.Empty))
         {
             // delete YPLCalibration from database (output children are implicitly deleted from their database)
-            var a = await httpClient.DeleteAsync("YPLCalibrations/" + yplCalibrationList[idx].ID);
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.DeleteAsync("YPLCalibrations/" + yplCalibrationList[idx].ID);
             if (a.IsSuccessStatusCode)
             {
                 await OnInitializedAsync();
@@ -364,7 +244,7 @@ else
 
             // PUT YPLCalibration into the YPLCalibrationsTable (calculation is performed and output children database is also updated)
             StringContent content = new StringContent(yplCalibrationList[idx].GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PutAsync("YPLCalibrations/" + yplCalibrationList[idx].ID, content);
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PutAsync("YPLCalibrations/" + yplCalibrationList[idx].ID, content);
             if (a.IsSuccessStatusCode)
             {
                 updatedYplCalibrationName = null;
@@ -520,7 +400,7 @@ else
 
             // POST the YPLCalibration (note that it adds RheogramInput to the input database, triggers the CalculateOutputRheogram() method and adds the corresponding output to the output database)
             StringContent content = new StringContent(addedYplCalibration.GetJson(), Encoding.UTF8, "application/json");
-            var a = await httpClient.PostAsync("YPLCalibrations", content);
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PostAsync("YPLCalibrations", content);
             if (a.IsSuccessStatusCode)
             {
                 addedYplCalibrationName = null;
@@ -549,7 +429,7 @@ else
         {
             // first GET the selected Rheogram
             Rheogram rheogram = null;
-            var a = await httpClient.GetAsync("Rheograms/" + rheogramID.ToString());
+            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.GetAsync("Rheograms/" + rheogramID.ToString());
             if (a.IsSuccessStatusCode && a.Content != null)
             {
                 string str = await a.Content.ReadAsStringAsync();
@@ -562,7 +442,7 @@ else
 
                     // then PUT the YPLCalibration with an updated RheogramInput value
                     StringContent content = new StringContent(yplCalibrationList[yplCalibrationIdx].GetJson(), Encoding.UTF8, "application/json");
-                    a = await httpClient.PutAsync("YPLCalibrations/" + yplCalibrationID.ToString(), content);
+                    a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PutAsync("YPLCalibrations/" + yplCalibrationID.ToString(), content);
                     if (a.IsSuccessStatusCode)
                     {
                         await OnInitializedAsync();

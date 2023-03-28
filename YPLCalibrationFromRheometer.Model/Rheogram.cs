@@ -8,7 +8,7 @@ namespace YPLCalibrationFromRheometer.Model
     {
         public enum RateSourceEnum { RotationalSpeed, ISONewtonianShearRate, BobNewtonianShearRate}
         public enum StressSourceEnum { Torque, ISONewtonianShearStress, BobNewtonianShearStress}
-        private static double DefaultMeasurementPrecision = 0.25;
+        private static double DefaultMeasurementPrecision = 0.25; // default measurement precision of a Fann35 R1B1 is 0.5° # 0.5 lbf/100ft^2 # 0.25 Pa
         private CouetteRheometer rheometer_ = null;
         /// <summary>
         /// an ID for the Rheogram
