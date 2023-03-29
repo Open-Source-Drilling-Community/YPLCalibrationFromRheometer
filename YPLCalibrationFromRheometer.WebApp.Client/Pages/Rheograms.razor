@@ -39,7 +39,8 @@
                                 <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
                             </td>
                             <td align="right">
-                                <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Update</button>
+                                <button class="btn btn-primary" @onclick="@(() => UpdateWithoutClosing(rheogramIdx))">Update</button>
+                                <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Close</button>
                                 <button class="btn btn-primary" @onclick="@(() => Cancel(rheogramIdx))">Cancel</button>
                             </td>
                         </tr>
@@ -138,7 +139,7 @@
             int inputIterData1Count = rheograms[rheogramIdx].Measurements.Count;
             <div hidden="@IsHidSubPanel">
                 <div>
-                    <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Rheogram inputs</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Rheogram settings</h2></button>
                     <div hidden="@IsHidInputPanel">
                         <div>
                             <h3>Rheometer</h3>
@@ -155,9 +156,6 @@
                                                     <option value="@v.ID">@v.Name</option>
                                                 }
                                             </select>
-                                        </td>
-                                        <td align="right">
-                                            <button class="btn btn-primary" @onclick="@(() => UpdateRheometer(rheogramIdx))">Update</button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -197,21 +195,85 @@
                             </table>
                         </div>
                         <div>
-                            <h3>Rheometer Measurements</h3>
-                            <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer"
-                                   IsHidden="@IsHidInputAdd"
-                                   Rheogram="@rheograms[rheogramIdx]"
-                                   RheogramID="@rheogramID"
-                                   IsFixedSpeed="@IsFixedSpeedRheometer" />
+                            <h3>Corrections</h3>
+                            <table class="table" style="width: 50%">
+                                <tbody>
+                                    <tr>
+                                        <td style="text-align: left">
+                                            <span>Shear rate correction</span>
+                                        </td>
+                                        <td style="text-align: right">
+                                            <select @bind="@rheograms[rheogramIdx].ShearRateCorrection">
+                                                @foreach (var v in shearRateCorrectionList)
+                                                {
+                                                    <option value="@v.Item2">@v.Item1</option>
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align: left">
+                                            <span>Shear stress correction</span>
+                                        </td>
+                                        <td style="text-align: right">
+                                            <select @bind="@rheograms[rheogramIdx].ShearStressCorrection">
+                                                @foreach (var v in shearStressCorrectionList)
+                                                {
+                                                    <option value="@v.Item2">@v.Item1</option>
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h3>YPL Calibration</h3>
+                            <table class="table" style="width: 50%">
+                                <tbody>
+                                    <tr>
+                                        <td style="text-align: left">
+                                            <span>Calibration Method</span>
+                                        </td>
+                                        <td style="text-align: right">
+                                            <select @bind="@rheograms[rheogramIdx].CalibrationMethod">
+                                                @foreach (var v in calibrationMethodList)
+                                                {
+                                                    <option value="@v.Item2">@v.Item1</option>
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                </div>
-                <div>
-                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Plot rheogram</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideMeasurements())"><h2>Rheometer measurements</h2></button>
+                    <div hidden="@IsHidMeasPanel">
+                        <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer"
+                               IsHidden="@IsHidInputAdd"
+                               Rheogram="@rheograms[rheogramIdx]"
+                               RheogramID="@rheogramID"
+                               IsFixedSpeed="@IsFixedSpeedRheometer" />
+                    </div>
+                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Correction and calibration results</h2></button>
                     <div hidden="@IsHidCalcPanel">
+                        <h3>Corrected Flow-curve</h3>
+                        @if (rheograms[rheogramIdx].CorrectedFlowCurve != null)
+                        {
+                            <DisplayRheogram ShearRateAndStresses="@rheograms[rheogramIdx].CorrectedFlowCurve" />
+                        }
+                        <h3>Yield Power Law Model</h3>
+                        @if (rheograms[rheogramIdx].CalibratedYPLModel != null)
+                        {
+                            <YPLCalibrationTable YPLModel="@rheograms[rheogramIdx].CalibratedYPLModel" />
+                        }
+                    </div>
+                    <button class="btn btn-link" @onclick="@(() => HidePlot())"><h2>Plot rheogram</h2></button>
+                    <div hidden="@IsHidPlotPanel">
                         <div>
                             <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
-                                 XValues="@shearRates" YValues="@shearStresses" UseMarker="true"
+                                 XValues="@newtonianShearRates" YValues="@newtonianShearStresses" UseMarker="true"
                                  XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
                         </div>
                     </div>
@@ -231,6 +293,8 @@
     private bool IsHidInputPanel = true;
     private bool IsHidInputAdd = false;
     private bool IsHidCalcPanel = true;
+    private bool IsHidMeasPanel = true;
+    private bool IsHidPlotPanel = true;
     private bool IsFixedSpeedRheometer = false;
 
     // main data object
@@ -240,6 +304,9 @@
 
     private List<Tuple<string, RateSourceEnum>> rateSourceList = new List<Tuple<string, RateSourceEnum>>();
     private List<Tuple<string, StressSourceEnum>> stressSourceList = new List<Tuple<string, StressSourceEnum>>();
+    private List<Tuple<string, ShearRateCorrectionEnum>> shearRateCorrectionList = new List<Tuple<string, ShearRateCorrectionEnum>>();
+    private List<Tuple<string, ShearStressCorrectionEnum>> shearStressCorrectionList = new List<Tuple<string, ShearStressCorrectionEnum>>();
+    private List<Tuple<string, CalibrationMethodEnum>> calibrationMethodList = new List<Tuple<string, CalibrationMethodEnum>>();
 
     // temporary objects are used essentially to post or put modifications to the database
     private string addedRheogramName = null;
@@ -258,8 +325,16 @@
 
     // objects used for visualization
     ScatterPlot flowCurvePlot = new ScatterPlot();
-    List<object> shearRates = new List<object>();
-    List<object> shearStresses = new List<object>();
+    List<object> newtonianShearRates = new List<object>();
+    List<object> newtonianShearStresses = new List<object>();
+    List<object> correctedShearRates = new List<object>();
+    List<object> correctedShearStresses = new List<object>();
+    List<object> YPLModelShearRates = new List<object>();
+    List<object> YPLModelShearStresses = new List<object>();
+    List<List<object>> xValues = new List<List<object>>();
+    List<List<object>> yValues = new List<List<object>>();
+    List<bool> markers = new List<bool>();
+    List<string> names = new List<string>();
 
     private int rheogramIdx = -1;
     private Guid rheogramID = Guid.Empty;
@@ -270,6 +345,23 @@
     {
         try
         {
+            xValues.Clear();
+            yValues.Clear();
+            markers.Clear();
+            names.Clear();
+            xValues.Add(newtonianShearRates);
+            xValues.Add(correctedShearRates);
+            xValues.Add(YPLModelShearRates);
+            yValues.Add(newtonianShearStresses);
+            yValues.Add(correctedShearStresses);
+            yValues.Add(YPLModelShearStresses);
+            markers.Add(true);
+            markers.Add(true);
+            markers.Add(false);
+            names.Add("Newtonian Flow-curve");
+            names.Add("Corrected Flow-curve");
+            names.Add("Calibrated YPL Model");
+
             rateSourceList.Clear();
             rateSourceList.Add(new Tuple<string, RateSourceEnum>("Rotational Speed", RateSourceEnum.RotationalSpeed));
             rateSourceList.Add(new Tuple<string, RateSourceEnum>("ISO Newtonian Shear Rate", RateSourceEnum.ISONewtonianShearRate));
@@ -278,6 +370,18 @@
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("Torque", StressSourceEnum.Torque));
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("ISO Newtonian Shear Stress", StressSourceEnum.ISONewtonianShearStress));
             stressSourceList.Add(new Tuple<string, StressSourceEnum>("Bob Newtonian Shear Stress", StressSourceEnum.BobNewtonianShearStress));
+
+            shearRateCorrectionList.Clear();
+            shearRateCorrectionList.Add(new Tuple<string, ShearRateCorrectionEnum>("Skadsem & Saasen", ShearRateCorrectionEnum.SkadsemSaasen));
+            shearRateCorrectionList.Add(new Tuple<string, ShearRateCorrectionEnum>("None", ShearRateCorrectionEnum.None));
+            shearStressCorrectionList.Clear();
+            shearStressCorrectionList.Add(new Tuple<string, ShearStressCorrectionEnum>("Lac & Parry", ShearStressCorrectionEnum.LacParry));
+            shearStressCorrectionList.Add(new Tuple<string, ShearStressCorrectionEnum>("None", ShearStressCorrectionEnum.None));
+            calibrationMethodList.Clear();
+            calibrationMethodList.Add(new Tuple<string, CalibrationMethodEnum>("Mullineux", CalibrationMethodEnum.Mullineux));
+            calibrationMethodList.Add(new Tuple<string, CalibrationMethodEnum>("Levenberg-Marquardt", CalibrationMethodEnum.LevenbergMarquardt));
+            calibrationMethodList.Add(new Tuple<string, CalibrationMethodEnum>("Kelessidis", CalibrationMethodEnum.Kelessidis));
+
             logger.LogInformation("Trying to load Rheograms from client: " + APIUtils.HttpClientYPLCalibrationFromRheometer.ToString());
             rheometers = await APIUtils.LoadDatas<CouetteRheometer>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "CouetteRheometers/");
             if (rheometers != null)
@@ -345,7 +449,7 @@
             rheometer = rheometers.Find(r => r.ID.Equals(rheograms[idx].CouetteRheometerID));
             if (rheometer != null && rheometer.FixedSpeedList != null && rheometer.FixedSpeedList.Count > 0)
             {
-                UpdateRheometerMeasurements(rheograms[idx], rheometer);
+                UpdateRheogram(rheograms[idx], rheometer);
             }
 
             //PUT Rheogram into the RheogramInputsTable (YPLCalibrations referencing this Rheogram are updated at the Manager level)
@@ -369,7 +473,7 @@
         }
     }
 
-    private async void UpdateRheometer(int idx)
+    private async void UpdateWithoutClosing(int idx)
     {
         if (rheograms != null && idx >= 0 && idx < rheograms.Count && !rheograms[idx].ID.Equals(System.Guid.Empty) &&
             !string.IsNullOrEmpty(updatedRheogramName))
@@ -381,7 +485,7 @@
             rheometer = rheometers.Find(r => r.ID.Equals(rheograms[idx].CouetteRheometerID));
             if (rheometer != null)
             {
-                UpdateRheometerMeasurements(rheograms[idx], rheometer);
+                UpdateRheogram(rheograms[idx], rheometer);
             }
 
             //PUT Rheogram into the RheogramInputsTable (YPLCalibrations referencing this Rheogram are updated at the Manager level)
@@ -399,7 +503,7 @@
         }
     }
 
-    private void UpdateRheometerMeasurements(Rheogram rheogram, CouetteRheometer rheometer)
+    private void UpdateRheogram(Rheogram rheogram, CouetteRheometer rheometer)
     {
         bool hasChanged = false;
         IsFixedSpeedRheometer = false;
@@ -409,11 +513,11 @@
             IsFixedSpeedRheometer = true;
             rheogram.RateSource = RateSourceEnum.RotationalSpeed;
         }
-        // Rotation speeds are changed, set to a fixed value and stress values are reinitialized, if and only if
+        // Rotation speeds are modified to a fixed value and, stress values are reinitialized, if and only if
         // 1- the rheometer has a fixed list of rotation speeds
-        // 2- the number of rotation speeds has changed from before
-        // ex: a change from R1B1 8 speeds to R1B2 8 speeds does not change anything (this to avoid retyping everything is misclick)
-        // ex: a change from any rheometer to a rheometer with no fixed speeds does not change anything (this to avoid retyping everything is misclick)
+        // 2- and the number of rotation speeds has changed from before
+        // counter-ex: a change from R1B1 8 speeds to R1B2 8 speeds does not change anything (this to avoid retyping everything is misclick)
+        // counter-ex: a change from any rheometer to a rheometer with no fixed speeds does not change anything (this to avoid retyping everything is misclick)
         if (IsFixedSpeedRheometer)
         {
             hasChanged = true;
@@ -434,6 +538,7 @@
         }
         if (hasChanged)
         {
+            // reinitialize rheometer measurements
             rheogram.Measurements = new List<RheometerMeasurement>();
             if (IsFixedSpeedRheometer)
             {
@@ -446,6 +551,9 @@
                     rheogram.Measurements.Add(meas);
                 }
             }
+            // reinitialize
+            rheogram.CorrectedFlowCurve = null;
+            rheogram.CalibratedYPLModel = null;
         }
     }
 
@@ -474,7 +582,7 @@
             // check whether the rheometer has a fixed list of rotational frequency
             if (rheometer.FixedSpeedList != null && rheometer.FixedSpeedList.Count > 0)
             {
-                UpdateRheometerMeasurements(addedRheogram, rheometer);
+                UpdateRheogram(addedRheogram, rheometer);
             }
 
             // POST the Rheogram
@@ -676,20 +784,62 @@
         IsHidInputPanel = !IsHidInputPanel;
     }
 
+    private void HideMeasurements()
+    {
+        IsHidMeasPanel = !IsHidMeasPanel;
+    }
+
     private void HideCalc()
     {
         IsHidCalcPanel = !IsHidCalcPanel;
     }
 
+    private void HidePlot()
+    {
+        IsHidPlotPanel = !IsHidPlotPanel;
+    }
+
     private async void PlotFlowCurve()
     {
         // update scatter plot
-        shearRates.Clear();
-        shearStresses.Clear();
+        newtonianShearRates.Clear();
+        newtonianShearStresses.Clear();
         for (int i = 0; i < rheograms[rheogramIdx].Measurements.Count; ++i)
         {
-            shearRates.Add(rheograms[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearRate);
-            shearStresses.Add(rheograms[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearStress);
+            newtonianShearRates.Add(rheograms[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearRate);
+            newtonianShearStresses.Add(rheograms[rheogramIdx].Measurements.ElementAt(i).BobNewtonianShearStress);
+        }
+        correctedShearRates.Clear();
+        correctedShearStresses.Clear();
+        double minShearRate = double.MaxValue;
+        double maxShearRate = double.MinValue;
+        if (rheograms[rheogramIdx].CorrectedFlowCurve != null)
+        {
+            for (int i = 0; i < rheograms[rheogramIdx].CorrectedFlowCurve.Count; ++i)
+            {
+                if (rheograms[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate > maxShearRate)
+                {
+                    maxShearRate = rheograms[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate;
+                }
+                if (rheograms[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate < minShearRate)
+                {
+                    minShearRate = rheograms[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate;
+                }
+                correctedShearRates.Add(rheograms[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearRate);
+                correctedShearStresses.Add(rheograms[rheogramIdx].CorrectedFlowCurve.ElementAt(i).ShearStress);
+            }
+        }
+        YPLModelShearRates.Clear();
+        YPLModelShearStresses.Clear();
+        if (rheograms[rheogramIdx].CalibratedYPLModel != null && minShearRate < maxShearRate)
+        {
+            YPLModel model = rheograms[rheogramIdx].CalibratedYPLModel;
+            double step = (maxShearRate - minShearRate) / 50.0;
+            for (double shearRate = minShearRate; OSDC.DotnetLibraries.General.Common.Numeric.LE(shearRate, maxShearRate); shearRate += step)
+            {
+                YPLModelShearRates.Add(shearRate);
+                YPLModelShearStresses.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
+            }
         }
         try
         {

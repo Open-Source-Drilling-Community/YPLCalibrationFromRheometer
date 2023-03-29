@@ -131,7 +131,10 @@
                                 @if (!IsHidInputAdd)
                                 {
                                     <button class="btn btn-primary" @onclick="@(() => EditRheometerMeasurement(local_j))">Edit</button>
-                                    <button class="btn btn-primary" @onclick="@(() => DeleteRheometerMeasurement(local_j))">Delete</button>
+                                    @if (!IsFixedSpeed)
+                                    {
+                                        <button class="btn btn-primary" @onclick="@(() => DeleteRheometerMeasurement(local_j))">Delete</button>
+                                    }
                                 }
                             </td>
                         </tr>
@@ -313,7 +316,7 @@
                         var a = await HTTPClient.PutAsync("Rheograms/" + RheogramID.ToString(), content);
                         if (a.IsSuccessStatusCode)
                         {
-                            await  OnInitializedAsync();
+                            await OnInitializedAsync();
                             await InvokeAsync(() => { StateHasChanged(); });
                         }
                     }
