@@ -21,7 +21,7 @@
 Herschel-Bulkley Calibration and Correction of Fann35 Rheometer Measurements 
 ===
 
-[![image](https://user-images.githubusercontent.com/91899139/225950172-311ea20f-c248-40cc-90a4-8d981e6b89f4.png)](https://app.digiwells.no/YPLCalibrationFromRheometer/webapp/Rheograms)
+![image](https://user-images.githubusercontent.com/91899139/228566462-78f68378-d38e-4b1b-8328-24d8202f7ef4.png)
 
 # Table of content
 
