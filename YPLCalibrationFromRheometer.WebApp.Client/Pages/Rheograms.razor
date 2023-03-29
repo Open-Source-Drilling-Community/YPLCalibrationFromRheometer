@@ -384,11 +384,22 @@
 
             logger.LogInformation("Trying to load Rheograms from client: " + APIUtils.HttpClientYPLCalibrationFromRheometer.ToString());
             rheometers = await APIUtils.LoadDatas<CouetteRheometer>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "CouetteRheometers/");
+
             if (rheometers != null)
                 rheometers.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
+
+            // In case this method is called while handling a particular rheogram, one must store its ID before the list of rheograms is reloaded and sorted differently (in case its name has changed)
+            Guid rheoId = Guid.Empty;
+            if (rheogramIdx >= 0)
+                rheoId = rheograms[rheogramIdx].ID;
             rheograms = await APIUtils.LoadDatas<Rheogram>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "Rheograms/");
             if (rheograms != null)
+            {
                 rheograms.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
+                if (rheoId != Guid.Empty)
+                    rheogramIdx = rheograms.FindIndex(r => r.ID.Equals(rheoId));
+            }
+
             if (rheogramIdx >= 0)
                 PlotFlowCurve();
         }
