@@ -256,7 +256,7 @@
                                RheogramID="@rheogramID"
                                IsFixedSpeed="@IsFixedSpeedRheometer" />
                     </div>
-                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Correction and calibration results</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Correction/Calibration results</h2></button>
                     <div hidden="@IsHidCalcPanel">
                         <h3>Corrected Flow-curve</h3>
                         @if (rheograms[rheogramIdx].CorrectedFlowCurve != null)
@@ -273,7 +273,7 @@
                     <div hidden="@IsHidPlotPanel">
                         <div>
                             <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
-                                 XValues="@newtonianShearRates" YValues="@newtonianShearStresses" UseMarker="true"
+                                 ListXValues="@xValues" ListYValues="@yValues" ListUseMarkers="@markers" ListNames="@names"
                                  XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
                         </div>
                     </div>
