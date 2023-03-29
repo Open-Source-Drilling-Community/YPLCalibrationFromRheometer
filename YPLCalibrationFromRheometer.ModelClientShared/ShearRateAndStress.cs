@@ -6,6 +6,25 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
     public partial class ShearRateAndStress
     {
         /// <summary>
+        /// default constructor
+        /// </summary>
+        public ShearRateAndStress() : base()
+        {
+        }
+
+        /// <summary>
+        /// copy constructor
+        /// </summary>
+        /// <param name="src"></param>
+        public ShearRateAndStress(ShearRateAndStress src) : base()
+        {
+            if (src != null)
+            {
+                src.Copy(this);
+            }
+        }
+
+        /// <summary>
         /// this method is the exact copy of YPLCalibrationFromRheometer.Model.RheometerMeasurement.Copy(RheometerMeasurement dest)
         /// </summary>
         /// <param name="dest"></param>

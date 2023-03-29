@@ -32,6 +32,28 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
                         dest.Measurements.Add(iterData1);
                     }
                 }
+                dest.CalibrationMethod = CalibrationMethod;
+                dest.ShearRateCorrection = ShearRateCorrection;
+                dest.ShearStressCorrection = ShearStressCorrection;
+                if (dest.CorrectedFlowCurve == null)
+                {
+                    dest.CorrectedFlowCurve = new List<ShearRateAndStress>();
+                }
+                dest.CorrectedFlowCurve.Clear();
+                if (CorrectedFlowCurve != null)
+                {
+                    foreach (var v in CorrectedFlowCurve)
+                    {
+                        if (v != null)
+                        {
+                            dest.CorrectedFlowCurve.Add(new ShearRateAndStress(v));
+                        }
+                    }
+                }
+                if (CalibratedYPLModel != null)
+                {
+                    dest.CalibratedYPLModel = new YPLModel(CalibratedYPLModel);
+                }
                 return true;
             }
             else

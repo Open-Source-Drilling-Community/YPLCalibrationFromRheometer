@@ -6,6 +6,26 @@ namespace YPLCalibrationFromRheometer.ModelClientShared
     public partial class YPLModel
     {
         /// <summary>
+        /// default constructor
+        /// </summary>
+        public YPLModel() : base()
+        {
+
+        }
+
+        /// <summary>
+        /// copy constructor
+        /// </summary>
+        /// <param name="src"></param>
+        public YPLModel(YPLModel src) : base()
+        {
+            if (src != null)
+            {
+                src.Copy(this);
+            }
+        }
+
+        /// <summary>
         /// copy everything except the ID
         /// </summary>
         /// <param name="dest"></param>
