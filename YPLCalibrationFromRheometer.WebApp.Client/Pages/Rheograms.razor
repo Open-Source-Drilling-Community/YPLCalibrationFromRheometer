@@ -6,31 +6,211 @@
                            HttpController="DrillingUnitChoiceSets">
     <h1>Rheograms</h1>
     <p>Warning, any change made to the Rheogram's listed below may affect YPLCalibrations which refer to it</p>
-    <div hidden="@IsHidSubPanel">
-        <div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <td>Name</td>
-                        <td>Description</td>
-                        <td></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (IsHidInputAdd)
-                    {
+
+    @if (rheograms == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        @*Design of the main panel: add, load, and list rheograms*@
+        <div hidden="@IsHidMainPanel">
+            <button class="btn btn-link" @onclick="@(() => HideAddRheogram())"><h2>Add rheogram</h2></button>
+            <button class="btn btn-link" @onclick="@(() => HideLoadRheogram())"><h2>Load rheograms</h2></button>
+            <button class="btn btn-link" @onclick="@(() => HideListRheogram())"><h2>List of rheograms</h2></button>
+            @*Manually add one rheogram*@
+            <div hidden="@IsHidAddRheogram">
+                <div>
+                    <ul>
+                        <li>set the name and the description of one rheogram</li>
+                        <li>click on add to make it appear in the list of rheograms</li>
+                        <li>edit it, apply settings and view results from there</li>
+                    </ul>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <td>Name</td>
+                                <td>Description</td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <td>
+                                    <input class="text" type="text" size="30" @bind="@addedRheogramName" />
+                                </td>
+                                <td>
+                                    <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                                    <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            @*Load several rheograms from file*@
+            <div hidden="@IsHidLoadRheogram">
+                <div>
+                    <ul>
+                        <li>load several rheograms from a file (csv/xls/xlsx)</li>
+                        <li>set rheometer settings common to the imported rheograms</li>
+                        <li>click on update to apply changes</li>
+                        <li>set a generic name, label and units for the imported rheograms</li>
+                        <li>click on load to import rheograms</li>
+                        <li>every imported rheogram remains individually editable from the list of rheograms</li>
+                    </ul>
+                    <button class="btn btn-link" @onclick="@(() => HideLoadRheometerSettings())"><h2>Rheometer settings</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideLoadGenericSettings())"><h2>Generic settings</h2></button>
+                    @*Rheogram settings*@
+                    <div hidden="@IsHidLoadRheogramRheometerSettings">
+                        <RheometerSettings Rheogram="@genericRheogram"
+                                       Rheometers="@rheometers"
+                                       RateSourceList="@rateSourceList"
+                                       StressSourceList="@stressSourceList"
+                                       ShearRateCorrectionList="@shearRateCorrectionList"
+                                       ShearStressCorrectionList="@shearStressCorrectionList"
+                                       CalibrationMethodList="@calibrationMethodList"
+                                       IsFixed="@IsFixedSpeedRheometer" />
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td align="right">
+                                        <button class="btn btn-primary" @onclick="@(() => UpdateRheogram(genericRheogram, rheometers.Find(r => r.ID.Equals(genericRheogram.CouetteRheometerID))))">Update</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    @*Generic panel*@
+                    <div hidden="@IsHidLoadRheogramGenericSettings">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <td>Generic name</td>
+                                    <td>Rotation/shear rate label</td>
+                                    <td>Rotation/shear rate unit</td>
+                                    <td>Torque/shear stress label</td>
+                                    <td>Torque/shear stress unit</td>
+                                    <td></td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input class="text" type="text" size="20" @bind="@genericName" />
+                                    </td>
+                                    <td>
+                                        <input hidden="@IsFixedSpeedRheometer" class="text" type="text" size="20" @bind="@loadedShearRateLabel" />
+                                    </td>
+                                    <td>
+                                        @switch (genericRheogram.RateSource)
+                                        {
+                                            case RateSourceEnum.RotationalSpeed:
+                                                rateQuantityUnitChoices = SmallRotationalFrequencyUnitChoices;
+
+                                                break;
+                                            default:
+                                                rateQuantityUnitChoices = FluidShearRateUnitChoices;
+                                                break;
+                                        }
+                                        <select hidden="@IsFixedSpeedRheometer" @bind="@rateQuantityUnitChoice">
+                                            @foreach (Tuple<Guid, string> tuple in rateQuantityUnitChoices)
+                                            {
+                                                <option>@tuple.Item2</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input class="text" type="text" size="20" @bind="@loadedShearStressLabel" />
+                                    </td>
+                                    <td>
+                                        @switch (genericRheogram.StressSource)
+                                        {
+                                            case StressSourceEnum.Torque:
+                                                stressQuantityUnitChoices = SmallTorqueUnitChoices;
+                                                break;
+                                            default:
+                                                stressQuantityUnitChoices = FluidShearStressUnitChoices;
+                                                break;
+                                        }
+                                        <select @bind="@stressQuantityUnitChoice">
+                                            @foreach (Tuple<Guid, string> tuple in stressQuantityUnitChoices)
+                                            {
+                                                <option>@tuple.Item2</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td align="right">
+                                        @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
+                                        <label class="btn btn-primary">
+                                            <InputFile OnChange="@Load" multiple />
+                                            Load
+                                        </label>
+                                        @if (isLoading)
+                                        {
+                                            <p>Uploading files...</p>
+                                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    @*Load failed*@
+                    <div hidden="@IsHidLoadFailed">
+                        <h3>Something went wrong while loading files (possibly columns labels, white spaces, or NaN values, )</h3>
+                    </div>
+                </div>
+            </div>
+            @*List rheograms*@
+            <div hidden="@IsHidListRheogram">
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td>
-                                <span class="label">@(rheograms[rheogramIdx].Name)</span>
-                            </td>
-                            <td>
-                                <span class="label">@(rheograms[rheogramIdx].Description)</span>
-                            </td>
+                            <td>Name</td>
+                            <td>Description</td>
                             <td></td>
                         </tr>
-                    }
-                    else
-                    {
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < rheograms.Count; i++)
+                        {
+                            var local_i = i; // Do not use a loop variable directly in a lambda expression
+                            <tr>
+                                <td>
+                                    <span class="label">@rheograms[i].Name</span>
+                                </td>
+                                <td>
+                                    <span class="label">@(rheograms[i].Description)</span>
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
+                                    <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @*Design of the subpanel: edit the selected rheogram*@
+        <div hidden="@IsHidSubPanel">
+            @if (rheogramIdx >= 0)
+            {
+                int inputIterData1Count = rheograms[rheogramIdx].Measurements.Count;
+                @*Edit name and description and action buttons*@
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td>Name</td>
+                            <td>Description</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
                         <tr>
                             <td>
                                 <input class="text" type="text" size="30" @bind="@updatedRheogramName" />
@@ -39,216 +219,31 @@
                                 <input class="text" type="text" size="30" @bind="@updatedRheogramDescr" />
                             </td>
                             <td align="right">
-                                <button class="btn btn-primary" @onclick="@(() => UpdateWithoutClosing(rheogramIdx))">Update</button>
+                                <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx, false))">Update</button>
                                 <button class="btn btn-primary" @onclick="@(() => Update(rheogramIdx))">Close</button>
                                 <button class="btn btn-primary" @onclick="@(() => Cancel(rheogramIdx))">Cancel</button>
                             </td>
                         </tr>
-                    }
-                </tbody>
-                <tfoot>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
-    @if (rheograms == null)
-    {
-        <p><em>Loading...</em></p>
-    }
-    else
-    {
-        <div hidden="@IsHidMainPanel">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <td>Name</td>
-                        <td>Description</td>
-                        <td></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < rheograms.Count; i++)
-                    {
-                        var local_i = i; // Do not use a loop variable directly in a lambda expression
-                        <tr>
-                            <td>
-                                <span class="label">@rheograms[i].Name</span>
-                            </td>
-                            <td>
-                                <span class="label">@(rheograms[i].Description)</span>
-                            </td>
-                            <td align="right">
-                                <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
-                                <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td>
-                            <input class="text" type="text" size="30" @bind="@addedRheogramName" />
-                        </td>
-                        <td>
-                            <input class="text" type="text" size="30" @bind="@addedRheogramDescr" />
-                        </td>
-                        <td align="right">
-                            <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
-                            <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-
-            <p>Below, you can add rheograms from an input csv/xls/xlsx file</p>
-            <p>The parser looks into the file, for one or several tables with two consecutive columns labelled "shear rate" and "shear stress", containing at least 3 records, and assuming that values are relative to the value at the bob</p>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <td>Name</td>
-                        <td>Description</td>
-                        <td></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <input class="text" type="text" size="30" @bind="@loadedFileName" />
-                        </td>
-                        <td>
-                            <input class="text" type="text" size="30" @bind="@loadedFileDescr" />
-                        </td>
-                        <td align="right">
-                            @*It is very important that the InputFile component continues to be rendered all the time it takes to download content, otherwise raising BlazorServer.js exceptions*@
-                            <label class="btn btn-primary">
-                                <InputFile OnChange="@Load" multiple />
-                                Load
-                            </label>
-                            @if (isLoading)
-                            {
-                                <p>Uploading... @string.Format("{0:P0}", progressPercent)</p>
-                            }
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        @if (rheogramIdx >= 0)
-        {
-            int inputIterData1Count = rheograms[rheogramIdx].Measurements.Count;
-            <div hidden="@IsHidSubPanel">
+                    </tbody>
+                </table>
                 <div>
                     <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Rheogram settings</h2></button>
-                    <div hidden="@IsHidInputPanel">
-                        <div>
-                            <h3>Rheometer</h3>
-                            <table class="table" style="width: 50%">
-                                <tbody>
-                                    <tr>
-                                        <td style="text-align: left">
-                                            <span>Rheometer type</span>
-                                        </td>
-                                        <td style="text-align: right">
-                                            <select @bind="@rheograms[rheogramIdx].CouetteRheometerID">
-                                                @foreach (var v in rheometers)
-                                                {
-                                                    <option value="@v.ID">@v.Name</option>
-                                                }
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div>
-                            <h3>Rheometer Measurements Input Type</h3>
-                            <table class="table" style="width: 50%">
-                                <tbody>
-                                    <tr hidden="@IsFixedSpeedRheometer">
-                                        <td style="text-align: left">
-                                            <span>Source for rotation or shear rate</span>
-                                        </td>
-                                        <td style="text-align: right">
-                                            <select @bind="@rheograms[rheogramIdx].RateSource">
-                                                @foreach (var v in rateSourceList)
-                                                {
-                                                    <option value="@v.Item2">@v.Item1</option>
-                                                }
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="text-align: left">
-                                            <span>Source for torque and shear stress</span>
-                                        </td>
-                                        <td style="text-align: right">
-                                            <select @bind="@rheograms[rheogramIdx].StressSource">
-                                                @foreach (var v in stressSourceList)
-                                                {
-                                                    <option value="@v.Item2">@v.Item1</option>
-                                                }
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div>
-                            <h3>Corrections</h3>
-                            <table class="table" style="width: 50%">
-                                <tbody>
-                                    <tr>
-                                        <td style="text-align: left">
-                                            <span>Shear rate correction</span>
-                                        </td>
-                                        <td style="text-align: right">
-                                            <select @bind="@rheograms[rheogramIdx].ShearRateCorrection">
-                                                @foreach (var v in shearRateCorrectionList)
-                                                {
-                                                    <option value="@v.Item2">@v.Item1</option>
-                                                }
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="text-align: left">
-                                            <span>Shear stress correction</span>
-                                        </td>
-                                        <td style="text-align: right">
-                                            <select @bind="@rheograms[rheogramIdx].ShearStressCorrection">
-                                                @foreach (var v in shearStressCorrectionList)
-                                                {
-                                                    <option value="@v.Item2">@v.Item1</option>
-                                                }
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div>
-                            <h3>YPL Calibration</h3>
-                            <table class="table" style="width: 50%">
-                                <tbody>
-                                    <tr>
-                                        <td style="text-align: left">
-                                            <span>Calibration Method</span>
-                                        </td>
-                                        <td style="text-align: right">
-                                            <select @bind="@rheograms[rheogramIdx].CalibrationMethod">
-                                                @foreach (var v in calibrationMethodList)
-                                                {
-                                                    <option value="@v.Item2">@v.Item1</option>
-                                                }
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <button class="btn btn-link" @onclick="@(() => HideMeasurements())"><h2>Rheometer measurements</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Correction/Calibration results</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HidePlot())"><h2>Plot rheogram</h2></button>
+                    @*Rheogram settings*@
+                    <div hidden="@IsHidInputPanel">
+                        <RheometerSettings Rheogram="@rheograms[rheogramIdx]"
+                                   Rheometers="@rheometers"
+                                   RateSourceList="@rateSourceList"
+                                   StressSourceList="@stressSourceList"
+                                   ShearRateCorrectionList="@shearRateCorrectionList"
+                                   ShearStressCorrectionList="@shearStressCorrectionList"
+                                   CalibrationMethodList="@calibrationMethodList"
+                                   IsFixed="@IsFixedSpeedRheometer" />
+                    </div>
+
+                    @*Rheometer measurements editing*@
                     <div hidden="@IsHidMeasPanel">
                         <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer"
                                IsHidden="@IsHidInputAdd"
@@ -256,20 +251,22 @@
                                RheogramID="@rheogramID"
                                IsFixedSpeed="@IsFixedSpeedRheometer" />
                     </div>
-                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Correction/Calibration results</h2></button>
+
+                    @*View correction and calibration results*@
                     <div hidden="@IsHidCalcPanel">
-                        <h3>Corrected Flow-curve</h3>
-                        @if (rheograms[rheogramIdx].CorrectedFlowCurve != null)
-                        {
-                            <DisplayRheogram ShearRateAndStresses="@rheograms[rheogramIdx].CorrectedFlowCurve" />
-                        }
                         <h3>Yield Power Law Model</h3>
                         @if (rheograms[rheogramIdx].CalibratedYPLModel != null)
                         {
                             <YPLCalibrationTable YPLModel="@rheograms[rheogramIdx].CalibratedYPLModel" />
                         }
+                        <h3>Corrected Flow-curve</h3>
+                        @if (rheograms[rheogramIdx].CorrectedFlowCurve != null)
+                        {
+                            <DisplayRheogram ShearRateAndStresses="@rheograms[rheogramIdx].CorrectedFlowCurve" />
+                        }
                     </div>
-                    <button class="btn btn-link" @onclick="@(() => HidePlot())"><h2>Plot rheogram</h2></button>
+
+                    @*Plot rheogram*@
                     <div hidden="@IsHidPlotPanel">
                         <div>
                             <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
@@ -278,16 +275,13 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     }
 </UnitAndReferenceChoiceTag>
 
 @code {
     // default values
-    private string[] SRLabels = { "shearrate", "shear rate" };
-    private string[] SSLabels = { "shearstress", "shear stress" };
-
     private bool IsHidMainPanel = false;
     private bool IsHidSubPanel = true;
     private bool IsHidInputPanel = true;
@@ -295,12 +289,19 @@
     private bool IsHidCalcPanel = true;
     private bool IsHidMeasPanel = true;
     private bool IsHidPlotPanel = true;
+    private bool IsHidAddRheogram = true;
+    private bool IsHidLoadRheogram = true;
+    private bool IsHidLoadRheogramRheometerSettings = true;
+    private bool IsHidLoadRheogramGenericSettings = true;
+    private bool IsHidLoadFailed = true;
+    private bool IsHidListRheogram = false;
     private bool IsFixedSpeedRheometer = false;
 
     // main data object
     private List<Rheogram> rheograms = new List<Rheogram>();
     private List<CouetteRheometer> rheometers = new List<CouetteRheometer>();
     private CouetteRheometer rheometer = null;
+    private Rheogram genericRheogram = new Rheogram(); //used to pass settings to the rheogram loader
 
     private List<Tuple<string, RateSourceEnum>> rateSourceList = new List<Tuple<string, RateSourceEnum>>();
     private List<Tuple<string, StressSourceEnum>> stressSourceList = new List<Tuple<string, StressSourceEnum>>();
@@ -315,13 +316,27 @@
     private string updatedRheogramName = null;
     private string updatedRheogramDescr = null;
 
-    private string loadedFileName = null;
-    private string loadedFileDescr = null;
+    private string genericName = null;
+    private string loadedShearRateLabel = null;
+    private string loadedShearStressLabel = null;
+
+    private List<Tuple<Guid, string>> rateQuantityUnitChoices = null;
+    private List<Tuple<Guid, string>> stressQuantityUnitChoices = null;
+    private string rateQuantityUnitChoice = null;
+    private string stressQuantityUnitChoice = null;
+
+    PhysicalQuantity fluidShearRateQuantity = null;
+    PhysicalQuantity fluidShearStressQuantity = null;
+    PhysicalQuantity smallRotationalFrequencyQuantity = null;
+    PhysicalQuantity smallTorqueQuantity = null;
+
+    private List<Tuple<Guid, string>> FluidShearRateUnitChoices = new List<Tuple<Guid, string>>() { new Tuple<Guid, string>(Guid.Empty, "-------") };
+    private List<Tuple<Guid, string>> SmallRotationalFrequencyUnitChoices = new List<Tuple<Guid, string>>() { new Tuple<Guid, string>(Guid.Empty, "-------") };
+    private List<Tuple<Guid, string>> SmallTorqueUnitChoices = new List<Tuple<Guid, string>>() { new Tuple<Guid, string>(Guid.Empty, "-------") };
+    private List<Tuple<Guid, string>> FluidShearStressUnitChoices = new List<Tuple<Guid, string>>() { new Tuple<Guid, string>(Guid.Empty, "-------") };
+    private List<OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.PhysicalQuantity> drillingPhysicalQuantities = null;
 
     private bool isLoading;
-    private decimal progressPercent;
-
-
 
     // objects used for visualization
     ScatterPlot flowCurvePlot = new ScatterPlot();
@@ -385,23 +400,78 @@
             logger.LogInformation("Trying to load Rheograms from client: " + APIUtils.HttpClientYPLCalibrationFromRheometer.ToString());
             rheometers = await APIUtils.LoadDatas<CouetteRheometer>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "CouetteRheometers/");
 
-            if (rheometers != null)
+            if (rheometers != null && rheometers.Count > 0)
+            {
                 rheometers.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
 
-            // In case this method is called while handling a particular rheogram, one must store its ID before the list of rheograms is reloaded and sorted differently (in case its name has changed)
-            Guid rheoId = Guid.Empty;
-            if (rheogramIdx >= 0)
-                rheoId = rheograms[rheogramIdx].ID;
-            rheograms = await APIUtils.LoadDatas<Rheogram>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "Rheograms/");
-            if (rheograms != null)
-            {
-                rheograms.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
-                if (rheoId != Guid.Empty)
-                    rheogramIdx = rheograms.FindIndex(r => r.ID.Equals(rheoId));
-            }
+                // In case this method is called while handling a particular rheogram, one must store its ID before the list of rheograms is reloaded and sorted differently (in case its name has changed)
+                Guid rheoId = Guid.Empty;
+                if (rheogramIdx >= 0)
+                    rheoId = rheograms[rheogramIdx].ID;
+                rheograms = await APIUtils.LoadDatas<Rheogram>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "Rheograms/");
+                if (rheograms != null)
+                {
+                    rheograms.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
+                    if (rheoId != Guid.Empty)
+                        rheogramIdx = rheograms.FindIndex(r => r.ID.Equals(rheoId));
+                }
 
-            if (rheogramIdx >= 0)
-                PlotFlowCurve();
+                if (rheogramIdx >= 0)
+                    PlotFlowCurve();
+
+                // Initialize generic rheogram for loading (does not need to be given an ID)
+                genericRheogram.CouetteRheometerID = rheometers.First().ID;
+                genericRheogram.RateSource = RateSourceEnum.ISONewtonianShearRate;
+                genericRheogram.StressSource = StressSourceEnum.ISONewtonianShearStress;
+                genericRheogram.ShearRateCorrection = ShearRateCorrectionEnum.SkadsemSaasen;
+                genericRheogram.ShearStressCorrection = ShearStressCorrectionEnum.LacParry;
+                genericRheogram.CalibrationMethod = CalibrationMethodEnum.Mullineux;
+
+                // Loading PhysicalQuantity's to handle units of loaded rheometer measurements
+                if (FluidShearRateUnitChoices.Count + FluidShearStressUnitChoices.Count + SmallRotationalFrequencyUnitChoices.Count + SmallTorqueUnitChoices.Count <= 4)
+                {
+                    // FluidShearRate quantity
+                    fluidShearRateQuantity = await APIUtils.LoadData<PhysicalQuantity>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "DrillingPhysicalQuantities/", new Guid("d3aa72c5-2fc0-4024-902e-6775d63f3231"));
+                    if (fluidShearRateQuantity != null)
+                    {
+                        foreach (UnitChoice unitChoice in fluidShearRateQuantity.UnitChoices)
+                        {
+                            FluidShearRateUnitChoices.Add(new Tuple<Guid, string>(unitChoice.ID, unitChoice.UnitName));
+                        }
+                    }
+                    // FluidShearStress quantity
+                    fluidShearStressQuantity = await APIUtils.LoadData<PhysicalQuantity>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "DrillingPhysicalQuantities/", new Guid("b8f8f4f5-1925-4eaf-87c2-2adfdf618454"));
+                    if (fluidShearStressQuantity != null)
+                    {
+                        foreach (UnitChoice unitChoice in fluidShearStressQuantity.UnitChoices)
+                        {
+                            FluidShearStressUnitChoices.Add(new Tuple<Guid, string>(unitChoice.ID, unitChoice.UnitName));
+                        }
+                    }
+                    // SmallRotationalFrequency quantity
+                    smallRotationalFrequencyQuantity = await APIUtils.LoadData<PhysicalQuantity>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "DrillingPhysicalQuantities/", new Guid("b7ab1664-3d56-4ae5-842a-e4d6d0475ef9"));
+                    if (smallRotationalFrequencyQuantity != null)
+                    {
+                        foreach (UnitChoice unitChoice in smallRotationalFrequencyQuantity.UnitChoices)
+                        {
+                            SmallRotationalFrequencyUnitChoices.Add(new Tuple<Guid, string>(unitChoice.ID, unitChoice.UnitName));
+                        }
+                    }
+                    // SmallTorque quantity
+                    smallTorqueQuantity = await APIUtils.LoadData<PhysicalQuantity>(logger, APIUtils.HttpClientYPLCalibrationFromRheometer, "DrillingPhysicalQuantities/", new Guid("adf7b170-8d24-4c9f-93e1-40179f361d8c"));
+                    if (smallTorqueQuantity != null)
+                    {
+                        foreach (UnitChoice unitChoice in smallTorqueQuantity.UnitChoices)
+                        {
+                            SmallTorqueUnitChoices.Add(new Tuple<Guid, string>(unitChoice.ID, unitChoice.UnitName));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                logger.LogError("Impossible to create rheograms without rheometers in the database, create one first!");
+            }
         }
         catch (Exception ex)
         {
@@ -448,7 +518,7 @@
         }
     }
 
-    private async void Update(int idx)
+    private async void Update(int idx, bool closePanel = true)
     {
         if (rheograms != null && idx >= 0 && idx < rheograms.Count && !rheograms[idx].ID.Equals(System.Guid.Empty) &&
             !string.IsNullOrEmpty(updatedRheogramName))
@@ -468,12 +538,14 @@
             var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PutAsync("Rheograms/" + rheograms[idx].ID, content);
             if (a.IsSuccessStatusCode)
             {
-                updatedRheogramName = null;
-                updatedRheogramDescr = null;
-
-                IsHidMainPanel = false;
-                IsHidSubPanel = true;
-                rheogramIdx = -1;
+                if (closePanel)
+                {
+                    updatedRheogramName = null;
+                    updatedRheogramDescr = null;
+                    IsHidMainPanel = false;
+                    IsHidSubPanel = true;
+                    rheogramIdx = -1;
+                }
                 await OnInitializedAsync();
                 await InvokeAsync(() => { StateHasChanged(); });
             }
@@ -481,90 +553,6 @@
             {
                 logger.LogWarning("Impossible to update the current Rheogram");
             }
-        }
-    }
-
-    private async void UpdateWithoutClosing(int idx)
-    {
-        if (rheograms != null && idx >= 0 && idx < rheograms.Count && !rheograms[idx].ID.Equals(System.Guid.Empty) &&
-            !string.IsNullOrEmpty(updatedRheogramName))
-        {
-            rheograms[idx].Name = updatedRheogramName;
-            rheograms[idx].Description = updatedRheogramDescr;
-
-            // automatically set rotation frequencies if the selected rheometer has a fixed list of them
-            rheometer = rheometers.Find(r => r.ID.Equals(rheograms[idx].CouetteRheometerID));
-            if (rheometer != null)
-            {
-                UpdateRheogram(rheograms[idx], rheometer);
-            }
-
-            //PUT Rheogram into the RheogramInputsTable (YPLCalibrations referencing this Rheogram are updated at the Manager level)
-            StringContent content = new StringContent(rheograms[idx].GetJson(), Encoding.UTF8, "application/json");
-            var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PutAsync("Rheograms/" + rheograms[idx].ID, content);
-            if (a.IsSuccessStatusCode)
-            {
-                await OnInitializedAsync();
-                await InvokeAsync(() => { StateHasChanged(); });
-            }
-            else
-            {
-                logger.LogWarning("Impossible to update the current Rheogram");
-            }
-        }
-    }
-
-    private void UpdateRheogram(Rheogram rheogram, CouetteRheometer rheometer)
-    {
-        bool hasChanged = false;
-        IsFixedSpeedRheometer = false;
-
-        if (rheometer.FixedSpeedList != null && rheometer.FixedSpeedList.Count > 0)
-        {
-            IsFixedSpeedRheometer = true;
-            rheogram.RateSource = RateSourceEnum.RotationalSpeed;
-        }
-        // Rotation speeds are modified to a fixed value and, stress values are reinitialized, if and only if
-        // 1- the rheometer has a fixed list of rotation speeds
-        // 2- and the number of rotation speeds has changed from before
-        // counter-ex: a change from R1B1 8 speeds to R1B2 8 speeds does not change anything (this to avoid retyping everything is misclick)
-        // counter-ex: a change from any rheometer to a rheometer with no fixed speeds does not change anything (this to avoid retyping everything is misclick)
-        if (IsFixedSpeedRheometer)
-        {
-            hasChanged = true;
-            if (rheogram.Measurements.Count == rheometer.FixedSpeedList.Count)
-            {
-                bool hasSameValues = true;
-                for (int i = 0; i < rheometer.FixedSpeedList.Count; ++i)
-                {
-                    if (rheogram.Measurements.ElementAt(i).RotationalSpeed != rheometer.FixedSpeedList.ElementAt(i))
-                    {
-                        hasSameValues = false;
-                        break;
-                    }
-                }
-                if (hasSameValues)
-                    hasChanged = false;
-            }
-        }
-        if (hasChanged)
-        {
-            // reinitialize rheometer measurements
-            rheogram.Measurements = new List<RheometerMeasurement>();
-            if (IsFixedSpeedRheometer)
-            {
-                foreach (double val in rheometer.FixedSpeedList)
-                {
-                    RheometerMeasurement meas = new RheometerMeasurement
-                        {
-                            RotationalSpeed = val
-                        };
-                    rheogram.Measurements.Add(meas);
-                }
-            }
-            // reinitialize
-            rheogram.CorrectedFlowCurve = null;
-            rheogram.CalibratedYPLModel = null;
         }
     }
 
@@ -616,169 +604,338 @@
 
     private async void Load(InputFileChangeEventArgs e)
     {
-
-        isLoading = true;
-        progressPercent = 0;
-        DataTableCollection dts = null;
-
-        //Uploading files from client navigator
-        foreach (var file in e.GetMultipleFiles())
+        IsHidLoadFailed = true;
+        bool success = false;
+        if (genericName != null && loadedShearRateLabel != null && rateQuantityUnitChoice != null && loadedShearStressLabel != null && stressQuantityUnitChoice != null &&
+        fluidShearRateQuantity != null && fluidShearStressQuantity != null && smallRotationalFrequencyQuantity != null && smallTorqueQuantity != null)
         {
-            try
+            isLoading = true;
+            #region Define UnitChoiceSet
+            //    1- Retrieve the rateQuantity and stressQuantity selected by the user and their associated unit choice
+            Guid rateQuantityID = Guid.Empty;
+            Guid stressQuantityID = Guid.Empty;
+            Guid unitChoiceID = Guid.Empty;
+            Dictionary<string, string> choices = new Dictionary<string, string>();
+
+            //        Determine rateQuantity, rateQuantityID and associated unitChoiceID based on user settings
+            PhysicalQuantity rateQuantity = null;
+            if (genericRheogram.RateSource == RateSourceEnum.RotationalSpeed)
             {
-                string tempPath = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-
-                await using FileStream writeStream = new(tempPath, FileMode.Create);
-                using var readStream = file.OpenReadStream();
-                var bytesRead = 0;
-                var totalRead = 0;
-                var buffer = new byte[1024 * 10];
-
-                while ((bytesRead = await readStream.ReadAsync(buffer)) != 0)
-                {
-                    totalRead += bytesRead;
-
-                    await writeStream.WriteAsync(buffer, 0, bytesRead);
-
-                    progressPercent = Decimal.Divide(totalRead, file.Size);
-
-                    StateHasChanged();
-                }
-
-                using (var reader = ExcelReaderFactory.CreateReader(writeStream))
-                {
-                    var result = reader.AsDataSet();
-                    dts = result.Tables;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Impossible to read from file");
-            }
-        }
-
-        if (dts != null)
-        {
-            //Loop on tables of uploaded file
-            foreach (DataTable table in dts)
-            {
-                List<List<RheometerMeasurement>> rheoLists = new List<List<RheometerMeasurement>>();
-                if (ParseDataTable(table, rheoLists))
-                {
-                    for (int i = 0; i < rheoLists.Count; ++i)
-                    {
-                        Rheogram loadedRheogram = new Rheogram();
-                        loadedRheogram.ID = Guid.NewGuid();
-                        loadedRheogram.Name = String.IsNullOrEmpty(loadedFileName) ? $"{table.TableName}-{i + 1}" : loadedFileName + $"-{table.TableName}-{i + 1}";
-                        loadedRheogram.Description = loadedFileDescr;
-                        loadedRheogram.Measurements = rheoLists.ElementAt(i);
-                        // POST the Rheogram
-                        StringContent content = new StringContent(loadedRheogram.GetJson(), Encoding.UTF8, "application/json");
-                        var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PostAsync("Rheograms/", content);
-                        if (a.IsSuccessStatusCode)
-                        {
-                            await OnInitializedAsync();
-                            await InvokeAsync(() => { StateHasChanged(); });
-                        }
-                    }
-                }
-                else
-                {
-                    logger.LogInformation($"No parseable data in table {table.TableName}");
-                }
-            }
-        }
-        else
-        {
-            logger.LogError("Impossible to parse loaded file");
-        }
-
-        // initializes the UI
-        loadedFileName = null;
-        loadedFileDescr = null;
-        isLoading = false;
-        //await OnInitializedAsync();
-        //await InvokeAsync(() => { StateHasChanged(); });
-        StateHasChanged();
-    }
-
-    private bool ParseDataTable(DataTable table, List<List<RheometerMeasurement>> rheoLists)
-    {
-        //a valid rheogram must consist of a set of:
-        //    - 2 columns (containing the labels defined in SRLabels and SSLabels)
-        //    - with at least 1 header row (containing the strings "shear rate" and "shear stress")
-        //    - at max 2 header rows (second: containing units strings, in any case assumed to be expressed in SI)
-        //    - at least 3 double type data rows
-        //    - no more than 2 consecutive ShearRateAndStress having the same shear rate (when applying ramp down and up)
-        List<int[]> startIndices = new List<int[]>();
-        int minMeasCount = 3;
-        //first, parse for starting indices within the table that met the first two above conditions
-        for (int i = 0; i < table.Rows.Count - (minMeasCount + 1); ++i)
-        {
-            for (int j = 0; j < table.Columns.Count - 1; ++j)
-            {
-                if (MatchesLabel(table.Rows[i][j], SRLabels) && MatchesLabel(table.Rows[i][j + 1], SSLabels))
-                    startIndices.Add(new int[] { i, j });
-            }
-        }
-
-        //then, iterate over the different rheograms contained within the current table
-        for (int k = 0; k < startIndices.Count; ++k)
-        {
-            //for each of them, find the indices where numeric values start, depending on whether there is a unit header or not
-            List<RheometerMeasurement> rheoList = new List<RheometerMeasurement>();
-            int i0 = startIndices.ElementAt(k)[0];
-            int j0 = startIndices.ElementAt(k)[1];
-            double sr, ss;
-            if (double.TryParse(table.Rows[i0 + 1][j0].ToString(), out sr) && double.TryParse(table.Rows[i0 + 1][j0 + 1].ToString(), out ss))
-            {
-                logger.LogInformation($"No unit header for record starting at row,col {i0},{j0} in table {table.TableName}. SI units assumed");
-                i0 += 1;
-            }
-            else if (double.TryParse(table.Rows[i0 + 2][j0].ToString(), out sr) && double.TryParse(table.Rows[i0 + 2][j0 + 1].ToString(), out ss))
-            {
-                logger.LogInformation($"A unit header has been found for record starting at row,col {i0},{j0} in table {table.TableName}. Still, SI units assumed");
-                i0 += 2;
+                rateQuantity = smallRotationalFrequencyQuantity;
+                rateQuantityID = smallRotationalFrequencyQuantity.ID;
             }
             else
             {
-                logger.LogInformation($"Badly formed record in table {table.TableName} starting at row,col {i0},{j0}");
-                continue;
+                rateQuantity = fluidShearRateQuantity;
+                rateQuantityID = fluidShearRateQuantity.ID;
             }
-            //finally, store rheometer measurements for the current rheogram
-            int i = 0;
-            double srPrev = -999.25;
-            double srPrevPrev = -998.25;
-
-            while (i < table.Rows.Count - i0 &&
-                double.TryParse(table.Rows[i0 + i][j0].ToString(), out sr) &&
-                double.TryParse(table.Rows[i0 + i][j0 + 1].ToString(), out ss) &&
-                !OSDC.DotnetLibraries.General.Common.Numeric.EQ(sr, srPrev) && !OSDC.DotnetLibraries.General.Common.Numeric.EQ(sr, srPrevPrev))
+            foreach (UnitChoice choice in rateQuantity.UnitChoices)
             {
-                RheometerMeasurement meas = new RheometerMeasurement();
-                meas.BobNewtonianShearRate = sr;
-                meas.BobNewtonianShearStress = ss;
-                rheoList.Add(meas);
-                i++;
-                srPrevPrev = srPrev;
-                srPrev = sr;
+                if (choice.UnitName == rateQuantityUnitChoice)
+                {
+                    unitChoiceID = choice.ID;
+                    break;
+                }
             }
-            logger.LogInformation($"     record's count is {i}");
-            if (i >= minMeasCount)
-                rheoLists.Add(rheoList); //meeting the last above condition
+            choices.Add(rateQuantityID.ToString(), unitChoiceID.ToString());
+
+            //        Determine stressQuantity, stressQuantityID and associated unitChoiceID based on user settings
+            PhysicalQuantity stressQuantity = null;
+            if (genericRheogram.StressSource == StressSourceEnum.Torque)
+            {
+                stressQuantity = smallTorqueQuantity;
+                stressQuantityID = smallTorqueQuantity.ID;
+            }
+            else
+            {
+                stressQuantity = fluidShearStressQuantity;
+                stressQuantityID = fluidShearStressQuantity.ID;
+            }
+            foreach (UnitChoice choice in stressQuantity.UnitChoices)
+            {
+                if (choice.UnitName == stressQuantityUnitChoice)
+                {
+                    unitChoiceID = choice.ID;
+                    break;
+                }
+            }
+            choices.Add(stressQuantityID.ToString(), unitChoiceID.ToString());
+
+            //    2- Create and post a temporary DrillingUnitChoiceSet accounting for the unit choices set by the user
+            //    Note: the Choices of a DrillingUnitChoiceSet can be defined with the PhysicalQuantities of interest only!
+            OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.DrillingUnitChoiceSet unitChoiceSet = null;
+            Guid unitChoiceSetGuid = Guid.NewGuid();
+            unitChoiceSet = new OSDC.UnitConversion.DrillingUnitConversion.ModelClientShared.DrillingUnitChoiceSet(
+                unitChoiceSetGuid, $"tempUnitChoiceSet-{unitChoiceSetGuid.ToString().Substring(0, 4)}", "", choices);
+            unitChoiceSet.IsDefault = false;
+            unitChoiceSet.IsSI = false;
+            success = await APIUtils.PostData(logger, APIUtils.HttpClientDrillingUnitConversion, "DrillingUnitChoiceSets/", unitChoiceSet.GetJson());
+            #endregion
+
+            if (success)
+            {
+                int numParsedRheograms = 0;
+                DataTableCollection dts = null;
+                foreach (var file in e.GetMultipleFiles())
+                {
+                    #region Load each file
+                    try
+                    {
+                        dts = await APIUtils.LoadFile(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        success = false;
+                        logger.LogError(ex, "Impossible to read from file");
+                    }
+                    #endregion
+                    if (dts != null)
+                    {
+                        // Loop on the different tabs of the uploaded file
+                        foreach (DataTable table in dts)
+                        {
+                            // Parse each data table
+                            List<List<double[]>> dataList = null; //parsing uses user set labels to match column headers
+                            string[] labels = new string[] { loadedShearRateLabel, loadedShearStressLabel };
+                            // The content of each tab of the uploaded file (of type DataTable) is parsed and outputs a List of data arrays of type <List<double[nCol]>, where nCol is fixed
+                            if (APIUtils.ParseDataTable(table, out dataList, labels))
+                            {
+                                #region Convert parsed values to SI with a DataUnitConversionSet and a call to the DrillingUnitConversion microservice
+                                //    1- Post-process dataList to format each homogeneous numerical value into a separate QuantityUnitConversion
+                                DataUnitConversionSet dataUnitConversionSet = null;
+                                if (success)
+                                {
+                                    QuantityUnitConversion rateQuantityConversion = new QuantityUnitConversion();
+                                    rateQuantityConversion.PhysicalQuantityID = rateQuantityID;
+                                    rateQuantityConversion.DataConversions = new List<DataConversion>();
+                                    QuantityUnitConversion stressQuantityConversion = new QuantityUnitConversion();
+                                    stressQuantityConversion.PhysicalQuantityID = stressQuantityID;
+                                    stressQuantityConversion.DataConversions = new List<DataConversion>();
+
+                                    foreach (List<double[]> dataEntry in dataList)
+                                    {
+                                        foreach (double[] dataRow in dataEntry)
+                                        {
+                                            DataConversion conv = new DataConversion()
+                                                {
+                                                    Conversion = ConversionType.ToSI,
+                                                    DataIn = dataRow[0]
+                                                };
+                                            rateQuantityConversion.DataConversions.Add(conv); // conversion data are simply stacked on top of eachother
+                                            conv = new DataConversion()
+                                                {
+                                                    Conversion = ConversionType.ToSI,
+                                                    DataIn = dataRow[1]
+                                                };
+                                            stressQuantityConversion.DataConversions.Add(conv);
+                                        }
+                                    }
+                                    //    2- POST DataUnitConversionSet to execute conversions calculations
+                                    List<QuantityUnitConversion> conversions = new List<QuantityUnitConversion>() { rateQuantityConversion, stressQuantityConversion };
+                                    dataUnitConversionSet = new DataUnitConversionSet(Guid.NewGuid(), "tempConvSet", "", unitChoiceSet.ID, conversions);
+                                    success = await APIUtils.PostData(logger, APIUtils.HttpClientDrillingUnitConversion, "DataUnitConversionSets/", dataUnitConversionSet.GetJson());
+                                }
+                                //    3- GET DataUnitConversionSet back to parse results
+                                if (success)
+                                {
+                                    dataUnitConversionSet = await APIUtils.LoadData<DataUnitConversionSet>(logger, APIUtils.HttpClientDrillingUnitConversion, "DataUnitConversionSets/", dataUnitConversionSet.ID);
+                                    if (dataUnitConversionSet != null)
+                                    {
+                                        // converted data are retrieved under the assumption that the list order has not changed between the POST and GET (try-catch required then)
+                                        try
+                                        {
+                                            int rateIdx = 0;
+                                            int stressIdx = 0;
+                                            // retrieved converted lists are simply de-stacked according to the original structure of dataList (dataList is not even cleared)
+                                            foreach (List<double[]> dataEntry in dataList)
+                                            {
+                                                foreach (double[] dataRow in dataEntry)
+                                                {
+                                                    dataRow[0] = dataUnitConversionSet.QuantityUnitConversions.ElementAt(0).DataConversions.ElementAt(rateIdx++).DataOut ?? -999.25;
+                                                    dataRow[1] = dataUnitConversionSet.QuantityUnitConversions.ElementAt(1).DataConversions.ElementAt(stressIdx++).DataOut ?? -999.25;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            success = false;
+                                            logger.LogError("Structure of converted data changed between the POST and GET");
+                                        }
+                                    }
+                                }
+                                #endregion
+
+                                #region Delete temporary DataUnitConversionSet after use
+                                if (dataUnitConversionSet != null)
+                                    success = await APIUtils.DeleteData(logger, APIUtils.HttpClientDrillingUnitConversion, "DataUnitConversionSets/", dataUnitConversionSet.ID);
+                                #endregion
+
+                                if (success)
+                                {
+                                    for (int i = 0; i < dataList.Count; ++i)
+                                    {
+                                        #region Format each data of the dataList into a Rheogram
+                                        // Note that at this stage, no validation of the number of rows of the rheogram is performed (case of a fixed speeds rheometer)
+                                        List<RheometerMeasurement> rheoList = new List<RheometerMeasurement>();
+                                        foreach (double[] dataRow in dataList.ElementAt(i))
+                                        {
+                                            RheometerMeasurement meas = new RheometerMeasurement();
+                                            switch (genericRheogram.RateSource)
+                                            {
+                                                case RateSourceEnum.RotationalSpeed:
+                                                    meas.RotationalSpeed = dataRow[0]; // shear rate column is expected to come first
+                                                    break;
+                                                case RateSourceEnum.ISONewtonianShearRate:
+                                                    meas.ISONewtonianShearRate = dataRow[0];
+                                                    break;
+                                                default:
+                                                    meas.BobNewtonianShearRate = dataRow[0];
+                                                    break;
+                                            }
+                                            switch (genericRheogram.StressSource)
+                                            {
+                                                case StressSourceEnum.Torque:
+                                                    meas.Torque = dataRow[1]; // shear stress column is expected to come second
+                                                    break;
+                                                case StressSourceEnum.ISONewtonianShearStress:
+                                                    meas.ISONewtonianShearStress = dataRow[1];
+                                                    break;
+                                                default:
+                                                    meas.BobNewtonianShearStress = dataRow[1];
+                                                    break;
+                                            }
+                                            rheoList.Add(meas);
+                                        }
+
+                                        Rheogram loadedRheogram = new Rheogram();
+                                        loadedRheogram.ID = Guid.NewGuid();
+                                        loadedRheogram.Name = String.IsNullOrEmpty(genericName) ? $"{table.TableName}-{i + 1}" : genericName + $"-{table.TableName}-{i + 1}";
+                                        loadedRheogram.Description = "Default description";
+                                        loadedRheogram.Measurements = rheoList;
+                                        loadedRheogram.CouetteRheometerID = genericRheogram.CouetteRheometerID;
+                                        loadedRheogram.RateSource = genericRheogram.RateSource;
+                                        loadedRheogram.StressSource = genericRheogram.StressSource;
+                                        #endregion
+
+                                        #region Validate the loaded Rheogram against user settings (fixed speed rheometers)
+                                        // Data validation for the case of fixed speed rheometers is then performed
+                                        rheometer = rheometers.Find(r => r.ID.Equals(loadedRheogram.CouetteRheometerID));
+                                        if (rheometer.FixedSpeedList != null && rheometer.FixedSpeedList.Count > 0)
+                                        {
+                                            UpdateRheogram(loadedRheogram, rheometer);
+                                        }
+                                        #endregion
+
+                                        #region POST the Rheogram
+                                        // POST the Rheogram
+                                        StringContent content = new StringContent(loadedRheogram.GetJson(), Encoding.UTF8, "application/json");
+                                        var a = await APIUtils.HttpClientYPLCalibrationFromRheometer.PostAsync("Rheograms/", content);
+                                        if (!a.IsSuccessStatusCode)
+                                        {
+                                            logger.LogWarning($"Something went wrong while posting the rheogram");
+                                        }
+                                        else
+                                        {
+                                            numParsedRheograms++;
+                                        }
+                                        #endregion
+                                    }
+                                }
+                                else
+                                {
+                                    logger.LogError("Problem while converting the loaded values to SI unit system");
+                                }
+                            }
+                            else
+                            {
+                                logger.LogWarning($"No parseable data in the current tab {table.TableName}");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        success = false;
+                        logger.LogError("Impossible to parse loaded file");
+                    }
+                }
+                if (numParsedRheograms == 0)
+                    success = false;
+            }
+
+            #region Delete temporary DrillingUnitChoiceSet after use
+            if (unitChoiceSet != null)
+                await APIUtils.DeleteData(logger, APIUtils.HttpClientDrillingUnitConversion, "DrillingUnitChoiceSets/", unitChoiceSet.ID);
+            #endregion
         }
-        return rheoLists.Count > 0;
+        if (!success)
+            IsHidLoadFailed = false;
+        // initializes the UI
+        genericName = null;
+        loadedShearRateLabel = null;
+        loadedShearStressLabel = null;
+        rateQuantityUnitChoice = null;
+        stressQuantityUnitChoice = null;
+
+        isLoading = false;
+        await OnInitializedAsync();
+        await InvokeAsync(() => { StateHasChanged(); });
     }
 
-    private bool MatchesLabel(object value, string[] labels)
+    private void UpdateRheogram(Rheogram rheogram, CouetteRheometer rheometer)
     {
-        string str = value.ToString().ToLower();
-        foreach (string lbl in labels)
+        bool hasChanged = false;
+        IsFixedSpeedRheometer = false;
+
+        if (rheometer.FixedSpeedList != null && rheometer.FixedSpeedList.Count > 0)
         {
-            if (str.Contains(lbl))
-                return true;
+            IsFixedSpeedRheometer = true;
+            rheogram.RateSource = RateSourceEnum.RotationalSpeed;
         }
-        return false;
+        // Rotation speeds are modified to a fixed value and, stress values are initialized, if and only if
+        // 1- the rheometer has a fixed list of rotation speeds
+        // 2- and the number of rotation speeds has changed from before
+        // ex        : a change from R1B1 8 speeds to R1B1 6 speeds triggers initialization
+        // ex        : a change from Anton Paar to R1B1 6 speeds triggers initialization
+        // counter-ex: a change from R1B1 8 speeds to R1B2 8 speeds does not change anything (this to avoid retyping everything is misclick)
+        // counter-ex: a change from any rheometer to a rheometer with no fixed speeds does not change anything (this to avoid retyping everything is misclick)
+        if (IsFixedSpeedRheometer && rheogram.Measurements != null)
+        {
+            hasChanged = true;
+            if (rheogram.Measurements.Count == rheometer.FixedSpeedList.Count)
+            {
+                bool hasSameValues = true;
+                for (int i = 0; i < rheometer.FixedSpeedList.Count; ++i)
+                {
+                    if (rheogram.Measurements.ElementAt(i).RotationalSpeed != rheometer.FixedSpeedList.ElementAt(i))
+                    {
+                        hasSameValues = false;
+                        break;
+                    }
+                }
+                if (hasSameValues)
+                    hasChanged = false;
+            }
+        }
+        if (hasChanged)
+        {
+            // reinitialize rheometer measurements
+            rheogram.Measurements = new List<RheometerMeasurement>
+    ();
+            if (IsFixedSpeedRheometer)
+            {
+                foreach (double val in rheometer.FixedSpeedList)
+                {
+                    RheometerMeasurement meas = new RheometerMeasurement
+                        {
+                            RotationalSpeed = val
+                        };
+                    rheogram.Measurements.Add(meas);
+                }
+            }
+            // reinitialize
+            rheogram.CorrectedFlowCurve = null;
+            rheogram.CalibratedYPLModel = null;
+        }
     }
 
     private void Cancel()
@@ -786,28 +943,74 @@
         // empty UI edit box
         addedRheogramName = null;
         addedRheogramDescr = null;
-        loadedFileName = null;
-        loadedFileDescr = null;
+        genericName = null;
+        loadedShearRateLabel = null;
+        loadedShearStressLabel = null;
     }
 
     private void HideInput()
     {
         IsHidInputPanel = !IsHidInputPanel;
+        IsHidMeasPanel = true;
+        IsHidCalcPanel = true;
+        IsHidPlotPanel = true;
     }
 
     private void HideMeasurements()
     {
         IsHidMeasPanel = !IsHidMeasPanel;
+        IsHidInputPanel = true;
+        IsHidCalcPanel = true;
+        IsHidPlotPanel = true;
     }
 
     private void HideCalc()
     {
         IsHidCalcPanel = !IsHidCalcPanel;
+        IsHidInputPanel = true;
+        IsHidMeasPanel = true;
+        IsHidPlotPanel = true;
     }
 
     private void HidePlot()
     {
         IsHidPlotPanel = !IsHidPlotPanel;
+        IsHidInputPanel = true;
+        IsHidMeasPanel = true;
+        IsHidCalcPanel = true;
+    }
+
+    private void HideAddRheogram()
+    {
+        IsHidAddRheogram = !IsHidAddRheogram;
+        IsHidLoadRheogram = true;
+        IsHidListRheogram = true;
+    }
+
+    private void HideLoadRheogram()
+    {
+        IsHidLoadRheogram = !IsHidLoadRheogram;
+        IsHidAddRheogram = true;
+        IsHidListRheogram = true;
+    }
+
+    private void HideListRheogram()
+    {
+        IsHidListRheogram = !IsHidListRheogram;
+        IsHidAddRheogram = true;
+        IsHidLoadRheogram = true;
+    }
+
+    private void HideLoadRheometerSettings()
+    {
+        IsHidLoadRheogramRheometerSettings = !IsHidLoadRheogramRheometerSettings;
+        IsHidLoadRheogramGenericSettings = true;
+    }
+
+    private void HideLoadGenericSettings()
+    {
+        IsHidLoadRheogramGenericSettings = !IsHidLoadRheogramGenericSettings;
+        IsHidLoadRheogramRheometerSettings = true;
     }
 
     private async void PlotFlowCurve()

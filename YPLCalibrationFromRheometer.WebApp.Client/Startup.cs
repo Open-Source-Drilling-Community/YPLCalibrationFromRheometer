@@ -33,6 +33,8 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
 
             if (!String.IsNullOrEmpty(Configuration["YPLCalibrationHostURL"]))
                 YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL = Configuration["YPLCalibrationHostURL"];
+            if (!String.IsNullOrEmpty(Configuration["DrillingUnitConversionHostURL"]))
+                YPLCalibrationFromRheometer.WebApp.Client.Configuration.DrillingUnitConversionHostURL = Configuration["DrillingUnitConversionHostURL"];
 
             if (env.IsDevelopment())
             {

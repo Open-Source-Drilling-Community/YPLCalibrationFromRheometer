@@ -2,109 +2,111 @@
 @inject ILogger<YPLCalibrations> logger
 <UnitAndReferenceChoiceTag HttpHost="@YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL"
                            HttpBasePath="YPLCalibrationFromRheometer/api/"
-                               HttpController="DrillingUnitChoiceSets">
-<h1>YPLCalibrations</h1>
-<div hidden="@IsHidSubPanel">
-    <div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <td>Name</td>
-                    <td>Description</td>
-                    <td></td>
-                </tr>
-            </thead>
-            <tbody>
-                @if (IsHidInputAdd)
-                {
+                           HttpController="DrillingUnitChoiceSets">
+    <h1>YPLCalibrations</h1>
+    @if (yplCalibrationList == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        @*Design of the main panel: add, edit, delete YPLCalibrations*@
+        <div hidden="@IsHidMainPanel">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>
-                            <span class="label">@(yplCalibrationList[yplCalibrationIdx].Name)</span>
-                        </td>
-                        <td>
-                            <span class="label">@(yplCalibrationList[yplCalibrationIdx].Description)</span>
-                        </td>
+                        <td>Name</td>
+                        <td>Description</td>
                         <td></td>
                     </tr>
-                }
-                else
-                {
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < yplCalibrationList.Count; i++)
+                    {
+                        var local_i = i; // Do not use a loop variable directly in a lambda expression
+                        <tr>
+                            <td>
+                                <span class="label">@yplCalibrationList[i].Name</span>
+                            </td>
+                            <td>
+                                <span class="label">@yplCalibrationList[i].Description</span>
+                            </td>
+                            <td align="right">
+                                <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
+                                <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
                     <tr>
                         <td>
-                            <input class="text" type="text" size="50" @bind="@updatedYplCalibrationName" />
+                            <input class="text" type="text" size="50" @bind="@addedYplCalibrationName" />
                         </td>
                         <td>
-                            <input class="text" type="text" size="50" @bind="@updatedYplCalibrationDescr" />
+                            <input class="text" type="text" size="50" @bind="@addedYplCalibrationDescr" />
                         </td>
                         <td align="right">
-                            <button class="btn btn-primary" @onclick="@(() => Update(yplCalibrationIdx))">Update</button>
-                            <button class="btn btn-primary" @onclick="@(() => Cancel(yplCalibrationIdx))">Cancel</button>
+                            <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
+                            <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
                         </td>
                     </tr>
-                }
-            </tbody>
-            <tfoot>
-            </tfoot>
-        </table>
-    </div>
-</div>
+                </tfoot>
+            </table>
+        </div>
 
-@if (yplCalibrationList == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div hidden="@IsHidMainPanel">
-        <table class="table">
-            <thead>
-                <tr>
-                    <td>Name</td>
-                    <td>Description</td>
-                    <td></td>
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 0; i < yplCalibrationList.Count; i++)
-                {
-                    var local_i = i; // Do not use a loop variable directly in a lambda expression
-                    <tr>
-                        <td>
-                            <span class="label">@yplCalibrationList[i].Name</span>
-                        </td>
-                        <td>
-                            <span class="label">@yplCalibrationList[i].Description</span>
-                        </td>
-                        <td align="right">
-                            <button class="btn btn-primary" @onclick="@(() => Edit(local_i))">Edit</button>
-                            <button class="btn btn-primary" @onclick="@(() => Delete(local_i))">Delete</button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td>
-                        <input class="text" type="text" size="50" @bind="@addedYplCalibrationName" />
-                    </td>
-                    <td>
-                        <input class="text" type="text" size="50" @bind="@addedYplCalibrationDescr" />
-                    </td>
-                    <td align="right">
-                        <button class="btn btn-primary" @onclick="@(() => Add())">Add</button>
-                        <button class="btn btn-primary" @onclick="@(() => Cancel())">Cancel</button>
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-    @if (yplCalibrationIdx >= 0)
-    {
+        @*Design of the subpanel: edit the selected YPLCalibration*@
+        @if (yplCalibrationIdx >= 0)
+        {
             int inputIterData1Count = yplCalibrationList[yplCalibrationIdx].RheogramInput.Measurements.Count;
-        <div hidden="@IsHidSubPanel">
-            <div>
+            <div hidden="@IsHidSubPanel">
+                @*Edit name and description of the YPLCalibration*@
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td>Name</td>
+                            <td>Description</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (IsHidInputAdd)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].Name)</span>
+                                </td>
+                                <td>
+                                    <span class="label">@(yplCalibrationList[yplCalibrationIdx].Description)</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td>
+                                    <input class="text" type="text" size="50" @bind="@updatedYplCalibrationName" />
+                                </td>
+                                <td>
+                                    <input class="text" type="text" size="50" @bind="@updatedYplCalibrationDescr" />
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-primary" @onclick="@(() => Update(yplCalibrationIdx))">Update</button>
+                                    <button class="btn btn-primary" @onclick="@(() => Cancel(yplCalibrationIdx))">Cancel</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+
                 <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Input Rheogram</h2></button>
+                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel comparison</h2></button>
+                <button class="btn btn-link" @onclick="@(() => HidePlot())"><h2>Plot rheograms</h2></button>
                 <div hidden="@IsHidInputPanel">
+                    @*Select the input rheogram*@
                     <table class="table">
                         <thead></thead>
                         <tbody>
@@ -124,40 +126,40 @@ else
                         </tbody>
                         <tfoot></tfoot>
                     </table>
+                    @*Edit the input rheogram*@
                     <p>Warning, any change made to this Rheogram will be sent to the database and thus will affect other YPLCalibrations which refer to it</p>
                     <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer" IsHidden="@IsHidInputAdd" Rheogram="@yplCalibrationList[yplCalibrationIdx].RheogramInput" RheogramID="@rheogramID" />
-                 </div>
-            </div>
-            <div>
-                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Mullineux</h2></button>
-                <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelMullineux" IsHidden="@IsHidCalcPanel" />
-            </div>
-            <div>
-                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Kelessidis</h2></button>
-                <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis" IsHidden="@IsHidCalcPanel" />
-            </div>
-            <div>
-                <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>YPLModel Levenberg-Marquardt</h2></button>
-                <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt" IsHidden="@IsHidCalcPanel" />
-            </div>
-            <div hidden="@IsHidCalcPanel">
+                </div>
+                <div hidden="@IsHidCalcPanel">
+                    @*View YPLModel results for different calibration methods*@
+                    <h3>YPLModel Mullineux</h3>
+                    <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelMullineux" />
+                    <h3>YPLModel Kelessidis</h3>
+                    <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelKelessidis" />
+                    <h3>YPLModel Levenberg-Marquardt</h3>
+                    <YPLCalibrationTable YPLModel="@yplCalibrationList[yplCalibrationIdx].YPLModelLevenbergMarquardt" />
+                </div>
+                <div hidden="@IsHidPlotPanel">
+                    @*Plot the associated calibrated rheograms*@
                     <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
-                                 XValues="@shearRates" YValues="@shearStresses" UseMarker="true" Name="Rheogram"
-                                 ListXValues="@listShearRates" ListYValues="@listShearStresses" ListUseMarkers="@listUseMarkers" ListNames="@listNames"
-                                 XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
+                         XValues="@shearRates" YValues="@shearStresses" UseMarker="true" Name="Rheogram"
+                         ListXValues="@listShearRates" ListYValues="@listShearStresses" ListUseMarkers="@listUseMarkers" ListNames="@listNames"
+                         XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
+                </div>
             </div>
-        </div>
+        }
     }
-}
 </UnitAndReferenceChoiceTag>
 
 @code {
     // html booleans for dynamic visualization
     private bool IsHidMainPanel = false;
     private bool IsHidSubPanel = true;
-    private bool IsHidInputPanel = true;
     private bool IsHidInputAdd = false;
+    private bool IsHidInputPanel = true;
     private bool IsHidCalcPanel = true;
+    private bool IsHidPlotPanel = true;
+
 
     // model data objects
     private List<YPLCalibration> yplCalibrationList;
@@ -196,6 +198,8 @@ else
                 if (rheogramList != null)
                     rheogramList.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
             }
+            if (yplCalibrationIdx >= 0)
+                await PlotFlowCurve();
         }
         catch (Exception ex)
         {
@@ -214,6 +218,9 @@ else
             rheogramID = yplCalibrationList[idx].RheogramInput.ID;
             IsHidMainPanel = true;
             IsHidSubPanel = false;
+
+            await OnInitializedAsync();
+            await InvokeAsync(() => { StateHasChanged(); });
         }
     }
 
@@ -314,7 +321,7 @@ else
         {
             List<object> srs = new List<object>();
             List<object> sss = new List<object>();
-            double step = (maxShearRate - minShearRate) / (count-1);
+            double step = (maxShearRate - minShearRate) / (count - 1);
             YPLModel model = yplCalibrationList[yplCalibrationIdx].YPLModelMullineux;
             for (int i = 0; i < count; i++)
             {
@@ -469,7 +476,13 @@ else
     private async Task HideCalc()
     {
         IsHidCalcPanel = !IsHidCalcPanel;
-        if (yplCalibrationIdx >= 0)
-            await PlotFlowCurve();
+        IsHidInputPanel = true;
+        IsHidPlotPanel = true;
+    }
+    private async Task HidePlot()
+    {
+        IsHidPlotPanel = !IsHidPlotPanel;
+        IsHidInputPanel = true;
+        IsHidCalcPanel = true;
     }
 }

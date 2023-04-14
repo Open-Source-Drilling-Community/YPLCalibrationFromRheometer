@@ -1,0 +1,127 @@
+﻿    <h3>Rheometer</h3>
+    <table class="table" style="width: 50%">
+        <tbody>
+            <tr>
+                <td style="text-align: left">
+                    <span>Rheometer type</span>
+                </td>
+                <td style="text-align: right">
+                    <select @bind="@Rheogram.CouetteRheometerID">
+                        @foreach (var v in Rheometers)
+                        {
+                            <option value="@v.ID">@v.Name</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Rheometer Measurements Input Type</h3>
+    <table class="table" style="width: 50%">
+        <tbody>
+            <tr hidden="@IsFixed">
+                <td style="text-align: left">
+                    <span>Source for rotation or shear rate</span>
+                </td>
+                <td style="text-align: right">
+                    <select @bind="@Rheogram.RateSource">
+                        @foreach (var v in RateSourceList)
+                        {
+                            <option value="@v.Item2">@v.Item1</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: left">
+                    <span>Source for torque and shear stress</span>
+                </td>
+                <td style="text-align: right">
+                    <select @bind="@Rheogram.StressSource">
+                        @foreach (var v in StressSourceList)
+                        {
+                            <option value="@v.Item2">@v.Item1</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Corrections</h3>
+    <table class="table" style="width: 50%">
+        <tbody>
+            <tr>
+                <td style="text-align: left">
+                    <span>Shear rate correction</span>
+                </td>
+                <td style="text-align: right">
+                    <select @bind="@Rheogram.ShearRateCorrection">
+                        @foreach (var v in ShearRateCorrectionList)
+                        {
+                            <option value="@v.Item2">@v.Item1</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td style="text-align: left">
+                    <span>Shear stress correction</span>
+                </td>
+                <td style="text-align: right">
+                    <select @bind="@Rheogram.ShearStressCorrection">
+                        @foreach (var v in ShearStressCorrectionList)
+                        {
+                            <option value="@v.Item2">@v.Item1</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>YPL Calibration</h3>
+    <table class="table" style="width: 50%">
+        <tbody>
+            <tr>
+                <td style="text-align: left">
+                    <span>Calibration Method</span>
+                </td>
+                <td style="text-align: right">
+                    <select @bind="@Rheogram.CalibrationMethod">
+                        @foreach (var v in CalibrationMethodList)
+                        {
+                            <option value="@v.Item2">@v.Item1</option>
+                        }
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+@code {
+    [Parameter]
+    public Rheogram Rheogram { get; set; }
+
+    [Parameter]
+    public List<CouetteRheometer> Rheometers { get; set; }
+
+    [Parameter]
+    public List<Tuple<string, RateSourceEnum>> RateSourceList { get; set; }
+
+    [Parameter]
+    public List<Tuple<string, StressSourceEnum>> StressSourceList { get; set; }
+
+    [Parameter]
+    public List<Tuple<string, ShearRateCorrectionEnum>> ShearRateCorrectionList { get; set; }
+
+    [Parameter]
+    public List<Tuple<string, ShearStressCorrectionEnum>> ShearStressCorrectionList { get; set; }
+
+    [Parameter]
+    public List<Tuple<string, CalibrationMethodEnum>> CalibrationMethodList { get; set; }
+
+    [Parameter]
+    public bool IsFixed { get; set; }
+}

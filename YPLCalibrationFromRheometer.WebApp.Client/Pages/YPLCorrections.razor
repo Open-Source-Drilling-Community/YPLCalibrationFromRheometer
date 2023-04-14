@@ -5,57 +5,13 @@
                            HttpBasePath="YPLCalibrationFromRheometer/api/"
                            HttpController="DrillingUnitChoiceSets">
     <h1>YPLCorrections</h1>
-    <div hidden="@IsHidSubPanel">
-        <div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <td>Name</td>
-                        <td>Description</td>
-                        <td></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (IsHidInputAdd)
-                    {
-                        <tr>
-                            <td>
-                                <span class="label">@(yplCorrectionList[yplCorrectionIdx].Name)</span>
-                            </td>
-                            <td>
-                                <span class="label">@(yplCorrectionList[yplCorrectionIdx].Description)</span>
-                            </td>
-                            <td></td>
-                        </tr>
-                    }
-                    else
-                    {
-                        <tr>
-                            <td>
-                                <input class="text" type="text" size="50" @bind="@updatedYplCorrectionName" />
-                            </td>
-                            <td>
-                                <input class="text" type="text" size="50" @bind="@updatedYplCorrectionDescr" />
-                            </td>
-                            <td align="right">
-                                <button class="btn btn-primary" @onclick="@(() => Update(yplCorrectionIdx))">Update</button>
-                                <button class="btn btn-primary" @onclick="@(() => Cancel(yplCorrectionIdx))">Cancel</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
     @if (yplCorrectionList == null)
     {
         <p><em>Loading...</em></p>
     }
     else
     {
+        @*Design of the main panel: add, edit, delete YPLCorrections*@
         <div hidden="@IsHidMainPanel">
             <table class="table">
                 <thead>
@@ -99,6 +55,8 @@
                 </tfoot>
             </table>
         </div>
+
+        @*Design of the subpanel: edit the selected YPLCorrection*@
         @if (yplCorrectionIdx >= 0)
         {
             ICollection<RheometerMeasurement> inputList = yplCorrectionList[yplCorrectionIdx].RheogramInput.Measurements;
@@ -106,9 +64,59 @@
             ICollection<ShearRateAndStress> shearRateCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected;
             ICollection<ShearRateAndStress> shearStressCorrectedList = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected;
             <div hidden="@IsHidSubPanel">
+                @*Edit name and description of the YPLCorrection*@
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td>Name</td>
+                            <td>Description</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (IsHidInputAdd)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="label">@(yplCorrectionList[yplCorrectionIdx].Name)</span>
+                                </td>
+                                <td>
+                                    <span class="label">@(yplCorrectionList[yplCorrectionIdx].Description)</span>
+                                </td>
+                                <td></td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td>
+                                    <input class="text" type="text" size="50" @bind="@updatedYplCorrectionName" />
+                                </td>
+                                <td>
+                                    <input class="text" type="text" size="50" @bind="@updatedYplCorrectionDescr" />
+                                </td>
+                                <td align="right">
+                                    <button class="btn btn-primary" @onclick="@(() => Update(yplCorrectionIdx))">Update</button>
+                                    <button class="btn btn-primary" @onclick="@(() => Cancel(yplCorrectionIdx))">Cancel</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+
                 <div>
                     <button class="btn btn-link" @onclick="@(() => HideInput())"><h2>Input Rheogram</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideFullCorr())"><h2>Fully corrected</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideRateCorr())"><h2>ShearRate corrected</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HideStressCorr())"><h2>ShearStress corrected</h2></button>
+                    <button class="btn btn-link" @onclick="@(() => HidePlot())"><h2>Plot rheograms</h2></button>
                     <div hidden="@IsHidInputPanel">
+                        @*Select the input rheogram*@
+                        <h3>YPLModel (based on Mullineux)</h3>
+                        <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelBasedOnNewtonianInputs" IsHidden="@IsHidInputPanel" />
+                        <h3>Input rheogram (Newtonian assumption)</h3>
                         <table class="table">
                             <thead></thead>
                             <tbody>
@@ -128,37 +136,36 @@
                             </tbody>
                             <tfoot></tfoot>
                         </table>
+                        @*Edit the input rheogram*@
                         <p>Warning, any change made to this Rheogram will be sent to the database and thus will affect other YPLCorrections which refer to it</p>
                         <InputRheogram HTTPClient="@APIUtils.HttpClientYPLCalibrationFromRheometer" IsHidden="@IsHidInputAdd" Rheogram="@yplCorrectionList[yplCorrectionIdx].RheogramInput" RheogramID="@rheogramID" />
-                        <h3 hidden="@IsHidInputPanel">YPLModel (based on Mullineux)</h3>
-                        <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelBasedOnNewtonianInputs" IsHidden="@IsHidInputPanel" />
                     </div>
                 </div>
-                <div>
-                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>Fully corrected Rheogram</h2></button>
-                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected" IsHidden="@IsHidCalcPanel" />
-                    <h3 hidden="@IsHidCalcPanel">YPLModel (based on Mullineux)</h3>
-                    <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelFullyCorrected" IsHidden="@IsHidCalcPanel" />
+                @*View results for different correction methods*@
+                <div hidden="@IsHidFullCorrPanel">
+                    <h3>YPLModel (based on Mullineux)</h3>
+                    <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelFullyCorrected" />
+                    <h3>Corrected rheogram</h3>
+                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramFullyCorrected" />
                 </div>
-                <div>
-                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearRate corrected Rheogram</h2></button>
-                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected" IsHidden="@IsHidCalcPanel" />
-                    <h3 hidden="@IsHidCalcPanel">YPLModel (based on Mullineux)</h3>
-                    <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelShearRateCorrected" IsHidden="@IsHidCalcPanel" />
+                <div hidden="@IsHidRateCorrPanel">
+                    <h3>YPLModel (based on Mullineux)</h3>
+                    <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelShearRateCorrected" />
+                    <h3>Corrected rheogram</h3>
+                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected" />
                 </div>
-                <div>
-                    <button class="btn btn-link" @onclick="@(() => HideCalc())"><h2>ShearStress corrected Rheogram</h2></button>
-                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected" IsHidden="@IsHidCalcPanel" />
-                    <h3 hidden="@IsHidCalcPanel">YPLModel (based on Mullineux)</h3>
-                    <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelShearStressCorrected" IsHidden="@IsHidCalcPanel" />
+                <div hidden="@IsHidStressCorrPanel">
+                    <h3>YPLModel (based on Mullineux)</h3>
+                    <YPLCalibrationTable YPLModel="@yplCorrectionList[yplCorrectionIdx].YPLModelShearStressCorrected" />
+                    <h3>Corrected rheogram</h3>
+                    <DisplayRheogram ShearRateAndStresses="@yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected" />
                 </div>
-                <div hidden="@IsHidCalcPanel">
+                <div hidden="@IsHidPlotPanel">
                     <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
                          XValues="@shearRates" YValues="@shearStresses" UseMarker="true" Name="Rheogram"
                          ListXValues="@listShearRates" ListYValues="@listShearStresses" ListUseMarkers="@listUseMarkers" ListNames="@listNames"
                          XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
                 </div>
-
             </div>
         }
     }
@@ -170,7 +177,10 @@
     private bool IsHidSubPanel = true;
     private bool IsHidInputPanel = true;
     private bool IsHidInputAdd = false;
-    private bool IsHidCalcPanel = true;
+    private bool IsHidPlotPanel = true;
+    private bool IsHidFullCorrPanel = true;
+    private bool IsHidRateCorrPanel = true;
+    private bool IsHidStressCorrPanel = true;
 
     // model data objects
     private List<YPLCorrection> yplCorrectionList;
@@ -210,6 +220,8 @@
                 if (inputRheogramList != null)
                     inputRheogramList.Sort((d1, d2) => d1.Name.CompareTo(d2.Name));
             }
+            if (yplCorrectionIdx >= 0)
+                await PlotFlowCurve();
         }
         catch (Exception ex)
         {
@@ -217,7 +229,7 @@
         }
     }
 
-    private void Edit(int idx)
+    private async void Edit(int idx)
     {
         if (yplCorrectionList != null && idx >= 0 && idx < yplCorrectionList.Count)
         {
@@ -228,6 +240,9 @@
             rheogramID = yplCorrectionList[idx].RheogramInput.ID;
             IsHidMainPanel = true;
             IsHidSubPanel = false;
+
+            await OnInitializedAsync();
+            await InvokeAsync(() => { StateHasChanged(); });
         }
     }
 
@@ -341,7 +356,7 @@
             listNames.Add("YPL From Newtonian Assumption");
             listUseMarkers.Add(false);
         }
-        
+
         minShearRate = double.MaxValue;
         maxShearRate = double.MinValue;
         if (yplCorrectionList != null &&
@@ -390,107 +405,7 @@
             listNames.Add("YPL From Fully Corrected Rheogram");
             listUseMarkers.Add(false);
         }
-      
-       /*
-        minShearRate = double.MaxValue;
-        maxShearRate = double.MinValue;
-        if (yplCorrectionList != null &&
-            yplCorrectionIdx < yplCorrectionList.Count &&
-            yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected != null)
-        {
-            List<object> srs = new List<object>();
-            List<object> sss = new List<object>();
-            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.Count; ++i)
-            {
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate < minShearRate)
-                {
-                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate;
-                }
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate > maxShearRate)
-                {
-                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate;
-                }
-                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearRate);
-                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearRateCorrected.ElementAt(i).ShearStress);
-            }
-            listShearRates.Add(srs);
-            listShearStresses.Add(sss);
-            listNames.Add("Shear-rate Corrected Rheogram");
-            listUseMarkers.Add(true);
-        }
-        if (yplCorrectionList != null &&
-            yplCorrectionIdx < yplCorrectionList.Count &&
-            yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].YPLModelShearRateCorrected != null &&
-            minShearRate < maxShearRate)
-        {
-            List<object> srs = new List<object>();
-            List<object> sss = new List<object>();
-            double step = (maxShearRate - minShearRate) / (count - 1);
-            YPLModel model = yplCorrectionList[yplCorrectionIdx].YPLModelShearRateCorrected;
-            for (int i = 0; i < count; i++)
-            {
-                double shearRate = minShearRate + i * step;
-                srs.Add(shearRate);
-                sss.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
-            }
-            listShearRates.Add(srs);
-            listShearStresses.Add(sss);
-            listNames.Add("YPL From Shear-rate Corrected Rheogram");
-            listUseMarkers.Add(false);
-        }
-        */
-       /*
-        minShearRate = double.MaxValue;
-        maxShearRate = double.MinValue;
-        if (yplCorrectionList != null &&
-            yplCorrectionIdx < yplCorrectionList.Count &&
-            yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected != null)
-        {
-            List<object> srs = new List<object>();
-            List<object> sss = new List<object>();
-            for (int i = 0; i < yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.Count; ++i)
-            {
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate < minShearRate)
-                {
-                    minShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate;
-                }
-                if (yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate > maxShearRate)
-                {
-                    maxShearRate = yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate;
-                }
-                srs.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearRate);
-                sss.Add(yplCorrectionList[yplCorrectionIdx].RheogramShearStressCorrected.ElementAt(i).ShearStress);
-            }
-            listShearRates.Add(srs);
-            listShearStresses.Add(sss);
-            listNames.Add("Shear-stress Corrected Rheogram");
-            listUseMarkers.Add(true);
-        }
-        if (yplCorrectionList != null &&
-            yplCorrectionIdx < yplCorrectionList.Count &&
-            yplCorrectionList[yplCorrectionIdx] != null &
-            yplCorrectionList[yplCorrectionIdx].YPLModelShearStressCorrected != null &&
-            minShearRate < maxShearRate)
-        {
-            List<object> srs = new List<object>();
-            List<object> sss = new List<object>();
-            double step = (maxShearRate - minShearRate) / (count - 1);
-            YPLModel model = yplCorrectionList[yplCorrectionIdx].YPLModelShearStressCorrected;
-            for (int i = 0; i < count; i++)
-            {
-                double shearRate = minShearRate + i * step;
-                srs.Add(shearRate);
-                sss.Add(model.Tau0 + model.K * Math.Pow(shearRate, model.N));
-            }
-            listShearRates.Add(srs);
-            listShearStresses.Add(sss);
-            listNames.Add("YPL From Shear-stress Corrected Rheogram");
-            listUseMarkers.Add(false);
-        }
-        */
+
         try
         {
             await flowCurvePlot.Plot();
@@ -580,13 +495,46 @@
     private void HideInput()
     {
         IsHidInputPanel = !IsHidInputPanel;
+        IsHidFullCorrPanel = true;
+        IsHidRateCorrPanel = true;
+        IsHidStressCorrPanel = true;
+        IsHidPlotPanel = true;
     }
 
-    private async Task HideCalc()
+    private async Task HideFullCorr()
     {
-        IsHidCalcPanel = !IsHidCalcPanel;
-        if (yplCorrectionIdx >= 0)
-            await PlotFlowCurve();
+        IsHidFullCorrPanel = !IsHidFullCorrPanel;
+        IsHidInputPanel = true;
+        IsHidRateCorrPanel = true;
+        IsHidStressCorrPanel = true;
+        IsHidPlotPanel = true;
+    }
+
+    private async Task HideRateCorr()
+    {
+        IsHidRateCorrPanel = !IsHidRateCorrPanel;
+        IsHidInputPanel = true;
+        IsHidFullCorrPanel = true;
+        IsHidStressCorrPanel = true;
+        IsHidPlotPanel = true;
+    }
+
+    private async Task HideStressCorr()
+    {
+        IsHidStressCorrPanel = !IsHidStressCorrPanel;
+        IsHidInputPanel = true;
+        IsHidFullCorrPanel = true;
+        IsHidRateCorrPanel = true;
+        IsHidPlotPanel = true;
+    }
+
+    private async Task HidePlot()
+    {
+        IsHidPlotPanel = !IsHidPlotPanel;
+        IsHidInputPanel = true;
+        IsHidFullCorrPanel = true;
+        IsHidRateCorrPanel = true;
+        IsHidStressCorrPanel = true;
     }
 }
 
