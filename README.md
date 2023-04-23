@@ -147,7 +147,7 @@ Eric Cayeux: erca@norceresearch.no
 
 Gilles Pelfrene: gipe@norceresearch.no 
 
-# Go to WIKI for more!
+# Go to WIKI for more! (under construction)
 
 [WIKI](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki) page includes:
 - [Background information on the model](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Background)
