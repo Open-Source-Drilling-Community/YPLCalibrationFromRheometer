@@ -196,9 +196,9 @@ namespace YPLCalibrationFromRheometer.Service
             {
                 // first apply calculations
                 if (!yplCorrection.CalculateInputRheogram() ||
-                    !yplCorrection.CalculateFullyCorrected() ||
-                    !yplCorrection.CalculateShearRateCorrected() ||
-                    !yplCorrection.CalculateShearStressCorrected())
+                    !yplCorrection.CalculateFullyCorrected(Rheogram.CalibrationMethodEnum.LevenbergMarquardt) ||
+                    !yplCorrection.CalculateShearRateCorrected(Rheogram.CalibrationMethodEnum.LevenbergMarquardt) ||
+                    !yplCorrection.CalculateShearStressCorrected(Rheogram.CalibrationMethodEnum.LevenbergMarquardt))
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
                     return false;
@@ -397,9 +397,9 @@ namespace YPLCalibrationFromRheometer.Service
             {
                 // first apply calculations
                 if (!updatedYplCorrection.CalculateInputRheogram() ||
-                    !updatedYplCorrection.CalculateFullyCorrected() ||
-                    !updatedYplCorrection.CalculateShearRateCorrected() ||
-                    !updatedYplCorrection.CalculateShearStressCorrected())
+                    !updatedYplCorrection.CalculateFullyCorrected(Rheogram.CalibrationMethodEnum.LevenbergMarquardt) ||
+                    !updatedYplCorrection.CalculateShearRateCorrected(Rheogram.CalibrationMethodEnum.LevenbergMarquardt) ||
+                    !updatedYplCorrection.CalculateShearStressCorrected(Rheogram.CalibrationMethodEnum.LevenbergMarquardt))
                 {
                     logger_.LogWarning("Impossible to calculate outputs for the given YPLCorrection");
                     return false;

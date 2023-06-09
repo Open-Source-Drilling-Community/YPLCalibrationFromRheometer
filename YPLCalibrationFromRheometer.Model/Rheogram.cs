@@ -210,17 +210,17 @@ namespace YPLCalibrationFromRheometer.Model
                     corrector.RheogramInput = this;
                     if (ShearRateCorrection == ShearRateCorrectionEnum.SkadsemSaasen && ShearStressCorrection == ShearStressCorrectionEnum.LacParry)
                     {
-                        corrector.CalculateFullyCorrected();
+                        corrector.CalculateFullyCorrected(CalibrationMethod);
                         CorrectedFlowCurve = corrector.RheogramFullyCorrected;
                     }
                     else if (ShearRateCorrection == ShearRateCorrectionEnum.SkadsemSaasen)
                     {
-                        corrector.CalculateShearRateCorrected();
+                        corrector.CalculateShearRateCorrected(CalibrationMethod);
                         CorrectedFlowCurve = corrector.RheogramShearRateCorrected;
                     }
                     else if (ShearStressCorrection == ShearStressCorrectionEnum.LacParry)
                     {
-                        corrector.CalculateShearStressCorrected();
+                        corrector.CalculateShearStressCorrected(CalibrationMethod);
                         CorrectedFlowCurve = corrector.RheogramShearStressCorrected;
                     }
                     else

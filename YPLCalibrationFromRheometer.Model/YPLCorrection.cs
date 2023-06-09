@@ -241,7 +241,7 @@ namespace YPLCalibrationFromRheometer.Model
         ///  calculate the shear rate and shear stress corrected Rheogram after Skadsem and Saasen(2019) "Concentric cylinder viscometer flows of Herschel-Bulkley fluids" and Lac and Parry (2017) "Non-Newtonian end-effects in standard oilfield rheometers"
         /// </summary>
         /// <returns></returns>
-        public bool CalculateFullyCorrected()
+        public bool CalculateFullyCorrected(Rheogram.CalibrationMethodEnum YPLCalibrationMethod)
         {
             bool success = true;
             if (RheogramInput != null)
@@ -276,7 +276,6 @@ namespace YPLCalibrationFromRheometer.Model
                             bool isFullySheared = false;
                             double eps = 1e-5;
                             int count = 0;
-
                             double dChi2 = -999.25;
                             do
                             {
@@ -289,8 +288,18 @@ namespace YPLCalibrationFromRheometer.Model
                                     shearRateAndStresses.Add(new ShearRateAndStress(shearRates[i], shearStresses[i] / (1 + phi[i])));
                                 }
                                 dChi2 = model.Chi2;
-                                //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                                model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                switch (YPLCalibrationMethod)
+                                {
+                                    case Rheogram.CalibrationMethodEnum.Kelessidis:
+                                        model.FitToLevenbergMarquardt(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                    case Rheogram.CalibrationMethodEnum.LevenbergMarquardt:
+                                        model.FitToLevenbergMarquardt(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                    default:
+                                        model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                }
                                 shearRateAndStresses.Clear();
                                 dChi2 -= model.Chi2;
                             } while (System.Math.Abs(dChi2) > eps && count++ < 40);
@@ -316,7 +325,18 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 YPLModelFullyCorrected.Description = "From Fully Corrected Rheogram";
                             }
-                            YPLModelFullyCorrected.FitToMullineux(RheogramFullyCorrected, RheogramInput.GetMeasurementPrecision());
+                            switch (YPLCalibrationMethod)
+                            {
+                                case Rheogram.CalibrationMethodEnum.Kelessidis:
+                                    YPLModelFullyCorrected.FitToLevenbergMarquardt(RheogramFullyCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                                case Rheogram.CalibrationMethodEnum.LevenbergMarquardt:
+                                    YPLModelFullyCorrected.FitToLevenbergMarquardt(RheogramFullyCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                                default:
+                                    YPLModelFullyCorrected.FitToMullineux(RheogramFullyCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                            }
                             if (count > 40)
                             {
                                 System.Diagnostics.Debug.WriteLine("Full correction calculation did not converge");
@@ -346,7 +366,7 @@ namespace YPLCalibrationFromRheometer.Model
         ///  calculate the shear rate corrected Rheogram after Skadsem and Saasen(2019) "Concentric cylinder viscometer flows of Herschel-Bulkley fluids"
         /// </summary>
         /// <returns></returns>
-        public bool CalculateShearRateCorrected()
+        public bool CalculateShearRateCorrected(Rheogram.CalibrationMethodEnum YPLCalibrationMethod)
         {
             bool success = true;
             if (RheogramInput != null)
@@ -391,8 +411,18 @@ namespace YPLCalibrationFromRheometer.Model
                                     shearRateAndStresses.Add(new ShearRateAndStress(shearRates[i], shearStresses[i]));
                                 }
                                 dChi2 = model.Chi2;
-                                //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                                model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                switch (YPLCalibrationMethod)
+                                {
+                                    case Rheogram.CalibrationMethodEnum.Kelessidis:
+                                        model.FitToLevenbergMarquardt(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                    case Rheogram.CalibrationMethodEnum.LevenbergMarquardt:
+                                        model.FitToLevenbergMarquardt(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                    default:
+                                        model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                }
                                 shearRateAndStresses.Clear();
                                 dChi2 -= model.Chi2;
                             } while (System.Math.Abs(dChi2) > eps && count++ < 40);
@@ -418,7 +448,18 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 YPLModelShearRateCorrected.Description = "From Shear-rate Corrected Rheogram";
                             }
-                            YPLModelShearRateCorrected.FitToMullineux(RheogramShearRateCorrected, RheogramInput.GetMeasurementPrecision());
+                            switch (YPLCalibrationMethod)
+                            {
+                                case Rheogram.CalibrationMethodEnum.Kelessidis:
+                                    YPLModelShearRateCorrected.FitToLevenbergMarquardt(RheogramShearRateCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                                case Rheogram.CalibrationMethodEnum.LevenbergMarquardt:
+                                    YPLModelShearRateCorrected.FitToLevenbergMarquardt(RheogramShearRateCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                                default:
+                                    YPLModelShearRateCorrected.FitToMullineux(RheogramShearRateCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                            }
                             if (count > 40)
                             {
                                 System.Diagnostics.Debug.WriteLine("Shear rate correction calculation did not converge");
@@ -448,7 +489,7 @@ namespace YPLCalibrationFromRheometer.Model
         ///  calculate the shear stress corrected Rheogram after Lac and Parry (2017) "Non-Newtonian end-effects in standard oilfield rheometers"
         /// </summary>
         /// <returns></returns>
-        public bool CalculateShearStressCorrected()
+        public bool CalculateShearStressCorrected(Rheogram.CalibrationMethodEnum YPLCalibrationMethod)
         {
             bool success = true;
             if (RheogramInput != null)
@@ -494,8 +535,18 @@ namespace YPLCalibrationFromRheometer.Model
                                     shearRateAndStresses.Add(new ShearRateAndStress(shearRates[i], shearStresses[i] / (1 + phi[i])));
                                 }
                                 dChi2 = model.Chi2;
-                                //model.FitToKelessidis(rheogram, YPLModel.ModelType.YPL);
-                                model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                switch (YPLCalibrationMethod)
+                                {
+                                    case Rheogram.CalibrationMethodEnum.Kelessidis:
+                                        model.FitToLevenbergMarquardt(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                    case Rheogram.CalibrationMethodEnum.LevenbergMarquardt:
+                                        model.FitToLevenbergMarquardt(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                    default:
+                                        model.FitToMullineux(shearRateAndStresses, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                        break;
+                                }
                                 shearRateAndStresses.Clear();
                                 dChi2 -= model.Chi2;
                             } while (System.Math.Abs(dChi2) > eps && count++ < 40);
@@ -521,7 +572,18 @@ namespace YPLCalibrationFromRheometer.Model
                             {
                                 YPLModelShearStressCorrected.Description = "From Shear-stress Corrected Rheogram";
                             }
-                            YPLModelShearStressCorrected.FitToMullineux(RheogramShearStressCorrected, RheogramInput.GetMeasurementPrecision());
+                            switch (YPLCalibrationMethod)
+                            {
+                                case Rheogram.CalibrationMethodEnum.Kelessidis:
+                                    YPLModelShearStressCorrected.FitToLevenbergMarquardt(RheogramShearStressCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                                case Rheogram.CalibrationMethodEnum.LevenbergMarquardt:
+                                    YPLModelShearStressCorrected.FitToLevenbergMarquardt(RheogramShearStressCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                                default:
+                                    YPLModelShearStressCorrected.FitToMullineux(RheogramShearStressCorrected, RheogramInput.GetMeasurementPrecision(), YPLModel.ModelType.YPL);
+                                    break;
+                            }
                             if (count > 40)
                             {
                                 System.Diagnostics.Debug.WriteLine("Shear stress correction calculation did not converge");

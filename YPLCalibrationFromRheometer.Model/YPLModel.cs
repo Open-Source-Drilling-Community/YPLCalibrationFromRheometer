@@ -328,7 +328,7 @@ namespace YPLCalibrationFromRheometer.Model
                 // first attempt with a Newton-Raphson method
                 double eps = 1e-5;
                 int count = 0;
-                double n0 = 1.0;
+                double n0 = 0.99;
                 double fn0 = FMullineux(rheoMeasList, n0);
                 do
                 {
@@ -347,7 +347,7 @@ namespace YPLCalibrationFromRheometer.Model
                     // if the Newton-Raphson method has failed, we try with a bisection method between 0.01 and 1.0
                     n0 = 0.01;
                     fn0 = FMullineux(rheoMeasList, n0);
-                    double n1 = 1.0;
+                    double n1 = 0.999;
                     if (fn0 * FMullineux(rheoMeasList, n1) < 0)
                     {
                         count = 0;
@@ -441,7 +441,7 @@ namespace YPLCalibrationFromRheometer.Model
                 {
                     a22 += System.Math.Log(samples[i].ShearRate) * System.Math.Pow(samples[i].ShearRate, n) * samples[i].ShearStress;
                 }
-                return a00 * a11 * a22 + a10 * a21 * a02 + a20 * a01 * a12 - (a20 * a11 * a02 + a00 * a21 * a12 + a10 * a01 * a22);
+                return a00 * a11 * a22 + a01 * a12 * a20 + a02 * a10 * a21 - (a00 * a12 * a21 + a01 * a10 * a22 + a02 * a11 * a20);
             }
             else
             {
