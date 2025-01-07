@@ -1,0 +1,32 @@
+name: Build and Push Docker images
+
+on:
+  workflow_dispatch:
+  #push:
+    #branches: [ "main" ]
+
+jobs:
+
+  build:
+  
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Login to DockerHub
+      run: docker login -u="${{ secrets.DOCKERHUB_USERNAME }}" -p="${{ secrets.DOCKERHUB_PASSWORD }}"
+      
+    - name: Build Service Docker image
+      run: docker build --file "${{ github.workspace }}/YPLCalibrationFromRheometer.Service/Dockerfile" --tag digiwells/yplcalibrationfromrheometerservice:stable .
+
+    - name: Push Docker image for Service to DockerHub
+      run: docker push digiwells/yplcalibrationfromrheometerservice:stable
+
+    - name: Build WebApp Docker image
+      run: docker build --file "${{ github.workspace }}/YPLCalibrationFromRheometer.WebApp.Client/Dockerfile" --tag digiwells/yplcalibrationfromrheometerwebappclient:stable .
+
+    - name: Push Docker image for WebApp to DockerHub
+      run: docker push digiwells/yplcalibrationfromrheometerwebappclient:stable
+      
