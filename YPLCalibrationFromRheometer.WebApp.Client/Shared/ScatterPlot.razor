@@ -1,10 +1,13 @@
 ﻿@implements IUnitAwareComponent
 
-<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+<PlotlyChart @bind-Id="ID" @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
 
 @code {
     [CascadingParameter]
     private UnitAndReferenceChoiceTag Parent { get; set; }
+
+    [Parameter]
+    public string ID { get; set; }
 
     [Parameter]
     public String XQuantityName { get; set; }

@@ -141,7 +141,7 @@
                 </div>
                 <div hidden="@IsHidPlotPanel">
                     @*Plot the associated calibrated rheograms*@
-                    <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
+                    <ScatterPlot ID="YPLCalibrationPlot" XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
                          XValues="@shearRates" YValues="@shearStresses" UseMarker="true" Name="Rheogram"
                          ListXValues="@listShearRates" ListYValues="@listShearStresses" ListUseMarkers="@listUseMarkers" ListNames="@listNames"
                          XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />

@@ -269,7 +269,7 @@
                     @*Plot rheogram*@
                     <div hidden="@IsHidPlotPanel">
                         <div>
-                            <ScatterPlot XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
+                            <ScatterPlot ID= "RheogramPlot" XQuantityName="FluidShearRate" YQuantityName="FluidShearStress"
                                  ListXValues="@xValues" ListYValues="@yValues" ListUseMarkers="@markers" ListNames="@names"
                                  XAxisTitle="Shear rate" YAxisTitle="Shear stress" @ref="flowCurvePlot" />
                         </div>
