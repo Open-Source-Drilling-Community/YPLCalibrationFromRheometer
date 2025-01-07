@@ -264,19 +264,23 @@ namespace YPLCalibrationFromRheometer.Model
                             double[] shearStresses = new double[nMeas];
                             double[] phi = new double[nMeas];
                             YPLModel model = new YPLModel();
+                            model.Tau0 = 0;
+                            model.K = 1.0;
+                            model.N = 1.0;
 
                             // Converting back assumed Newtonian shear rates to rheometer-dependent rotational velocities
                             for (int i = 0; i < nMeas; ++i)
                             {
                                 velocities[i] = GetNewtonianRotationalVelocity(RheogramInput.Measurements[i].BobNewtonianShearRate, GetR1() / GetR2());
-                                shearStresses[i] = RheogramInput.Measurements[i].BobNewtonianShearStress;
+                                double phiNewtonian = GetShearStressCorrectionFactor(GetR1(), GetR2(), model.K, model.N, model.Tau0, velocities[i]);
+                                shearStresses[i] = RheogramInput.Measurements[i].BobNewtonianShearStress; // note that for this shear stress, the Newtonian correction has already been removed
                             }
 
                             List<ShearRateAndStress> shearRateAndStresses = new List<ShearRateAndStress>();
                             bool isFullySheared = false;
                             double eps = 1e-5;
                             int count = 0;
-                            double dChi2 = -999.25;
+                            double dChi2;
                             do
                             {
                                 for (int i = 0; i < velocities.Length; ++i)
@@ -727,7 +731,7 @@ namespace YPLCalibrationFromRheometer.Model
                 diffPrime = leftHandSide - IntegrationEquation9(rpPrime, kappa, n, r2);
                 derivative = (diffPrime - diff) / (rpPrime - rp);
             }
-            if (count > 70)
+            if (count > 100)
             {
                 System.Diagnostics.Debug.WriteLine("Numerical error in CalculateRPlug");
             }
@@ -776,7 +780,7 @@ namespace YPLCalibrationFromRheometer.Model
 
             int count = 0;
 
-            while (System.Math.Abs(diff) > 1e-8 && count++ < 50)
+            while (System.Math.Abs(diff) > 1e-8 && count++ < 100)
             {
                 c -= diff / derivative;
                 diff = leftHandSide - IntegrationEquation8(c, kappa, n, tau_y, r2);
@@ -784,7 +788,7 @@ namespace YPLCalibrationFromRheometer.Model
                 diffPrime = leftHandSide - IntegrationEquation8(cPrime, kappa, n, tau_y, r2);
                 derivative = (diffPrime - diff) / (cPrime - c);
             }
-            if (count > 40)
+            if (count > 100)
             {
                 System.Diagnostics.Debug.WriteLine("Numerical error in CalculateC");
             }

@@ -157,7 +157,7 @@ namespace YPLCalibrationFromRheometer.Service
 
         public DrillingUnitChoiceSet Get(Guid guid)
         {
-            if (guid != null && guid != Guid.Empty)
+            if (guid != Guid.Empty)
             {
                 if (connection_ != null)
                 {
@@ -204,7 +204,7 @@ namespace YPLCalibrationFromRheometer.Service
 
         public bool Add(DrillingUnitChoiceSet drillingUnitChoiceSet)
         {
-            if (drillingUnitChoiceSet != null && drillingUnitChoiceSet.ID != null && !drillingUnitChoiceSet.ID.Equals(Guid.Empty))
+            if (drillingUnitChoiceSet != null && !drillingUnitChoiceSet.ID.Equals(Guid.Empty))
             {
                 // 1) the custom DrillingUnitChoiceSet is added to the database
                 if (connection_ != null)
@@ -278,7 +278,7 @@ namespace YPLCalibrationFromRheometer.Service
 
         public bool Remove(Guid guid)
         {
-            if (guid != null && !guid.Equals(Guid.Empty))
+            if (!guid.Equals(Guid.Empty))
             {
                 if (connection_ != null)
                 {

@@ -62,7 +62,7 @@ namespace Tests
             for (int i = 0; i < newtonianShearRates.Length; ++i)
                 yplCorrection.RheogramInput.Measurements.Add(new RheometerMeasurement(newtonianShearRates[i], shearStresses[i], Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
 
-            yplCorrection.CalculateShearRateCorrected();
+            yplCorrection.CalculateShearRateCorrected(Rheogram.CalibrationMethodEnum.Mullineux);
 
             for (int i = 0; i < newtonianShearRates.Length; ++i)
             {
@@ -113,7 +113,7 @@ namespace Tests
             for (int i = 0; i < newtonianShearRates.Length; ++i)
                 calculationData.RheogramInput.Measurements.Add(new RheometerMeasurement(newtonianShearRates[i], shearStresses[i], Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
 
-            calculationData.CalculateShearRateCorrected();
+            calculationData.CalculateShearRateCorrected(Rheogram.CalibrationMethodEnum.Mullineux);
 
             for (int i = 0; i < newtonianShearRates.Length; ++i)
             {
@@ -164,7 +164,7 @@ namespace Tests
             for (int i = 0; i < newtonianShearRates.Length; ++i)
                 calculationData.RheogramInput.Measurements.Add(new RheometerMeasurement(newtonianShearRates[i], shearStresses[i], Rheogram.RateSourceEnum.BobNewtonianShearRate, Rheogram.StressSourceEnum.BobNewtonianShearStress));
 
-            calculationData.CalculateShearRateCorrected();
+            calculationData.CalculateShearRateCorrected(Rheogram.CalibrationMethodEnum.Mullineux);
 
             for (int i = 0; i < newtonianShearRates.Length; ++i)
             {

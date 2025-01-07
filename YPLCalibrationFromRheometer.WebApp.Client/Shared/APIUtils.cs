@@ -193,7 +193,7 @@ namespace YPLCalibrationFromRheometer.WebApp.Client.Shared
                             dataList.Add(data);
                     }
                     if (dataList.Count != ids.Count)
-                        throw new Exception($"Inconsistent count of data-loaded IDs of type of type {typeof(T).Name} and loaded datas.");
+                        logger.LogWarning($"Inconsistent count of data-loaded IDs of type of type {typeof(T).Name} and loaded datas.");
                     success = true;
                 }
                 else

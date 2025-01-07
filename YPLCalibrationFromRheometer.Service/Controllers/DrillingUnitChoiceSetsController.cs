@@ -62,7 +62,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpPut("{id}")]
         public void Put(Guid id, [FromBody] DrillingUnitChoiceSet value)
         {
-            if (value != null && value.ID != null && value.ID != Guid.Empty)
+            if (value != null && value.ID != Guid.Empty)
             {
                 DrillingUnitChoiceSet baseData1 = drillingUnitChoiceSetsManager_.Get(id);
                 if (baseData1 != null)
@@ -84,7 +84,7 @@ namespace YPLCalibrationFromRheometer.Service.Controllers
         [HttpDelete("{id}")]
         public void Delete(Guid id)
         {
-            if (id != null && !id.Equals(Guid.Empty))
+            if (!id.Equals(Guid.Empty))
             {
                 drillingUnitChoiceSetsManager_.Remove(id);
             }
