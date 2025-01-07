@@ -236,21 +236,28 @@ namespace YPLCalibrationFromRheometer.Model
                     }
                     if (CorrectedFlowCurve != null)
                     {
-                        if (CalibratedYPLModel == null)
+                        if (CorrectedFlowCurve.Count == 0)
                         {
                             CalibratedYPLModel = new YPLModel();
                         }
-                        switch (CalibrationMethod)
+                        else
                         {
-                            case CalibrationMethodEnum.Kelessidis:
-                                CalibratedYPLModel.FitToKelessidis(CorrectedFlowCurve, GetMeasurementPrecision());
-                                break;
-                            case CalibrationMethodEnum.LevenbergMarquardt:
-                                CalibratedYPLModel.FitToLevenbergMarquardt(CorrectedFlowCurve, GetMeasurementPrecision());
-                                break;
-                            default:
-                                CalibratedYPLModel.FitToMullineux(CorrectedFlowCurve, GetMeasurementPrecision());
-                                break;
+                            if (CalibratedYPLModel == null)
+                            {
+                                CalibratedYPLModel = new YPLModel();
+                            }
+                            switch (CalibrationMethod)
+                            {
+                                case CalibrationMethodEnum.Kelessidis:
+                                    CalibratedYPLModel.FitToKelessidis(CorrectedFlowCurve, GetMeasurementPrecision());
+                                    break;
+                                case CalibrationMethodEnum.LevenbergMarquardt:
+                                    CalibratedYPLModel.FitToLevenbergMarquardt(CorrectedFlowCurve, GetMeasurementPrecision());
+                                    break;
+                                default:
+                                    CalibratedYPLModel.FitToMullineux(CorrectedFlowCurve, GetMeasurementPrecision());
+                                    break;
+                            }
                         }
                     }
                 }

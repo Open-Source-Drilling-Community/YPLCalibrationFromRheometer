@@ -351,6 +351,7 @@ namespace YPLCalibrationFromRheometer.Model
                             }
                             else
                             {
+                                YPLModelFullyCorrected = null;
                                 System.Diagnostics.Debug.WriteLine("Full correction calculation did not converge");
                             }
                             return true;
@@ -481,6 +482,7 @@ namespace YPLCalibrationFromRheometer.Model
                             }
                             else
                             {
+                                YPLModelShearRateCorrected = null;
                                 System.Diagnostics.Debug.WriteLine("Shear rate correction calculation did not converge");
                             }
                             return true;
@@ -612,6 +614,7 @@ namespace YPLCalibrationFromRheometer.Model
                             }
                             else
                             {
+                                YPLModelShearStressCorrected = null;
                                 System.Diagnostics.Debug.WriteLine("Shear stress correction calculation did not converge");
 
                             }
