@@ -1,28 +1,87 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
+﻿using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using YPLCalibrationFromRheometer.ModelClientShared;
 
 namespace YPLCalibrationFromRheometer.RemoveDamagedRheograms
 {
+    class Measurement
+    {
+        public double ShearRate { get; set; }
+        public double ShearStress { get; set; }
+    }
+    class Rheogram
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int RheometerType { get; set; } = 0;
+        public List<Measurement> Measurements { get; set; } = new List<Measurement>();
+    }
     class Program
     {
         static void Main(string[] args)
         {
-            Test(args);
+            ConvertFile();
+            ReadRheogramSet();
+            UploadRheograms(args);
             Thread.Sleep(10);
         }
 
-        static async void Test(string[] args)
+        private static void ConvertFile()
         {
-            Console.Write("YPLCalibrationFromRheometer Remove Damaged Rheograms");
-            string host = "https://app.DigiWells.no/";
+            if (File.Exists("..\\..\\..\\..\\Rheograms.txt"))
+            {
+                using (StreamWriter writer = new StreamWriter("..\\..\\..\\..\\RheogramSet.txt"))
+                {
+                    using (StreamReader reader = new StreamReader("..\\..\\..\\..\\Rheograms.txt"))
+                    {
+
+                        while (!reader.EndOfStream)
+                        {
+                            string? line = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(line))
+                            {
+                                string[] tokens = line.Split('\t');
+                                if (tokens.Length == 2)
+                                {
+                                    // this is the header
+                                    writer.WriteLine(tokens[0] + "\t" + tokens[1] + "\t" + 1);
+                                }
+                                else if (tokens.Length == 3)
+                                {
+                                    // we skip
+                                }
+                                else if (tokens.Length == 4)
+                                {
+                                    writer.WriteLine(tokens[1] + "\t" + tokens[3]);
+                                }
+                            }
+                            else
+                            {
+                                writer.WriteLine();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static List<Rheogram> ReadRheogramSet()
+        {
+            List<Rheogram> rheograms = new List<Rheogram>();
+            if (File.Exists("..\\..\\..\\..\\RheogramSet.txt"))
+            {
+                using (StreamWriter writer = new StreamWriter("..\\..\\..\\..\\RheogramSet.txt"))
+                {
+                }
+            }
+            return rheograms;
+        }
+        static async void UploadRheograms(string[] args)
+        {
+            Console.Write("YPLCalibrationFromRheometer Upload a set of Rheograms");
+            //string host = "https://app.DigiWells.no/";
             //string host = "https://dev.DigiWells.no/";
-            //string host = "http://localhost:5002/";
+            string host = "http://localhost:5002/";
             if (args != null && args.Length >= 1)
             {
                 host = args[0];

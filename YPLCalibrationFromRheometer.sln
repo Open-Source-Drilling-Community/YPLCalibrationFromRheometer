@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPLCalibrationFromRheometer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPLCalibrationFromRheometer.ResetDefaultUnitSystems", "YPLCalibrationFromRheometer.ResetDefaultUnitSystems\YPLCalibrationFromRheometer.ResetDefaultUnitSystems.csproj", "{7A015A57-49D9-4852-A2A3-02950E1DF03E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPLCalibrationFromRheometer.UploadRheograms", "YPLCalibrationFromRheometer.UploadRheograms\YPLCalibrationFromRheometer.UploadRheograms.csproj", "{79813348-390E-43FB-AE56-A757D2245B71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,10 @@ Global
 		{7A015A57-49D9-4852-A2A3-02950E1DF03E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A015A57-49D9-4852-A2A3-02950E1DF03E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A015A57-49D9-4852-A2A3-02950E1DF03E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79813348-390E-43FB-AE56-A757D2245B71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79813348-390E-43FB-AE56-A757D2245B71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79813348-390E-43FB-AE56-A757D2245B71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79813348-390E-43FB-AE56-A757D2245B71}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
