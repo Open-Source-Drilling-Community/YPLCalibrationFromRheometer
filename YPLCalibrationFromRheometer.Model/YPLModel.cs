@@ -1,5 +1,4 @@
 ﻿using OSDC.DotnetLibraries.General.Common;
-using OSDC.DotnetLibraries.General.Math;
 using OSDC.DotnetLibraries.General.Statistics;
 using System;
 using System.Collections.Generic;

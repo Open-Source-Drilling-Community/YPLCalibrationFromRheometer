@@ -2,6 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Eric Cayeux, Gilles Pelfrene</Authors>
+    <Company>NORCE</Company>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,9 +22,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OSDC.DotnetLibraries.General.Common" Version="1.0.2" />
-    <PackageReference Include="OSDC.DotnetLibraries.General.Math" Version="1.0.2" />
-    <PackageReference Include="OSDC.DotnetLibraries.General.Statistics" Version="1.0.1" />
+    <PackageReference Include="OSDC.DotnetLibraries.General.Common" Version="1.1.0" />
+    <PackageReference Include="OSDC.DotnetLibraries.General.Math" Version="1.2.0" />
+    <PackageReference Include="OSDC.DotnetLibraries.General.Statistics" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
