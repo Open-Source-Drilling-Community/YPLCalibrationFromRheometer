@@ -28,7 +28,7 @@ namespace YPLCalibrationFromRheometer.Service
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            var basePath = "/YPLCalibrationFromRheometer/api";
+            var basePath = "/yplcalibrationfromrheometer/api";
             var scheme = "http";
 
             app.UsePathBase(basePath);

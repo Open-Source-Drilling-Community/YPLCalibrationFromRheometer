@@ -29,7 +29,7 @@ namespace YPLCalibrationFromRheometer.WebApp.Client
         {
             app.UseForwardedHeaders();
             // This needs to match with what is defined in "charts/<helm-chart-name>/templates/values.yaml ingress.Path
-            app.UsePathBase("/YPLCalibrationFromRheometer/webapp");
+            app.UsePathBase("/yplcalibrationfromrheometer/webapp");
 
             if (!String.IsNullOrEmpty(Configuration["YPLCalibrationHostURL"]))
                 YPLCalibrationFromRheometer.WebApp.Client.Configuration.YPLCalibrationHostURL = Configuration["YPLCalibrationHostURL"];

@@ -39,30 +39,29 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
-
+  annotations:
+    description: "A microservice for handling rheometer measurements calibration and correction"
 ingress:
   enabled: true
-  className: ""
+  className: public
   annotations:
-    kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
+    # nginx-ingress: Enable regex path matching for case-insensitive routing
+    # This allows /SurveyInstrument/api to match the same route as /surveyinstrument/api
+    nginx.ingress.kubernetes.io/use-regex: "true"
   hosts:
     - host: localhost
       paths:
-        - path: /YPLCalibrationFromRheometer/api
-          pathType: Prefix
+        - path: /(?i)yplcalibrationfromrheometer/api
+          pathType: ImplementationSpecific
     - host: dev.digiwells.no
       paths:
-        - path: /YPLCalibrationFromRheometer/api
-          pathType: Prefix
+        - path: /(?i)yplcalibrationfromrheometer/api
+          pathType: ImplementationSpecific
     - host: app.digiwells.no
       paths:
-        - path: /YPLCalibrationFromRheometer/api
-          pathType: Prefix
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+        - path: /(?i)yplcalibrationfromrheometer/api
+          pathType: ImplementationSpecific
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
