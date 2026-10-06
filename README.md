@@ -155,4 +155,8 @@ Gilles Pelfrene: gipe@norceresearch.no
 - [A tutorial on the use of the microservice](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/Microservice-tutorial)
 - [Develop, build, deploy the program](https://github.com/Open-Source-Drilling-Community/YPLCalibrationFromRheometer/wiki/For-developers)
 
+## Persisted calculation-case lifecycle
+
+`YPLCalibration` is a persisted, immediately evaluated calculation case. SemanticCatalogue 0.15.0 metadata identifies the rheogram input, the server-derived calibration results, and the GET/POST/PUT retrieval, immediate-submission and immediate-replacement operations. This service currently has no registered calculation MCP tool.
+
 

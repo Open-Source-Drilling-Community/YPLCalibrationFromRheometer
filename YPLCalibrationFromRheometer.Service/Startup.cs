@@ -22,7 +22,11 @@ namespace YPLCalibrationFromRheometer.Service
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(config =>
+            {
+                config.SchemaFilter<CalculationCaseSemanticFilter>();
+                config.OperationFilter<CalculationCaseSemanticFilter>();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
