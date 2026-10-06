@@ -2,6 +2,7 @@
 using OSDC.DotnetLibraries.General.Statistics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace YPLCalibrationFromRheometer.Model
 {
@@ -322,6 +323,33 @@ namespace YPLCalibrationFromRheometer.Model
             if (rheoMeasList != null && rheoMeasList.Count >= 3)
             {
                 int rheoMeasCount = rheoMeasList.Count;
+
+                // Mullineux's determinant is numerically singular at n = 1. Detect the
+                // exact linear (Newtonian/Bingham-plastic) limit before root finding.
+                // This also avoids rejecting a valid n = 1 solution because the large
+                // determinant terms lose precision through cancellation.
+                if (model == ModelType.YPL)
+                {
+                    var linearSamples = rheoMeasList
+                        .Select(sample => new Pair<double, double>(sample.ShearRate, sample.ShearStress))
+                        .ToList();
+                    Pair<double, double> linearFit = DataModelling.LinearRegression(linearSamples);
+                    double stressScale = Math.Max(1.0, rheoMeasList.Max(sample => Math.Abs(sample.ShearStress)));
+                    double maximumResidual = rheoMeasList.Max(sample =>
+                        Math.Abs(sample.ShearStress - linearFit.Left - linearFit.Right * sample.ShearRate));
+                    if (maximumResidual <= stressScale * 1e-10)
+                    {
+                        Tau0 = linearFit.Left;
+                        K = linearFit.Right;
+                        N = 1.0;
+                        double sig = measurementPrecision > 0 ? measurementPrecision : 0.01;
+                        double[] gammas = rheoMeasList.Select(sample => sample.ShearRate).ToArray();
+                        double[] taus = rheoMeasList.Select(sample => sample.ShearStress).ToArray();
+                        double[] sigs = Enumerable.Repeat(sig, rheoMeasCount).ToArray();
+                        Chi2 = Statistics.ChiSquare(gammas, taus, sigs, this);
+                        return;
+                    }
+                }
 
                 // determine N
                 // first attempt with a Newton-Raphson method
