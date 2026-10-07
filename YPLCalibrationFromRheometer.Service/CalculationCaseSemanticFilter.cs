@@ -5,7 +5,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace YPLCalibrationFromRheometer.Service;
 
-/// <summary>Publishes the reviewed 0.15 calculation-case vocabulary for the legacy YPL wire model.</summary>
+/// <summary>Publishes the reviewed 0.16 calculation-case vocabulary for the legacy YPL wire model.</summary>
 public sealed class CalculationCaseSemanticFilter : ISchemaFilter, IOperationFilter
 {
     private const string Case = "urn:osdc:semantic:calculation-case";
@@ -26,6 +26,7 @@ public sealed class CalculationCaseSemanticFilter : ISchemaFilter, IOperationFil
         {
             "Post" => "urn:osdc:semantic:immediate-calculation-submission",
             "Put" => "urn:osdc:semantic:immediate-calculation-replacement",
+            "Delete" => "urn:osdc:semantic:calculation-case-deletion",
             _ when context.MethodInfo.Name.StartsWith("Get", StringComparison.Ordinal) =>
                 "urn:osdc:semantic:calculation-case-retrieval",
             _ => string.Empty
@@ -51,7 +52,7 @@ public sealed class CalculationCaseSemanticFilter : ISchemaFilter, IOperationFil
         var value = new OpenApiObject
         {
             ["catalogue"] = new OpenApiString("urn:osdc:semantic-catalogue"),
-            ["catalogueVersion"] = new OpenApiString("0.15.0"),
+            ["catalogueVersion"] = new OpenApiString("0.16.0"),
             ["concept"] = new OpenApiString(concept),
             ["curationStatus"] = new OpenApiString("Reviewed"),
             ["assertionSource"] = new OpenApiString("provider-binding-registry"),

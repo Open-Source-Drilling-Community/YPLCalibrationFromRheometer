@@ -157,6 +157,6 @@ Gilles Pelfrene: gipe@norceresearch.no
 
 ## Persisted calculation-case lifecycle
 
-`YPLCalibration` is a persisted, immediately evaluated calculation case. SemanticCatalogue 0.15.0 metadata identifies the rheogram input, the server-derived calibration results, and the GET/POST/PUT retrieval, immediate-submission and immediate-replacement operations. This service currently has no registered calculation MCP tool.
+`YPLCalibration` is a persisted, immediately evaluated calculation case. SemanticCatalogue 0.16.0 metadata identifies the rheogram input, the server-derived calibration results, and the GET/POST/PUT/DELETE retrieval, immediate-submission, immediate-replacement, and deletion operations. This service currently has no registered calculation MCP tool.
 
 
